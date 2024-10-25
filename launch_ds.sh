@@ -55,4 +55,5 @@ torchrun \
     --dropout 0.05 \
     --lr_init 6e-4 \
     --lr_final 1e-5 \
-    --warmup_steps 1000
+    --warmup_steps 1000 \
+    --train_batch_size 28

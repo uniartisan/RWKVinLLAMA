@@ -207,11 +207,11 @@ def setup_distributed():
     torch.cuda.set_device(int(os.environ["LOCAL_RANK"]))
 
 if __name__ == '__main__':
-    setup_distributed()
     parser = create_arg_parser()
     args = parser.parse_args()
     print(args)
-
+    if args.num_nodes > 1:
+        setup_distributed()
     # 加载配置
     with open(args.config_file) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
@@ -322,7 +322,7 @@ if __name__ == '__main__':
         else:
             # 否则，根据命令行参数创建配置
             ds_config = {
-                "train_batch_size": args.train_batch_size,
+                "train_batch_size": args.trainq_batch_size,
                 "bf16": {
                     "enabled": True
                 },
