@@ -7,56 +7,89 @@ HEAD_SIZE = 64
 import sys
 import os
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RESCALE_LAYER = -1
+is_wind_cuda = False
+if 'is_wind_cuda' in os.environ:
+    is_wind_cuda = os.environ['is_wind_cuda'] == '1'
+if is_wind_cuda:    
+    load(name="wind", sources=[f'{parent_dir}/rwkv_cuda_wind/wind_rwkv7.cu', f'{parent_dir}/rwkv_cuda_wind/wind_rwkv7.cpp'], is_python_module=False, verbose=True, extra_cuda_cflags=[f'-D_C_={HEAD_SIZE}',"-res-usage", "--use_fast_math", "-O3", "-Xptxas -O3", "--extra-device-vectorization"])
 
-class WindRWKV7(torch.autograd.Function):
-    @staticmethod
-    def forward(ctx, w,q,k,v,a,b,s0):
-        B,T,H,C = w.shape
-        ctx.s0_is_None = s0 is None
-        s0 = torch.zeros(B,H,C,C, dtype=w.dtype,device=w.device) if s0 is None else s0
-        assert T%16 == 0
-        assert all(i.dtype==torch.bfloat16 for i in [w,q,k,v,a,b,s0])
-        assert all(i.is_contiguous() for i in [w,q,k,v,a,b,s0])
-        y = torch.empty_like(v)
-        sT = torch.empty_like(s0)
-        s = torch.zeros(B,H,T//16,C,C, dtype=w.dtype,device=w.device)
-        torch.ops.wind.forward(w,q,k,v,a,b, s0,y,s,sT)
-        ctx.save_for_backward(w,q,k,v,a,b,s)
-        return y, sT
+    class WindRWKV7(torch.autograd.Function):
+        @staticmethod
+        def forward(ctx,w,q,k,v,a,b):
+            B,T,H,C = w.shape
+            s0 = torch.zeros(B,H,C,C,dtype=w.dtype,device=w.device)
+            assert T%16 == 0
+            assert all(i.dtype==torch.bfloat16 for i in [w,q,k,v,a,b,s0])
+            w,q,k,v,a,b,s0 = [i.contiguous() for i in [w,q,k,v,a,b,s0]]
+            y = torch.empty_like(v)
+            sT = torch.empty_like(s0)
+            s = torch.zeros(B,H,T//16,C,C, dtype=w.dtype,device=w.device)
+            torch.ops.wind.forward(w,q,k,v,a,b, s0,y,s,sT)
+            ctx.save_for_backward(w,q,k,v,a,b,s)
+            return y
+        
+        @staticmethod
+        def backward(ctx,dy):
+            w,q,k,v,a,b,s = ctx.saved_tensors
+            B,T,H,C = w.shape
+            dsT = torch.zeros(B,H,C,C,dtype=dy.dtype,device=dy.device)
+            assert all(i.dtype==torch.bfloat16 for i in [dy])
+            dy,dsT = [i.contiguous() for i in [dy,dsT]]
+            dw,dq,dk,dv,da,db,ds0 = [torch.empty_like(x) for x in [w,q,k,v,a,b,dsT]]
+            torch.ops.wind.backward(w,q,k,v,a,b, dy,s,dsT, dw,dq,dk,dv,da,db,ds0)
+            return dw,dq,dk,dv,da,db
+
+    def RUN_CUDA_RWKV7g(q,w,k,v,a,b):
+        B,T,HC = q.shape
+        q,w,k,v,a,b = [i.view(B,T,HC//HEAD_SIZE,HEAD_SIZE) for i in [q,w,k,v,a,b]]
+        return WindRWKV7.apply(w,q,k,v,a,b).view(B,T,HC)
+else:#use fast
+    CHUNK_LEN = 16
+
+    flags = ['-res-usage', f'-D_C_={HEAD_SIZE}', f"-D_CHUNK_LEN_={CHUNK_LEN}", "--use_fast_math", "-O3", "-Xptxas -O3", "--extra-device-vectorization"]
+    VERSION = 1 if HEAD_SIZE < 128 else 2
+    load(name="wind_backstepping", sources=[f'{parent_dir}/rwkv_cuda_wind/backstepping_f32_{VERSION}.cu', f'{parent_dir}/rwkv_cuda_wind/backstepping_f32.cpp'], is_python_module=False, verbose=True, extra_cuda_cflags=flags)
+
+    class WindBackstepping(torch.autograd.Function):
+        @staticmethod
+        def forward(ctx, w,q,k,v,z,b):
+            B,T,H,C = w.shape 
+            assert T%CHUNK_LEN == 0
+            assert all(i.dtype==torch.bfloat16 for i in [w,q,k,v,z,b])
+            w,q,k,v,z,b = [i.contiguous() for i in [w,q,k,v,z,b]]
+            y = torch.empty_like(v)
+            s = torch.empty(B,H,T//CHUNK_LEN,C,C, dtype=torch.float32,device=w.device)
+            sa = torch.empty(B,T,H,C, dtype=torch.float32,device=w.device)
+            torch.ops.wind_backstepping.forward(w,q,k,v,z,b, y,s,sa)
+            ctx.save_for_backward(w,q,k,v,z,b,s,sa)
+            return y
+        @staticmethod
+        def backward(ctx, dy):
+            assert dy.dtype == torch.bfloat16
+            dy = dy.contiguous()
+            w,q,k,v,z,b,s,sa = ctx.saved_tensors
+            dw,dq,dk,dv,dz,db = [torch.empty_like(x) for x in [w,q,k,v,z,b]]
+            torch.ops.wind_backstepping.backward(w,q,k,v,z,b, dy,s,sa, dw,dq,dk,dv,dz,db)
+            return dw,dq,dk,dv,dz,db
+
+    def RUN_CUDA_RWKV7g(q,w,k,v,a,b):
+        B,T,HC = q.shape
+        q,w,k,v,a,b = [i.view(B,T,HC//64,64) for i in [q,w,k,v,a,b]]
+        return WindBackstepping.apply(w,q,k,v,a,b).view(B,T,HC)
     
-    @staticmethod
-    def backward(ctx, dy, dsT):
-        assert all(i.dtype==torch.bfloat16 for i in [dy,dsT])
-        assert all(i.is_contiguous() for i in [dy,dsT])
-        w,q,k,v,a,b,s = ctx.saved_tensors
-        dw,dq,dk,dv,da,db,ds0 = [torch.empty_like(x) for x in [w,q,k,v,a,b,dsT]]
-        torch.ops.wind.backward(w,q,k,v,a,b, dy,s,dsT, dw,dq,dk,dv,da,db,ds0)
-        return dw,dq,dk,dv,da,db,(None if ctx.s0_is_None else ds0) 
-    
-wind_rwkv7 = WindRWKV7.apply
+########################################################################################################
+# RWKV TimeMix
+########################################################################################################
 
-@torch.compile
-def wind(w,q,k,v,a,b, s0=None, return_state = False, path = ''):
-    if not 'wind' in dir(torch.ops):
-        B,T,H,C = w.shape
-        load(name="wind", sources=[path+'wind_rwkv7.cu', path+'wind_rwkv7.cpp'], is_python_module=False, verbose=True, extra_cuda_cflags=[f'-D_C_={C}',"-res-usage", "--use_fast_math", "-O3", "-Xptxas -O3", "--extra-device-vectorization"])
-    return wind_rwkv7(w,q,k,v,a,b,s0)[:return_state+1]
-
-def RUN_CUDA_RWKV7g(q, w, k, v, a, b):
-    B,T,HC = q.shape
-    q,w,k,v,a,b = [i.view(B,T,HC//HEAD_SIZE,HEAD_SIZE) for i in [q,w,k,v,a,b]]
-    path = parent_dir+'/rwkv_cuda_wind/'
-    return wind(w,q,k,v,a,b, path=path)[0].view(B,T,HC)    
-
-class RWKV7(nn.Module):
+class RWKV_Tmix_x070(nn.Module):
     def __init__(self, args, layer_id):
         super().__init__()
         self.args = args
         self.layer_id = layer_id
         self.n_embd = args.n_embd
-        args.dim_att = args.n_embd
 
-        self.head_size = HEAD_SIZE
+        self.head_size = args.head_size_a        
         self.n_head = args.dim_att // self.head_size
         assert args.dim_att % self.n_head == 0
 
@@ -175,31 +208,68 @@ class RWKV7(nn.Module):
         x = self.output(x * g)
         return x
 
-class MLP(nn.Module):
+    
+########################################################################################################
+# RWKV ChannelMix
+########################################################################################################
 
-    def __init__(self, config):
+class RWKV_CMix_x060(nn.Module):
+    def __init__(self, args, layer_id):
         super().__init__()
-        self.c_fc    = nn.Linear(config.n_embd, 7 * config.n_embd // 2, bias=False)
-        self.c_proj  = nn.Linear(7 * config.n_embd // 2, config.n_embd, bias=False)
-        self.c_proj.weight.data.zero_() # zero init suggested by @Grad62304977
+        self.args = args
+        self.layer_id = layer_id
+        self.time_shift = nn.ZeroPad2d((0, 0, 1, -1))
+
+        with torch.no_grad():
+            ddd = torch.empty(1, 1, args.n_embd)
+            self.time_maa_k = nn.Parameter(ddd)
+            self.time_maa_r = nn.Parameter(ddd)
+
+        self.key = nn.Linear(args.n_embd, args.dim_ffn, bias=False)
+        self.receptance = nn.Linear(args.n_embd, args.n_embd, bias=False)
+        self.value = nn.Linear(args.dim_ffn, args.n_embd, bias=False)
 
     def forward(self, x):
-        x = self.c_fc(x)
-        x = F.relu(x).square() # https://arxiv.org/abs/2109.08668v2; ~1-2% better than GELU; suggested by @SKYLINEZ007 and @Grad62304977
-        x = self.c_proj(x)
-        return x
+        xx = self.time_shift(x) - x
+        xk = x + xx * self.time_maa_k
+        xr = x + xx * self.time_maa_r
+
+        k = self.key(xk)
+        k = torch.relu(k) ** 2
+        kv = self.value(k)
+        return torch.sigmoid(self.receptance(xr)) * kv
+
+########################################################################################################
+# RWKV Block
+########################################################################################################
 
 class Block(nn.Module):
-
-    def __init__(self, config, layer_id):
+    def __init__(self, args, layer_id):
         super().__init__()
-        self.attn = RWKV7(config, layer_id)
-        self.mlp = MLP(config)
+        self.args = args
+        self.layer_id = layer_id
 
-        self.ln1 = nn.LayerNorm(config.n_embd)
-        self.ln2 = nn.LayerNorm(config.n_embd)
+        self.ln1 = nn.LayerNorm(args.n_embd)
+        self.ln2 = nn.LayerNorm(args.n_embd)
 
+        if self.layer_id == 0:
+            self.ln0 = nn.LayerNorm(args.n_embd)
+
+        self.att = RWKV_Tmix_x070(args, layer_id)
+        self.ffn = RWKV_CMix_x060(args, layer_id)
+        
     def forward(self, x):
-        x = x + self.attn(self.ln1(x))
-        x = x + self.mlp(self.ln2(x))
+
+        if self.layer_id == 0:
+            x = self.ln0(x)
+
+        x = x + self.att(self.ln1(x))
+        x = x + self.ffn(self.ln2(x))
+
+        if RESCALE_LAYER > 0:
+            if (self.layer_id+1) % RESCALE_LAYER == 0:
+                x = x / 2
+        # if self.layer_id == args.n_layer-1:
+        #     print(torch.min(x).item(), torch.max(x).item())
+
         return x

@@ -6,7 +6,7 @@ MAX_SEQ_LENGTH=2048
 MICRO_BSZ=2
 WARMUP=1000
 LR_INIT=2e-4
-LR_FINAL=2e-5
+LR_FINAL=1e-5
 DROPOUT=0.1
 BASE_DIR_TRAIN="/data/rwkv/data/ultrachat_llama3_1_pseudo_ds"
 OUTPUT_DIR=“/data/rwkv/tmp/distill-en-zh_llama3_1_pseudo_ds_all_kl_div_stepwise”
@@ -68,7 +68,7 @@ echo "LR_FINAL: $LR_FINAL"
 echo "DROPOUT: $DROPOUT"
 echo "LOG_EVERY_N_STEPS: $LOG_EVERY_N_STEPS"
 echo "STRATEGY: $STRATEGY"
-CONFIG_FILE="configs/step_wise/test_hybrid_${TRAINING_LAYER}_layer_${MODEL_TYPE}mlp.yaml"
+CONFIG_FILE="configs/step_wise/test_hybrid_${TRAINING_LAYER}_layer_${MODEL_TYPE}mlp-0.5B.yaml"
 OUTPUT_DIR="${OUTPUT_DIR}_${TRAINING_LAYER}"
 echo "OUTPUT_DIR: $OUTPUT_DIR"
 echo "MAX_EPOCHS: $MAX_EPOCHS"
@@ -77,7 +77,7 @@ echo "CKPT_FILE: $CKPT_FILE"
 echo "WKV_TYPE: $WKV_TYPE"
 
 
-WKV=$WKV_TYPE CUDA_VISIBLE_DEVICES=1,2,3,4,5,6,0,7 python train_scripts/train_hybrid.py \
+WKV=$WKV_TYPE CUDA_VISIBLE_DEVICES=0,1,2,3 python train_scripts/train_hybrid.py \
     --num_devices $NUM_DEVICES \
     --grad_cp 1 \
     --max_seq_length $MAX_SEQ_LENGTH \
@@ -94,4 +94,4 @@ WKV=$WKV_TYPE CUDA_VISIBLE_DEVICES=1,2,3,4,5,6,0,7 python train_scripts/train_hy
     --warmup_steps $WARMUP \
     --max_epochs $MAX_EPOCHS \
     $CKPT_FILE \
-    --wandb hybrid_trainer_${MODEL_TYPE}_pseudo_ds_${MAX_SEQ_LENGTH}
+    --wandb hybrid_trainer_v7_0.5B_${MODEL_TYPE}_pseudo_ds_${MAX_SEQ_LENGTH}

@@ -3,7 +3,7 @@ import os
 def setup_env():
     parent_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     sys.path.append(parent_dir)
-    rwkv_path = os.path.join(parent_dir, 'rwkv')
+    rwkv_path = os.path.join(parent_dir, 'rwkv7')
     sys.path.append(rwkv_path)
     rwkv_llama_path = os.path.join(parent_dir, 'rwkv_llama')
     sys.path.append(rwkv_llama_path)
@@ -252,8 +252,12 @@ if __name__ == '__main__':
                                           mode='max',
                                           save_last=True,
                                           save_weights_only=True)
+    ds_config_file = 'ds.config'
+    from pytorch_lightning.strategies import DeepSpeedStrategy
+    strategy = DeepSpeedStrategy(config=ds_config_file)
+    print(f'use deepspeed strategy with config file {ds_config_file}:{strategy}')
     trainer = Trainer(accelerator="auto",
-                      strategy=args.strategy,
+                      strategy=strategy,
                       devices=args.num_devices,
                       num_nodes=args.num_nodes,
                       precision=precision,
@@ -271,12 +275,13 @@ if __name__ == '__main__':
         trainer.strategy.config["zero_optimization"]["allgather_bucket_size"] = args.ds_bucket_mb * 1000 * 1000
         trainer.strategy.config["zero_optimization"]["reduce_bucket_size"] = args.ds_bucket_mb * 1000 * 1000
     
-    print(model)
+    # print(model)
     if args.ckpt_file is not None:
         dict_set = torch.load(args.ckpt_file)
         info = model.load_state_dict(dict_set, strict=False)
         print(f'load model from {args.ckpt_file}, info is {info}')
         del dict_set
+    # model = torch.compile(model)
     model.train()
     print("Current device rank: ", trainer.global_rank)
     print("Total number of devices: ", trainer.world_size)

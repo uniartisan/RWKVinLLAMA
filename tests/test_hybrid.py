@@ -1,6 +1,7 @@
 import sys
 import os
 def setup_env():
+    # os.environ['is_wind_cuda'] = '1'
     parent_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     rwkv_path = os.path.join(parent_dir, 'rwkv7')
     sys.path.append(rwkv_path)
@@ -69,14 +70,15 @@ if rwkv_args.is_rwkv_att_only:
         print(name, param.shape, param.requires_grad)
 else:
     for name, param in model.named_parameters():
-        if not 'block.' in name or 'mlp' in name:
+        if not 'block.' in name or 'ffn' in name:
             param.requires_grad = False
         print(name, param.shape, param.requires_grad)
 model = model.to(device=device, dtype=dtype)
-labels = torch.randint(0, rwkv_args.vocab_size, (2, 64), device=device, dtype=torch.long)
+model = torch.compile(model)
+labels = torch.randint(0, rwkv_args.vocab_size, (2, 2048), device=device, dtype=torch.long)
 labels[0,20:] = -100
 labels[1,10:] = -100
-input_ids = torch.randint(0, rwkv_args.vocab_size, (2, 64), device=device, dtype=torch.long)
+input_ids = torch.randint(0, rwkv_args.vocab_size, (2, 2048), device=device, dtype=torch.long)
 result = model(input_ids,output_hidden_states=True,use_cache=False)
 print(result.logits)
 print(result.logits.shape)
@@ -86,7 +88,7 @@ print(len(result.hidden_states))
 hidden_states = torch.cat(result.hidden_states[1:], dim=0)
 print(hidden_states.shape)
 print(labels)
-hidden_states = hidden_states.view(2, rwkv_args.n_layer,64, rwkv_args.n_embd)
+hidden_states = hidden_states.view(2, rwkv_args.n_layer,2048, rwkv_args.n_embd)
 mask = torch.ne(labels, -100)
 print(mask)
 # tokenizer = AutoTokenizer.from_pretrained(config['Llama']['model_id'])
