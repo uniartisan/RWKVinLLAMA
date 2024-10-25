@@ -22,9 +22,54 @@ def setup_env():
     if "RWKV_TRAIN_TYPE" not in os.environ:
         os.environ["RWKV_TRAIN_TYPE"] = ''
 setup_env()
+from pytorch_lightning.plugins.environments import ClusterEnvironment
+
+class CustomClusterEnvironment(ClusterEnvironment):
+    @property
+    def main_address(self):
+        return os.environ.get('MASTER_ADDR', 'localhost')
+
+    @property
+    def main_port(self):
+        return int(os.environ.get('MASTER_PORT', 12345))
+
+    @staticmethod
+    def detect():
+        return True
+
+    def world_size(self):
+        return int(os.environ.get('WORLD_SIZE', 1))
+
+    def set_world_size(self, size: int) -> None:
+        os.environ["WORLD_SIZE"] = str(size)
+
+    def global_rank(self) -> int:
+        return int(os.environ.get('GLOBAL_RANK', 0))
+
+    def set_global_rank(self, rank: int) -> None:
+        os.environ["GLOBAL_RANK"] = str(rank)
+
+    def local_rank(self) -> int:
+        return int(os.environ.get('LOCAL_RANK', 0))
+
+    def node_rank(self) -> int:
+        return int(os.environ.get('NODE_RANK', 0))
+    
+    def creates_processes_externally(self) -> bool:
+        # 如果进程是由外部启动器（如 torchrun）创建的，返回 True
+        # 否则返回 False
+        return False
+    
+    def __repr__(self):
+        return f'CustomClusterEnvironment: {self.main_address}:{self.main_port}, world_size: {self.world_size()}, global_rank: {self.global_rank()}, local_rank: {self.local_rank()}, node_rank: {self.node_rank()}'
+
 import argparse
 from argparse import Namespace
 def create_arg_parser():
+    node_rank = int(os.environ.get('NODE_RANK', 0))
+    num_gpus = int(os.environ.get('NUM_GPUS', 1))
+    world_size = int(os.environ.get('WORLD_SIZE', 7))
+    print(f'node_rank: {node_rank}, num_gpus: {num_gpus}, world_size: {world_size}')
     parser = argparse.ArgumentParser(description='MLM trainer')
     parser.add_argument('--config_file', type=str,default='configs/test_hybrid.yaml', help='training config file')
     parser.add_argument('--train_data', type=str,help='parquet dicrectory containing the training data')
@@ -256,6 +301,9 @@ if __name__ == '__main__':
     from pytorch_lightning.strategies import DeepSpeedStrategy
     strategy = DeepSpeedStrategy(config=ds_config_file)
     print(f'use deepspeed strategy with config file {ds_config_file}:{strategy}')
+    print(f'devices: {args.num_devices}, num_nodes: {args.num_nodes}')
+    cluster_environment = CustomClusterEnvironment()
+    print(f'cluster environment: {cluster_environment}')
     trainer = Trainer(accelerator="auto",
                       strategy=strategy,
                       devices=args.num_devices,

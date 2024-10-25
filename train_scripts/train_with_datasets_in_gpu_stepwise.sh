@@ -15,7 +15,8 @@ MAX_EPOCHS=2
 LOG_EVERY_N_STEPS=500
 MODEL_TYPE="qwen"
 WKV_TYPE="fla"
-while getopts ":T:l:n:m:M:b:w:v:i:f:d:t:o:c:k:h:A:p:D:W:" opt; do
+NUM_NODES=1
+while getopts ":T:l:n:m:M:b:w:v:i:f:d:t:o:c:k:h:A:p:D:W:N:" opt; do
 case $opt in
     T) TRAINING_LAYER="$OPTARG"
     ;;
@@ -51,6 +52,8 @@ case $opt in
     ;;
     W) WKV_TYPE="$OPTARG"
     ;;
+    N) NUM_NODES="$OPTARG"
+    ;;
     \?) echo "无效的选项 -$OPTARG" >&2
     exit 1
     ;;
@@ -77,8 +80,9 @@ echo "CKPT_FILE: $CKPT_FILE"
 echo "WKV_TYPE: $WKV_TYPE"
 
 
-WKV=$WKV_TYPE CUDA_VISIBLE_DEVICES=0,1,2,3 python train_scripts/train_hybrid.py \
+python train_scripts/train_hybrid.py \
     --num_devices $NUM_DEVICES \
+    --num_nodes $NUM_NODES \
     --grad_cp 1 \
     --max_seq_length $MAX_SEQ_LENGTH \
     --output_dir $OUTPUT_DIR \
@@ -94,4 +98,4 @@ WKV=$WKV_TYPE CUDA_VISIBLE_DEVICES=0,1,2,3 python train_scripts/train_hybrid.py 
     --warmup_steps $WARMUP \
     --max_epochs $MAX_EPOCHS \
     $CKPT_FILE \
-    --wandb hybrid_trainer_v7_0.5B_${MODEL_TYPE}_pseudo_ds_${MAX_SEQ_LENGTH}
+    --wandb hybrid_trainer_v7_0.5B_${MODEL_TYPE}_pseudo_ds_${MAX_SEQ_LENGTH}_${NUM_NODES}nodes_${NUM_DEVICES}gpus
