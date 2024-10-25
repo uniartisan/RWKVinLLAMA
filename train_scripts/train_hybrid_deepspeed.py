@@ -101,7 +101,7 @@ def create_arg_parser():
     parser.add_argument('--deepspeed_config', type=str, default=None, help='Path to DeepSpeed config file')
     parser.add_argument('--deepspeed_stage', type=int, default=2, choices=[0, 1, 2, 3], help='DeepSpeed ZeRO stage')
     parser.add_argument('--deepspeed_offload', action='store_true', help='Enable CPU offloading')
-    
+    parser.add_argument('--train_batch_size', type=int, default=None, help='train batch size')
     return parser
 
 def lr_schedule(args, step):
@@ -322,7 +322,7 @@ if __name__ == '__main__':
         else:
             # 否则，根据命令行参数创建配置
             ds_config = {
-                "train_batch_size": args.real_bsz,
+                "train_batch_size": args.train_batch_size,
                 "bf16": {
                     "enabled": True
                 },
