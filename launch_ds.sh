@@ -57,4 +57,5 @@ torchrun \
     --lr_init 6e-4 \
     --lr_final 1e-5 \
     --warmup_steps 1000 \
-    --train_batch_size $TRAIN_BATCH_SIZE
+    --train_batch_size $TRAIN_BATCH_SIZE \
+    --save_per_batches 100

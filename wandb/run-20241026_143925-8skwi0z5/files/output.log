@@ -1,0 +1,45 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 0:   0%|                                              | 25/841778 [01:02<536:19:43,  2.29s/it, loss=605.6005, steps/s=1.75, kt/s=28.71]Traceback (most recent call last):
+  File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 438, in <module>
+    last_log_time, pbar = on_train_batch_end(
+                          ^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 202, in on_train_batch_end
+    checkpoints.sort(key=lambda x: int(x.split('_')[-1]))
+  File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 202, in <lambda>
+    checkpoints.sort(key=lambda x: int(x.split('_')[-1]))
+                                   ^^^^^^^^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: 'log.txt'
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 438, in <module>
+[rank0]:     last_log_time, pbar = on_train_batch_end(
+[rank0]:                           ^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 202, in on_train_batch_end
+[rank0]:     checkpoints.sort(key=lambda x: int(x.split('_')[-1]))
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 202, in <lambda>
+[rank0]:     checkpoints.sort(key=lambda x: int(x.split('_')[-1]))
+[rank0]:                                    ^^^^^^^^^^^^^^^^^^^^^
+[rank0]: ValueError: invalid literal for int() with base 10: 'log.txt'
