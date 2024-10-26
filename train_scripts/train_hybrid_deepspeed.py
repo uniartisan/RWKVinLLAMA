@@ -389,7 +389,7 @@ if __name__ == '__main__':
     model.comm, model.stream, model.recv_buffer, model.teacher_hidden_states_buffer = initialize_nccl_group(args, model)
 
     # 只在主进程上初始化wandb
-    if args.wandb and model_engine.local_rank == 0:
+    if args.wandb and model_engine.global_rank == 0:
         print(f'init wandb, project is {args.wandb}, name is {args.run_name}')
         wandb.init(project=args.wandb, name=args.run_name, config=args)
 
@@ -402,7 +402,7 @@ if __name__ == '__main__':
     # 训练循环
     for epoch in range(args.max_epochs):
         model_engine.train()
-        if model_engine.local_rank == 0:
+        if model_engine.global_rank == 0:
             pbar = tqdm(total=args.epoch_steps, desc=f"Epoch {epoch}")
         
         for batch_idx, batch in enumerate(train_dataloader):
@@ -467,7 +467,7 @@ if __name__ == '__main__':
             pbar.close()
 
     print("Training completed")
-    if args.wandb and model_engine.local_rank == 0:
+    if args.wandb and model_engine.global_rank == 0:
         wandb.finish()
 
 
