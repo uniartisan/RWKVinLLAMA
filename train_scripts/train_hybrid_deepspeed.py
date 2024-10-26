@@ -160,7 +160,7 @@ def on_train_batch_start(args, model_engine, global_step, epoch):
 # 在主训练循环开始前初始化tqdm
 pbar = None
 
-def on_train_batch_end(args, model_engine, loss, teacher_loss, kl_loss, student_cross_entropy_loss, global_step, epoch, last_log_time, token_per_step, is_accumulation_step, pbar):
+def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_loss, student_cross_entropy_loss, global_step, epoch, last_log_time, token_per_step, is_accumulation_step, pbar):
     current_time = time.time()
     elapsed_time = current_time - last_log_time
     steps_per_second = 1 / elapsed_time
@@ -193,12 +193,17 @@ def on_train_batch_end(args, model_engine, loss, teacher_loss, kl_loss, student_
                 "student_cross_entropy_loss": student_cross_entropy_loss,
             })
 
-    real_step = global_step * args.accumulate_grad_batches + (epoch * len(train_dataloader))
+    real_step = batch_idx
     if real_step % args.save_per_batches == 0 and real_step > 0:
-        if model_engine.local_rank == 0:
-            pbar.write(f'Saving trainable to {args.output_dir}')
-            output_dir = f"{args.output_dir}/epoch_{epoch}_step_{real_step}"
+        pbar.write(f'Saving trainable to {args.output_dir}')
+        output_dir = f"{args.output_dir}/epoch_{epoch}_step_{real_step}"
+        try:
             model_engine.save_checkpoint(output_dir)
+        except Exception as e:
+            print(f"Error saving checkpoint: {e}")
+            import traceback
+            traceback.print_exc()
+        print(f'saved checkpoint to {output_dir}')
 
     return current_time, pbar
 import torch.distributed as dist
@@ -380,14 +385,14 @@ if __name__ == '__main__':
         )
     else:
         # 如果不使用 DeepSpeed，使用普通的优化器
-        optimizer = configure_optimizer(model, args)
-        model_engine = model
-
+        print('not using deepspeed, EXIT')
+        exit()
     # 初始化NCCL组
     model.comm, model.stream, model.recv_buffer, model.teacher_hidden_states_buffer = initialize_nccl_group(args, model)
 
     # 只在主进程上初始化wandb
     if args.wandb and model_engine.local_rank == 0:
+        print(f'init wandb, project is {args.wandb}, name is {args.run_name}')
         wandb.init(project=args.wandb, name=args.run_name, config=args)
 
     # 初始化一些变量
@@ -411,7 +416,6 @@ if __name__ == '__main__':
             elif model_engine.zero_optimization_stage() in [1, 2]:
                 estimate_zero2_model_states_mem_needs_all_live(model, num_gpus_per_node=1, num_nodes=1)
             elif model_engine.zero_optimization_stage() == 3:
-                print(model)
                 estimate_zero3_model_states_mem_needs_all_live(model, num_gpus_per_node=4, num_nodes=1)
         print_deepspeed_model_info(model_engine)
     # 训练循环
@@ -443,7 +447,7 @@ if __name__ == '__main__':
 
             # 每一步都调用 on_train_batch_end，但只在累积步骤结束时更新进度条
             last_log_time, pbar = on_train_batch_end(
-                args, model_engine, loss.item(), teacher_loss, kl_loss, student_cross_entropy_loss,
+                args, batch_idx, model_engine, loss.item(), teacher_loss, kl_loss, student_cross_entropy_loss,
                 global_step, epoch, last_log_time, token_per_step, is_accumulation_step, pbar
             )
 
@@ -454,7 +458,7 @@ if __name__ == '__main__':
             global_step += 1
             
             last_log_time, pbar = on_train_batch_end(
-                args, model_engine, loss, teacher_loss, kl_loss, student_cross_entropy_loss,
+                args, batch_idx, model_engine, loss, teacher_loss, kl_loss, student_cross_entropy_loss,
                 global_step, epoch, last_log_time, token_per_step, True, pbar
             )
 
