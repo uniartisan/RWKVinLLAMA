@@ -159,7 +159,8 @@ def on_train_batch_start(args, model_engine, global_step, epoch):
 
 # 在主训练循环开始前初始化tqdm
 pbar = None
-
+total_loss = 0
+total_updates = 0
 def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_loss, student_cross_entropy_loss, global_step, epoch, last_log_time, token_per_step, is_accumulation_step, pbar):
     current_time = time.time()
     elapsed_time = current_time - last_log_time
@@ -172,8 +173,10 @@ def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_los
             pbar = tqdm(total=args.epoch_steps, desc=f"Epoch {epoch}")
         
         pbar.update(1)
+        total_loss += loss
+        total_updates += 1
         pbar.set_postfix({
-            'loss': f'{loss:.4f}',
+            'loss': f'{total_loss / total_updates:.4f}',
             'steps/s': f'{steps_per_second:.2f}',
             'kt/s': f'{kt_s:.2f}'
         })
