@@ -387,7 +387,7 @@ if __name__ == '__main__':
         num_total_params = sum(p.numel() for p in model.parameters())
         num_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
         print(f'num_total_params: {num_total_params}, num_trainable_params: {num_trainable_params}, percent: {num_trainable_params / num_total_params * 100:.2f}%')
-        model.model = torch.compile(model.model,fullgraph=True)
+        # model.model = torch.compile(model.model,fullgraph=True)
         # 初始化 DeepSpeed
         model_engine, optimizer, _, _ = deepspeed.initialize(
             model=model,
