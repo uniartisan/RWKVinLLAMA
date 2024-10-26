@@ -194,11 +194,10 @@ def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_los
             })
 
     real_step = batch_idx
-    if real_step % args.save_per_batches == 0 and real_step > 0 and model_engine.global_rank == 0:
-        pbar.write(f'Saving trainable to {args.output_dir}')
+    if real_step % args.save_per_batches == 0 and real_step > 0 :
         output_dir = f"{args.output_dir}/epoch_{epoch}_step_{real_step}"
         try:
-            model_engine.save_checkpoint(output_dir)
+            model_engine.save_checkpoint(output_dir,real_step)
         except Exception as e:
             print(f"Error saving checkpoint: {e}")
             import traceback
@@ -337,6 +336,7 @@ if __name__ == '__main__':
                     "stage3_max_reuse_distance": 1e9,
                     "stage3_prefetch_bucket_size": 1e7,
                     "memory_efficient_linear": True,
+                    "stage3_gather_16bit_weights_on_model_save": True,
                     "offload_optimizer": {
                         "device": "cpu",
                         "pin_memory": True
