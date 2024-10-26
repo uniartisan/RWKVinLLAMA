@@ -331,14 +331,6 @@ if __name__ == '__main__':
                 "bf16": {
                     "enabled": True
                 },
-                "offload_optimizer": {
-                    "device": "cpu",
-                    "pin_memory": True
-                },
-                "offload_param": {
-                    "device": "cpu",
-                    "pin_memory": True
-                },
                 "zero_optimization": {
                     "stage": args.deepspeed_stage,
                     "stage3_max_live_parameters": 1e9,
@@ -349,6 +341,10 @@ if __name__ == '__main__':
                         "device": "cpu",
                         "pin_memory": True
                     } ,
+                    "offload_param": {
+                        "device": "cpu",
+                        "pin_memory": True
+                    },
                     "allgather_partitions": True,
                     "allgather_bucket_size": args.ds_bucket_mb * 1000 * 1000,
                     "overlap_comm": True,
