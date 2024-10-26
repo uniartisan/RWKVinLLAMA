@@ -167,7 +167,7 @@ def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_los
     kt_s = token_per_step * steps_per_second / 1000  # K tokens per second
 
     # 只在实际更新参数时更新进度条
-    if is_accumulation_step and model_engine.local_rank == 0:
+    if is_accumulation_step and model_engine.global_rank == 0:
         if pbar is None:
             pbar = tqdm(total=args.epoch_steps, desc=f"Epoch {epoch}")
         
@@ -194,7 +194,7 @@ def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_los
             })
 
     real_step = batch_idx
-    if real_step % args.save_per_batches == 0 and real_step > 0 and model_engine.local_rank == 0:
+    if real_step % args.save_per_batches == 0 and real_step > 0 and model_engine.global_rank == 0:
         pbar.write(f'Saving trainable to {args.output_dir}')
         output_dir = f"{args.output_dir}/epoch_{epoch}_step_{real_step}"
         try:
