@@ -1,0 +1,173 @@
+{
+    "os": "Linux-5.15.0-119-generic-x86_64-with-glibc2.35",
+    "python": "3.12.4",
+    "heartbeatAt": "2024-10-24T23:37:37.009995",
+    "startedAt": "2024-10-24T23:37:35.190997",
+    "docker": null,
+    "cuda": null,
+    "args": [
+        "--num_devices",
+        "4",
+        "--grad_cp",
+        "1",
+        "--max_seq_length",
+        "2048",
+        "--output_dir",
+        "/home/yueyulin/tmp/distill_qwen05b_1",
+        "--config_file",
+        "configs/step_wise/test_hybrid_1_layer_qwenmlp-0.5B.yaml",
+        "--lr_init",
+        "2e-4",
+        "--micro_bsz",
+        "3",
+        "--preprocessed_data",
+        "/home/yueyulin/data/IndustryInstruction_Qwen_0.5B_DS/",
+        "--dropout",
+        "0.1",
+        "--strategy",
+        "deepspeed_stage_3_offload",
+        "--log_every_n_steps",
+        "1000",
+        "--lr_final",
+        "2e-5",
+        "--accumulate_grad_batches",
+        "4",
+        "--warmup_steps",
+        "10000",
+        "--max_epochs",
+        "2",
+        "--wandb",
+        "hybrid_trainer_v7_0.5B_qwen_pseudo_ds_2048"
+    ],
+    "state": "running",
+    "program": "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid.py",
+    "codePathLocal": "train_scripts/train_hybrid.py",
+    "codePath": "train_scripts/train_hybrid.py",
+    "git": {
+        "remote": "https://github.com/yynil/RWKVinLLAMA",
+        "commit": "631d9d883e8f9aea60d7dcfcb50f1874e3dcfe15"
+    },
+    "email": "yueyu.lin@me.com",
+    "root": "/home/yueyulin/github/RWKVinLLAMA",
+    "host": "server1",
+    "username": "yueyulin",
+    "executable": "/home/yueyulin/miniconda3/envs/new_torch_env/bin/python",
+    "cpu_count": 8,
+    "cpu_count_logical": 16,
+    "cpu_freq": {
+        "current": 2247.6061875,
+        "min": 1500.0,
+        "max": 3200.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 1500.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1500.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 3398.226,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1500.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1500.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 3400.045,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 3364.358,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 2500.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1500.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 3399.07,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1500.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1500.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1500.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1500.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 3200.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 3200.0,
+            "min": 1500.0,
+            "max": 3200.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 3728.65633392334,
+            "used": 2566.712692260742
+        }
+    },
+    "gpu": "NVIDIA GeForce RTX 4090",
+    "gpu_count": 4,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce RTX 4090",
+            "memory_total": 25757220864
+        },
+        {
+            "name": "NVIDIA GeForce RTX 4090",
+            "memory_total": 25757220864
+        },
+        {
+            "name": "NVIDIA GeForce RTX 4090",
+            "memory_total": 25757220864
+        },
+        {
+            "name": "NVIDIA GeForce RTX 4090",
+            "memory_total": 25757220864
+        }
+    ],
+    "memory": {
+        "total": 251.76150131225586
+    }
+}

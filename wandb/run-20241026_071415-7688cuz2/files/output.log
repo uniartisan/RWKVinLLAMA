@@ -1,0 +1,140 @@
+Estimated memory needed for params, optim states and gradients for a:
+HW: Setup with 1 node, 4 GPUs per node.
+SW: Model with 0M total params, 0M largest layer params.
+  per CPU  |  per GPU |   Options
+    0.00GB |   0.00GB | offload_param=OffloadDeviceEnum.cpu, offload_optimizer=OffloadDeviceEnum.cpu, zero_init=1
+    0.00GB |   0.00GB | offload_param=OffloadDeviceEnum.cpu, offload_optimizer=OffloadDeviceEnum.cpu, zero_init=0
+    0.00GB |   0.00GB | offload_param=none, offload_optimizer=OffloadDeviceEnum.cpu, zero_init=1
+    0.00GB |   0.00GB | offload_param=none, offload_optimizer=OffloadDeviceEnum.cpu, zero_init=0
+    0.00GB |   0.00GB | offload_param=none, offload_optimizer=none, zero_init=1
+    0.00GB |   0.00GB | offload_param=none, offload_optimizer=none, zero_init=0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 0:   0%|                                              | 19/841778 [00:58<659:28:53,  2.82s/it, loss=657.6609, steps/s=1.46, kt/s=23.99]Traceback (most recent call last):
+  File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 429, in <module>
+    loss, teacher_loss, kl_loss, student_cross_entropy_loss = train_step(model_engine, batch, args, teacher_model, tokenizer)
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/github/RWKVinLLAMA/train_functions.py", line 56, in train_step
+    teacher_logits, teacher_hidden_states, teacher_loss = get_teacher_outputs(teacher_model, input_ids, attention_mask, labels, args)
+                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/github/RWKVinLLAMA/train_functions.py", line 99, in get_teacher_outputs
+    teacher_outputs = teacher_model(
+                      ^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+    result = forward_call(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 1104, in forward
+    outputs = self.model(
+              ^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+    result = forward_call(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 915, in forward
+    layer_outputs = decoder_layer(
+                    ^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+    result = forward_call(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 655, in forward
+    hidden_states, self_attn_weights, present_key_value = self.self_attn(
+                                                          ^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+    result = forward_call(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 388, in forward
+    value_states = self.v_proj(hidden_states)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+    result = forward_call(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/linear.py", line 117, in forward
+    return F.linear(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 429, in <module>
+[rank0]:     loss, teacher_loss, kl_loss, student_cross_entropy_loss = train_step(model_engine, batch, args, teacher_model, tokenizer)
+[rank0]:                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_functions.py", line 56, in train_step
+[rank0]:     teacher_logits, teacher_hidden_states, teacher_loss = get_teacher_outputs(teacher_model, input_ids, attention_mask, labels, args)
+[rank0]:                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_functions.py", line 99, in get_teacher_outputs
+[rank0]:     teacher_outputs = teacher_model(
+[rank0]:                       ^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+[rank0]:     result = forward_call(*args, **kwargs)
+[rank0]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 1104, in forward
+[rank0]:     outputs = self.model(
+[rank0]:               ^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+[rank0]:     result = forward_call(*args, **kwargs)
+[rank0]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 915, in forward
+[rank0]:     layer_outputs = decoder_layer(
+[rank0]:                     ^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+[rank0]:     result = forward_call(*args, **kwargs)
+[rank0]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 655, in forward
+[rank0]:     hidden_states, self_attn_weights, present_key_value = self.self_attn(
+[rank0]:                                                           ^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+[rank0]:     result = forward_call(*args, **kwargs)
+[rank0]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 388, in forward
+[rank0]:     value_states = self.v_proj(hidden_states)
+[rank0]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+[rank0]:     result = forward_call(*args, **kwargs)
+[rank0]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/linear.py", line 117, in forward
+[rank0]:     return F.linear(input, self.weight, self.bias)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]: KeyboardInterrupt

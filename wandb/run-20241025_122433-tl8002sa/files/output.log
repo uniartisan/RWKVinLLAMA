@@ -1,0 +1,49 @@
+
+Epoch 0:   0%|                                                                                                    | 0/420889 [00:00<?, ?it/s][rank0]:W1025 12:24:49.809000 139834677675840 torch/_dynamo/convert_frame.py:762] [11/9] torch._dynamo hit config.cache_size_limit (8)
+[rank0]:W1025 12:24:49.809000 139834677675840 torch/_dynamo/convert_frame.py:762] [11/9]    function: 'forward' (/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/runtime/zero/parameter_offload.py:396)
+[rank0]:W1025 12:24:49.809000 139834677675840 torch/_dynamo/convert_frame.py:762] [11/9]    last reason: ___check_type_id(L['ctx'], 903655568)
+[rank0]:W1025 12:24:49.809000 139834677675840 torch/_dynamo/convert_frame.py:762] [11/9] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+[rank0]:W1025 12:24:49.809000 139834677675840 torch/_dynamo/convert_frame.py:762] [11/9] To diagnose recompilation issues, see https://pytorch.org/docs/main/torch.compiler_troubleshooting.html.
+[rank0]:W1025 12:24:49.812000 139834677675840 torch/_dynamo/convert_frame.py:762] [27/8] torch._dynamo hit config.cache_size_limit (8)
+[rank0]:W1025 12:24:49.812000 139834677675840 torch/_dynamo/convert_frame.py:762] [27/8]    function: 'forward' (/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/runtime/zero/parameter_offload.py:342)
+[rank0]:W1025 12:24:49.812000 139834677675840 torch/_dynamo/convert_frame.py:762] [27/8]    last reason: ___check_type_id(L['ctx'], 905918592)
+[rank0]:W1025 12:24:49.812000 139834677675840 torch/_dynamo/convert_frame.py:762] [27/8] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+[rank0]:W1025 12:24:49.812000 139834677675840 torch/_dynamo/convert_frame.py:762] [27/8] To diagnose recompilation issues, see https://pytorch.org/docs/main/torch.compiler_troubleshooting.html.
+[rank0]:W1025 12:24:59.289000 139834677675840 torch/_dynamo/convert_frame.py:762] [39/8] torch._dynamo hit config.cache_size_limit (8)
+[rank0]:W1025 12:24:59.289000 139834677675840 torch/_dynamo/convert_frame.py:762] [39/8]    function: 'torch_dynamo_resume_in_forward_at_652' (/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py:652)
+[rank0]:W1025 12:24:59.289000 139834677675840 torch/_dynamo/convert_frame.py:762] [39/8]    last reason: ___check_obj_id(L['self'].self_attn, 139829473715184)
+[rank0]:W1025 12:24:59.289000 139834677675840 torch/_dynamo/convert_frame.py:762] [39/8] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+[rank0]:W1025 12:24:59.289000 139834677675840 torch/_dynamo/convert_frame.py:762] [39/8] To diagnose recompilation issues, see https://pytorch.org/docs/main/torch.compiler_troubleshooting.html.
+[rank0]:W1025 12:25:12.734000 139834677675840 torch/_dynamo/convert_frame.py:762] [16/8] torch._dynamo hit config.cache_size_limit (8)
+[rank0]:W1025 12:25:12.734000 139834677675840 torch/_dynamo/convert_frame.py:762] [16/8]    function: '_post_forward_module_hook' (/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/runtime/zero/parameter_offload.py:277)
+[rank0]:W1025 12:25:12.734000 139834677675840 torch/_dynamo/convert_frame.py:762] [16/8]    last reason: tensor 'L['output']' requires_grad mismatch. expected requires_grad=0
+[rank0]:W1025 12:25:12.734000 139834677675840 torch/_dynamo/convert_frame.py:762] [16/8] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+[rank0]:W1025 12:25:12.734000 139834677675840 torch/_dynamo/convert_frame.py:762] [16/8] To diagnose recompilation issues, see https://pytorch.org/docs/main/torch.compiler_troubleshooting.html.
+Traceback (most recent call last):
+  File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 395, in <module>
+    loss = train_step(model_engine, batch, args, teacher_model, tokenizer)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/github/RWKVinLLAMA/train_functions.py", line 61, in train_step
+    loss = compute_kl_loss(student_outputs, teacher_logits, labels, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/github/RWKVinLLAMA/train_functions.py", line 106, in compute_kl_loss
+    kl_loss = F.kl_div(F.log_softmax(student_logits, dim=-1), targets, reduction='batchmean')
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/functional.py", line 3006, in kl_div
+    reduced = torch.kl_div(input, target, reduction_enum, log_target=log_target)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 2.32 GiB. GPU 0 has a total capacity of 23.55 GiB of which 1.65 GiB is free. Including non-PyTorch memory, this process has 20.75 GiB memory in use. Process 2385324 has 386.00 MiB memory in use. Process 2385325 has 386.00 MiB memory in use. Process 2385323 has 386.00 MiB memory in use. Of the allocated memory 19.56 GiB is allocated by PyTorch, and 626.68 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 395, in <module>
+[rank0]:     loss = train_step(model_engine, batch, args, teacher_model, tokenizer)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_functions.py", line 61, in train_step
+[rank0]:     loss = compute_kl_loss(student_outputs, teacher_logits, labels, args)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_functions.py", line 106, in compute_kl_loss
+[rank0]:     kl_loss = F.kl_div(F.log_softmax(student_logits, dim=-1), targets, reduction='batchmean')
+[rank0]:               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/functional.py", line 3006, in kl_div
+[rank0]:     reduced = torch.kl_div(input, target, reduction_enum, log_target=log_target)
+[rank0]:               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]: torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 2.32 GiB. GPU 0 has a total capacity of 23.55 GiB of which 1.65 GiB is free. Including non-PyTorch memory, this process has 20.75 GiB memory in use. Process 2385324 has 386.00 MiB memory in use. Process 2385325 has 386.00 MiB memory in use. Process 2385323 has 386.00 MiB memory in use. Of the allocated memory 19.56 GiB is allocated by PyTorch, and 626.68 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)

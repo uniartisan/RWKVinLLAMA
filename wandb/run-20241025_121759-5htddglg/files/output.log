@@ -1,0 +1,166 @@
+
+Epoch 0, Step 1, Loss: 39258.7578, Steps/sec: 1.98, Kt/s: 16.24
+Epoch 0, Step 2, Loss: 44819.8623, Steps/sec: 2.15, Kt/s: 17.58
+Epoch 0, Step 3, Loss: 48369.0264, Steps/sec: 2.16, Kt/s: 17.69
+Epoch 0, Step 4, Loss: 42893.0879, Steps/sec: 2.16, Kt/s: 17.72
+Epoch 0, Step 5, Loss: 41954.7656, Steps/sec: 2.15, Kt/s: 17.61
+Epoch 0, Step 6, Loss: 45098.2090, Steps/sec: 2.15, Kt/s: 17.63
+Epoch 0, Step 7, Loss: 45721.6494, Steps/sec: 2.15, Kt/s: 17.62
+Epoch 0, Step 8, Loss: 44951.7031, Steps/sec: 2.16, Kt/s: 17.67
+Epoch 0, Step 9, Loss: 44269.9434, Steps/sec: 2.13, Kt/s: 17.49
+Epoch 0, Step 10, Loss: 44974.1338, Steps/sec: 2.17, Kt/s: 17.75
+Epoch 0, Step 11, Loss: 43461.1182, Steps/sec: 2.15, Kt/s: 17.62
+Epoch 0, Step 12, Loss: 43312.2686, Steps/sec: 2.14, Kt/s: 17.55
+Epoch 0, Step 13, Loss: 43073.2012, Steps/sec: 2.15, Kt/s: 17.62
+Epoch 0, Step 14, Loss: 38261.7969, Steps/sec: 2.14, Kt/s: 17.49
+Epoch 0, Step 15, Loss: 39929.3242, Steps/sec: 2.15, Kt/s: 17.58
+Epoch 0, Step 16, Loss: 43648.5195, Steps/sec: 2.13, Kt/s: 17.45
+Epoch 0, Step 17, Loss: 42407.3281, Steps/sec: 2.14, Kt/s: 17.49
+Epoch 0, Step 18, Loss: 42349.7578, Steps/sec: 2.14, Kt/s: 17.50
+Epoch 0, Step 19, Loss: 44749.8506, Steps/sec: 2.15, Kt/s: 17.62
+Epoch 0, Step 20, Loss: 43498.6646, Steps/sec: 2.17, Kt/s: 17.75
+Epoch 0, Step 21, Loss: 39519.2217, Steps/sec: 2.16, Kt/s: 17.73
+Epoch 0, Step 22, Loss: 42001.7002, Steps/sec: 2.17, Kt/s: 17.81
+Epoch 0, Step 23, Loss: 40336.5078, Steps/sec: 2.16, Kt/s: 17.68
+Epoch 0, Step 24, Loss: 40399.5830, Steps/sec: 2.15, Kt/s: 17.65
+Epoch 0, Step 25, Loss: 38829.1875, Steps/sec: 2.17, Kt/s: 17.78
+Epoch 0, Step 26, Loss: 40564.5137, Steps/sec: 2.16, Kt/s: 17.70
+Epoch 0, Step 27, Loss: 38317.8535, Steps/sec: 2.19, Kt/s: 17.92
+Epoch 0, Step 28, Loss: 36438.8428, Steps/sec: 2.15, Kt/s: 17.63
+Epoch 0, Step 29, Loss: 33349.2109, Steps/sec: 2.17, Kt/s: 17.78
+Traceback (most recent call last):
+  File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 376, in <module>
+    loss = train_step(model_engine, batch, args, teacher_model, tokenizer)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/github/RWKVinLLAMA/train_functions.py", line 55, in train_step
+    teacher_logits, teacher_hidden_states = get_teacher_outputs(teacher_model, input_ids, attention_mask, labels, args)
+                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/github/RWKVinLLAMA/train_functions.py", line 92, in get_teacher_outputs
+    teacher_outputs = teacher_model(
+                      ^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+    result = forward_call(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 1104, in forward
+    outputs = self.model(
+              ^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+    result = forward_call(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 915, in forward
+    layer_outputs = decoder_layer(
+                    ^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+    result = forward_call(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 655, in forward
+    hidden_states, self_attn_weights, present_key_value = self.self_attn(
+                                                          ^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1592, in _call_impl
+    args_result = hook(self, args)
+                  ^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+    ret_val = func(*args, **kwargs)
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/runtime/zero/parameter_offload.py", line 275, in _pre_forward_module_hook
+    self.pre_sub_module_forward_function(module)
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/runtime/zero/parameter_offload.py", line 449, in pre_sub_module_forward_function
+    param_coordinator.fetch_sub_module(sub_module, forward=True)
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 600, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+    ret_val = func(*args, **kwargs)
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/runtime/zero/partitioned_param_coordinator.py", line 373, in fetch_sub_module
+    if param_in_trace.param in params_to_prefetch:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_tensor.py", line 1055, in __hash__
+    def __hash__(self):
+KeyboardInterrupt
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 376, in <module>
+[rank0]:     loss = train_step(model_engine, batch, args, teacher_model, tokenizer)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_functions.py", line 55, in train_step
+[rank0]:     teacher_logits, teacher_hidden_states = get_teacher_outputs(teacher_model, input_ids, attention_mask, labels, args)
+[rank0]:                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_functions.py", line 92, in get_teacher_outputs
+[rank0]:     teacher_outputs = teacher_model(
+[rank0]:                       ^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+[rank0]:     result = forward_call(*args, **kwargs)
+[rank0]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 1104, in forward
+[rank0]:     outputs = self.model(
+[rank0]:               ^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+[rank0]:     result = forward_call(*args, **kwargs)
+[rank0]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 915, in forward
+[rank0]:     layer_outputs = decoder_layer(
+[rank0]:                     ^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+[rank0]:     result = forward_call(*args, **kwargs)
+[rank0]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 655, in forward
+[rank0]:     hidden_states, self_attn_weights, present_key_value = self.self_attn(
+[rank0]:                                                           ^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1592, in _call_impl
+[rank0]:     args_result = hook(self, args)
+[rank0]:                   ^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+[rank0]:     ret_val = func(*args, **kwargs)
+[rank0]:               ^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/runtime/zero/parameter_offload.py", line 275, in _pre_forward_module_hook
+[rank0]:     self.pre_sub_module_forward_function(module)
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+[rank0]:     return func(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/runtime/zero/parameter_offload.py", line 449, in pre_sub_module_forward_function
+[rank0]:     param_coordinator.fetch_sub_module(sub_module, forward=True)
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 600, in _fn
+[rank0]:     return fn(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+[rank0]:     ret_val = func(*args, **kwargs)
+[rank0]:               ^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+[rank0]:     return func(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/runtime/zero/partitioned_param_coordinator.py", line 373, in fetch_sub_module
+[rank0]:     if param_in_trace.param in params_to_prefetch:
+[rank0]:        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_tensor.py", line 1055, in __hash__
+[rank0]:     def __hash__(self):
+[rank0]: KeyboardInterrupt

@@ -1,0 +1,1 @@
+{"loss": 33349.2109375, "lr": 2.2631999999999996e-05, "weight_decay": 0.0, "steps_per_second": 2.1706681902679965, "kt/s": 17.782113814675427, "global_step": 29, "Gtokens": 0.000237568, "epoch": 0, "_timestamp": 1729858740.1108167, "_runtime": 60.1767737865448, "_step": 28, "_wandb": {"runtime": 58}}

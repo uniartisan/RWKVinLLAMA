@@ -1,0 +1,34 @@
+
+{'zero_optimization': {'stage': 3, 'offload_optimizer': {'device': 'cpu', 'pin_memory': True}, 'offload_param': {'device': 'cpu', 'pin_memory': True}, 'overlap_comm': True, 'contiguous_gradients': True, 'sub_group_size': 1000000000.0, 'reduce_bucket_size': 200000000, 'stage3_prefetch_bucket_size': 'auto', 'stage3_param_persistence_threshold': 'auto', 'stage3_max_live_parameters': 1000000000.0, 'stage3_max_reuse_distance': 1000000000.0, 'stage3_gather_16bit_weights_on_model_save': True, 'allgather_bucket_size': 200000000}, 'bf16': {'enabled': True}, 'compile': {'disable': False, 'backend': 'inductor'}, 'wall_clock_breakdown': False, 'zero_allow_untested_optimizer': True, 'gradient_accumulation_steps': 8, 'train_micro_batch_size_per_gpu': 1, 'gradient_clipping': 1.0}
+{'zero_optimization': {'stage': 3, 'offload_optimizer': {'device': 'cpu', 'pin_memory': True}, 'offload_param': {'device': 'cpu', 'pin_memory': True}, 'overlap_comm': True, 'contiguous_gradients': True, 'sub_group_size': 1000000000.0, 'reduce_bucket_size': 200000000, 'stage3_prefetch_bucket_size': 'auto', 'stage3_param_persistence_threshold': 'auto', 'stage3_max_live_parameters': 1000000000.0, 'stage3_max_reuse_distance': 1000000000.0, 'stage3_gather_16bit_weights_on_model_save': True, 'allgather_bucket_size': 200000000}, 'bf16': {'enabled': True}, 'compile': {'disable': False, 'backend': 'inductor'}, 'wall_clock_breakdown': False, 'zero_allow_untested_optimizer': True, 'gradient_accumulation_steps': 8, 'train_micro_batch_size_per_gpu': 1, 'gradient_clipping': 1.0}
+{'zero_optimization': {'stage': 3, 'offload_optimizer': {'device': 'cpu', 'pin_memory': True}, 'offload_param': {'device': 'cpu', 'pin_memory': True}, 'overlap_comm': True, 'contiguous_gradients': True, 'sub_group_size': 1000000000.0, 'reduce_bucket_size': 200000000, 'stage3_prefetch_bucket_size': 'auto', 'stage3_param_persistence_threshold': 'auto', 'stage3_max_live_parameters': 1000000000.0, 'stage3_max_reuse_distance': 1000000000.0, 'stage3_gather_16bit_weights_on_model_save': True, 'allgather_bucket_size': 200000000}, 'bf16': {'enabled': True}, 'compile': {'disable': False, 'backend': 'inductor'}, 'wall_clock_breakdown': False, 'zero_allow_untested_optimizer': True, 'gradient_accumulation_steps': 8, 'train_micro_batch_size_per_gpu': 1, 'gradient_clipping': 1.0}
+{'zero_optimization': {'stage': 3, 'offload_optimizer': {'device': 'cpu', 'pin_memory': True}, 'offload_param': {'device': 'cpu', 'pin_memory': True}, 'overlap_comm': True, 'contiguous_gradients': True, 'sub_group_size': 1000000000.0, 'reduce_bucket_size': 200000000, 'stage3_prefetch_bucket_size': 'auto', 'stage3_param_persistence_threshold': 'auto', 'stage3_max_live_parameters': 1000000000.0, 'stage3_max_reuse_distance': 1000000000.0, 'stage3_gather_16bit_weights_on_model_save': True, 'allgather_bucket_size': 200000000}, 'bf16': {'enabled': True}, 'compile': {'disable': False, 'backend': 'inductor'}, 'wall_clock_breakdown': False, 'zero_allow_untested_optimizer': True, 'gradient_accumulation_steps': 8, 'train_micro_batch_size_per_gpu': 1, 'gradient_clipping': 1.0}
+{'zero_optimization': {'stage': 3, 'offload_optimizer': {'device': 'cpu', 'pin_memory': True}, 'offload_param': {'device': 'cpu', 'pin_memory': True}, 'overlap_comm': True, 'contiguous_gradients': True, 'sub_group_size': 1000000000.0, 'reduce_bucket_size': 200000000, 'stage3_prefetch_bucket_size': 'auto', 'stage3_param_persistence_threshold': 'auto', 'stage3_max_live_parameters': 1000000000.0, 'stage3_max_reuse_distance': 1000000000.0, 'stage3_gather_16bit_weights_on_model_save': True, 'allgather_bucket_size': 200000000}, 'bf16': {'enabled': True}, 'compile': {'disable': False, 'backend': 'inductor'}, 'wall_clock_breakdown': False, 'zero_allow_untested_optimizer': True, 'gradient_accumulation_steps': 8, 'train_micro_batch_size_per_gpu': 1, 'gradient_clipping': 1.0}
+{'zero_optimization': {'stage': 3, 'offload_optimizer': {'device': 'cpu', 'pin_memory': True}, 'offload_param': {'device': 'cpu', 'pin_memory': True}, 'overlap_comm': True, 'contiguous_gradients': True, 'sub_group_size': 1000000000.0, 'reduce_bucket_size': 200000000, 'stage3_prefetch_bucket_size': 'auto', 'stage3_param_persistence_threshold': 'auto', 'stage3_max_live_parameters': 1000000000.0, 'stage3_max_reuse_distance': 1000000000.0, 'stage3_gather_16bit_weights_on_model_save': True, 'allgather_bucket_size': 200000000}, 'bf16': {'enabled': True}, 'compile': {'disable': False, 'backend': 'inductor'}, 'wall_clock_breakdown': False, 'zero_allow_untested_optimizer': True, 'gradient_accumulation_steps': 8, 'train_micro_batch_size_per_gpu': 1, 'gradient_clipping': 1.0}
+{'zero_optimization': {'stage': 3, 'offload_optimizer': {'device': 'cpu', 'pin_memory': True}, 'offload_param': {'device': 'cpu', 'pin_memory': True}, 'overlap_comm': True, 'contiguous_gradients': True, 'sub_group_size': 1000000000.0, 'reduce_bucket_size': 200000000, 'stage3_prefetch_bucket_size': 'auto', 'stage3_param_persistence_threshold': 'auto', 'stage3_max_live_parameters': 1000000000.0, 'stage3_max_reuse_distance': 1000000000.0, 'stage3_gather_16bit_weights_on_model_save': True, 'allgather_bucket_size': 200000000}, 'bf16': {'enabled': True}, 'compile': {'disable': False, 'backend': 'inductor'}, 'wall_clock_breakdown': False, 'zero_allow_untested_optimizer': True, 'gradient_accumulation_steps': 8, 'train_micro_batch_size_per_gpu': 1, 'gradient_clipping': 1.0}
+saving trainable to /home/yueyulin/tmp/distill_qwen05b_1
+1000 32.200710 96514106663463.2969  0, now saving...
+Do nothing
+/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/pytorch_lightning/strategies/deepspeed.py:634: When saving the DeepSpeed Stage 3 checkpoint, each worker will save a shard of the checkpoint within a directory. If a single file is required after training, see https://lightning.ai/docs/pytorch/stable/advanced/model_parallel.html#deepspeed-zero-stage-3-single-file for instructions.
+saving trainable to /home/yueyulin/tmp/distill_qwen05b_1
+1000 29.095671 4326027066196.0869  0, now saving...
+Do nothing
+saving trainable to /home/yueyulin/tmp/distill_qwen05b_1
+1000 32.795467 174940560296757.2188  0, now saving...
+Do nothing
+saving trainable to /home/yueyulin/tmp/distill_qwen05b_1
+1000 33.022427 219511690174681.0938  0, now saving...
+Do nothing
+saving trainable to /home/yueyulin/tmp/distill_qwen05b_1
+1000 42.677418 3424262367048211456.0000  0, now saving...
+Do nothing
+saving trainable to /home/yueyulin/tmp/distill_qwen05b_1
+1000 13.322634 610866.5142  0, now saving...
+Do nothing
+saving trainable to /home/yueyulin/tmp/distill_qwen05b_1
+1000 36.187943 5202639588519005.0000  0, now saving...
+Do nothing
+saving trainable to /home/yueyulin/tmp/distill_qwen05b_1
+1000 38.897308 78142333691555488.0000  0, now saving...
+Do nothing
+Detected KeyboardInterrupt, attempting graceful shutdown ...

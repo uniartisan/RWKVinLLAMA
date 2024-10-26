@@ -1,0 +1,371 @@
+Epoch 0:   0%|                                                                                                    | 0/420889 [00:00<?, ?it/s][rank0]:V1025 12:43:18.877000 140359162758976 torch/_dynamo/convert_frame.py:1082] skipping: _wrapped_call_impl (reason: in skipfiles, file: /home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py)
+[rank0]:V1025 12:43:18.879000 140359162758976 torch/_dynamo/convert_frame.py:1082] skipping: _call_impl (reason: in skipfiles, file: /home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py)
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0] torchdynamo start compiling wrapped_fn /home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/utils/nvtx.py:15, stack (elided 5 frames):
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]   File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 395, in <module>
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]     loss = train_step(model_engine, batch, args, teacher_model, tokenizer)
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]   File "/home/yueyulin/github/RWKVinLLAMA/train_functions.py", line 57, in train_step
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]     student_outputs = model(
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]     return self._call_impl(*args, **kwargs)
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1562, in _call_impl
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]     return forward_call(*args, **kwargs)
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]     ret_val = func(*args, **kwargs)
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/runtime/engine.py", line 1899, in forward
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]     loss = self.module(*inputs, **kwargs)
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]     return self._call_impl(*args, **kwargs)
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]     result = forward_call(*args, **kwargs)
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 433, in _fn
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]     return fn(*args, **kwargs)
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]     return self._call_impl(*args, **kwargs)
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1592, in _call_impl
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]     args_result = hook(self, args)
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 1116, in __call__
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]     return self._torchdynamo_orig_callable(
+[rank0]:V1025 12:43:18.885000 140359162758976 torch/_dynamo/convert_frame.py:776] [0/0]
+[rank0]:I1025 12:43:18.886000 140359162758976 torch/_dynamo/logging.py:56] [0/0] Step 1: torchdynamo start tracing wrapped_fn /home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/utils/nvtx.py:15
+[rank0]:V1025 12:43:18.887000 140359162758976 torch/fx/experimental/symbolic_shapes.py:2529] [0/0] create_env
+[rank0]:V1025 12:43:18.893000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE COPY_FREE_VARS 1 []
+[rank0]:V1025 12:43:18.893000 140359162758976 torch/_dynamo/symbolic_convert.py:775] [0/0] [__trace_source] TRACE starts_line /home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/utils/nvtx.py:15 in wrapped_fn (instrument_w_nvtx.wrapped_fn)
+[rank0]:V1025 12:43:18.893000 140359162758976 torch/_dynamo/symbolic_convert.py:775] [0/0] [__trace_source]         def wrapped_fn(*args, **kwargs):
+[rank0]:V1025 12:43:18.894000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE RESUME 0 []
+[rank0]:V1025 12:43:18.895000 140359162758976 torch/_dynamo/symbolic_convert.py:775] [0/0] [__trace_source] TRACE starts_line /home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/utils/nvtx.py:16 in wrapped_fn (instrument_w_nvtx.wrapped_fn)
+[rank0]:V1025 12:43:18.895000 140359162758976 torch/_dynamo/symbolic_convert.py:775] [0/0] [__trace_source]             if enable_nvtx:
+[rank0]:V1025 12:43:18.895000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE LOAD_GLOBAL enable_nvtx []
+[rank0]:V1025 12:43:18.895000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE POP_JUMP_IF_FALSE 86 [ConstantVariable()]
+[rank0]:V1025 12:43:18.895000 140359162758976 torch/_dynamo/symbolic_convert.py:775] [0/0] [__trace_source] TRACE starts_line /home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/utils/nvtx.py:17 in wrapped_fn (instrument_w_nvtx.wrapped_fn)
+[rank0]:V1025 12:43:18.895000 140359162758976 torch/_dynamo/symbolic_convert.py:775] [0/0] [__trace_source]                 get_accelerator().range_push(func.__qualname__)
+[rank0]:V1025 12:43:18.895000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE LOAD_GLOBAL get_accelerator []
+[rank0]:V1025 12:43:18.897000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE CALL 0 [NullVariable(), UserFunctionVariable()]
+[rank0]:V1025 12:43:18.897000 140359162758976 torch/_dynamo/symbolic_convert.py:2753] [0/0] [__trace_call] TRACE inlined call get_accelerator from /home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/utils/nvtx.py:17 in wrapped_fn (instrument_w_nvtx.wrapped_fn)
+[rank0]:V1025 12:43:18.897000 140359162758976 torch/_dynamo/symbolic_convert.py:2753] [0/0] [__trace_call]             get_accelerator().range_push(func.__qualname__)
+[rank0]:V1025 12:43:18.897000 140359162758976 torch/_dynamo/symbolic_convert.py:2753] [0/0] [__trace_call]             ~~~~~~~~~~~~~~~^^
+[rank0]:V1025 12:43:18.898000 140359162758976 torch/_dynamo/symbolic_convert.py:2754] [0/0] INLINING <code object get_accelerator at 0x6ee06c0, file "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/accelerator/real_accelerator.py", line 51>, inlined according trace_rules.lookup inlined by default
+[rank0]:V1025 12:43:18.903000 140359162758976 torch/_dynamo/symbolic_convert.py:775] [0/0] [__trace_source] TRACE starts_line /home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/accelerator/real_accelerator.py:51 in get_accelerator (get_accelerator) (inline depth: 1)
+[rank0]:V1025 12:43:18.903000 140359162758976 torch/_dynamo/symbolic_convert.py:775] [0/0] [__trace_source]     def get_accelerator():
+[rank0]:V1025 12:43:18.906000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE RESUME 0 []
+[rank0]:V1025 12:43:18.906000 140359162758976 torch/_dynamo/symbolic_convert.py:775] [0/0] [__trace_source] TRACE starts_line /home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/accelerator/real_accelerator.py:53 in get_accelerator (get_accelerator) (inline depth: 1)
+[rank0]:V1025 12:43:18.906000 140359162758976 torch/_dynamo/symbolic_convert.py:775] [0/0] [__trace_source]         if ds_accelerator is not None:
+[rank0]:V1025 12:43:18.906000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE LOAD_GLOBAL ds_accelerator []
+[rank0]:V1025 12:43:18.906000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE LOAD_CONST None [UserDefinedObjectVariable()]
+[rank0]:V1025 12:43:18.907000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE IS_OP 0 [UserDefinedObjectVariable(), ConstantVariable()]
+[rank0]:V1025 12:43:18.907000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE POP_JUMP_IF_TRUE 30 [ConstantVariable()]
+[rank0]:V1025 12:43:18.907000 140359162758976 torch/_dynamo/symbolic_convert.py:775] [0/0] [__trace_source] TRACE starts_line /home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/accelerator/real_accelerator.py:54 in get_accelerator (get_accelerator) (inline depth: 1)
+[rank0]:V1025 12:43:18.907000 140359162758976 torch/_dynamo/symbolic_convert.py:775] [0/0] [__trace_source]             return ds_accelerator
+[rank0]:V1025 12:43:18.907000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE LOAD_GLOBAL ds_accelerator []
+[rank0]:V1025 12:43:18.907000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE RETURN_VALUE None [UserDefinedObjectVariable()]
+[rank0]:V1025 12:43:18.907000 140359162758976 torch/_dynamo/symbolic_convert.py:2807] [0/0] DONE INLINING <code object get_accelerator at 0x6ee06c0, file "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/accelerator/real_accelerator.py", line 51>
+[rank0]:V1025 12:43:18.908000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE LOAD_ATTR range_push [UserDefinedObjectVariable()]
+[rank0]:V1025 12:43:18.908000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE LOAD_DEREF func [NullVariable(), UserMethodVariable()]
+[rank0]:V1025 12:43:18.908000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE LOAD_ATTR __qualname__ [NullVariable(), UserMethodVariable(), LazyVariableTracker()]
+[rank0]:V1025 12:43:18.908000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE CALL 1 [NullVariable(), UserMethodVariable(), GetAttrVariable()]
+[rank0]:V1025 12:43:18.909000 140359162758976 torch/_dynamo/symbolic_convert.py:2753] [0/0] [__trace_call] TRACE inlined call range_push from /home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/utils/nvtx.py:17 in wrapped_fn (instrument_w_nvtx.wrapped_fn)
+[rank0]:V1025 12:43:18.909000 140359162758976 torch/_dynamo/symbolic_convert.py:2753] [0/0] [__trace_call]             get_accelerator().range_push(func.__qualname__)
+[rank0]:V1025 12:43:18.909000 140359162758976 torch/_dynamo/symbolic_convert.py:2753] [0/0] [__trace_call]             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+[rank0]:V1025 12:43:18.909000 140359162758976 torch/_dynamo/symbolic_convert.py:2754] [0/0] INLINING <code object range_push at 0x7fa7240f4f50, file "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/accelerator/cuda_accelerator.py", line 230>, inlined according trace_rules.lookup inlined by default
+[rank0]:V1025 12:43:18.909000 140359162758976 torch/_dynamo/symbolic_convert.py:775] [0/0] [__trace_source] TRACE starts_line /home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/accelerator/cuda_accelerator.py:230 in range_push (CUDA_Accelerator.range_push) (inline depth: 1)
+[rank0]:V1025 12:43:18.909000 140359162758976 torch/_dynamo/symbolic_convert.py:775] [0/0] [__trace_source]         def range_push(self, msg):
+[rank0]:V1025 12:43:18.912000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE RESUME 0 []
+[rank0]:V1025 12:43:18.912000 140359162758976 torch/_dynamo/symbolic_convert.py:775] [0/0] [__trace_source] TRACE starts_line /home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/accelerator/cuda_accelerator.py:231 in range_push (CUDA_Accelerator.range_push) (inline depth: 1)
+[rank0]:V1025 12:43:18.912000 140359162758976 torch/_dynamo/symbolic_convert.py:775] [0/0] [__trace_source]             if hasattr(torch.cuda.nvtx, 'range_push'):
+[rank0]:V1025 12:43:18.912000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE LOAD_GLOBAL hasattr []
+[rank0]:V1025 12:43:18.913000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE LOAD_GLOBAL torch [NullVariable(), BuiltinVariable()]
+[rank0]:V1025 12:43:18.913000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE LOAD_ATTR cuda [NullVariable(), BuiltinVariable(), PythonModuleVariable(<module 'torch' from '/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/__init__.py'>)]
+[rank0]:V1025 12:43:18.913000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE LOAD_ATTR nvtx [NullVariable(), BuiltinVariable(), PythonModuleVariable(<module 'torch.cuda' from '/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/cuda/__init__.py'>)]
+[rank0]:V1025 12:43:18.913000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE LOAD_CONST range_push [NullVariable(), BuiltinVariable(), PythonModuleVariable(<module 'torch.cuda.nvtx' from '/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/cuda/nvtx.py'>)]
+[rank0]:V1025 12:43:18.913000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE CALL 2 [NullVariable(), BuiltinVariable(), PythonModuleVariable(<module 'torch.cuda.nvtx' from '/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/cuda/nvtx.py'>), ConstantVariable()]
+[rank0]:V1025 12:43:18.914000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE POP_JUMP_IF_FALSE 156 [ConstantVariable()]
+[rank0]:V1025 12:43:18.914000 140359162758976 torch/_dynamo/symbolic_convert.py:775] [0/0] [__trace_source] TRACE starts_line /home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/accelerator/cuda_accelerator.py:232 in range_push (CUDA_Accelerator.range_push) (inline depth: 1)
+[rank0]:V1025 12:43:18.914000 140359162758976 torch/_dynamo/symbolic_convert.py:775] [0/0] [__trace_source]                 return torch.cuda.nvtx.range_push(msg)
+[rank0]:V1025 12:43:18.914000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE LOAD_GLOBAL torch []
+[rank0]:V1025 12:43:18.914000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE LOAD_ATTR cuda [PythonModuleVariable(<module 'torch' from '/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/__init__.py'>)]
+[rank0]:V1025 12:43:18.914000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE LOAD_ATTR nvtx [PythonModuleVariable(<module 'torch.cuda' from '/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/cuda/__init__.py'>)]
+[rank0]:V1025 12:43:18.914000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE LOAD_ATTR range_push [PythonModuleVariable(<module 'torch.cuda.nvtx' from '/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/cuda/nvtx.py'>)]
+[rank0]:V1025 12:43:18.914000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE LOAD_FAST msg [NullVariable(), TorchInGraphFunctionVariable(<function range_push at 0x7fa72d8e7ce0>)]
+[rank0]:V1025 12:43:18.915000 140359162758976 torch/_dynamo/symbolic_convert.py:798] [0/0] [__trace_bytecode] TRACE CALL 1 [NullVariable(), TorchInGraphFunctionVariable(<function range_push at 0x7fa72d8e7ce0>), GetAttrVariable()]
+[rank0]:V1025 12:43:18.915000 140359162758976 torch/_dynamo/symbolic_convert.py:814] [0/0] empty checkpoint
+[rank0]:V1025 12:43:18.915000 140359162758976 torch/_dynamo/symbolic_convert.py:2796] [0/0] FAILED INLINING <code object range_push at 0x7fa7240f4f50, file "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/accelerator/cuda_accelerator.py", line 230>
+[rank0]:V1025 12:43:18.915000 140359162758976 torch/_dynamo/symbolic_convert.py:814] [0/0] empty checkpoint
+Traceback (most recent call last):
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/utils.py", line 645, in proxy_args_kwargs
+    proxy_args = tuple(arg.as_proxy() for arg in args)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/utils.py", line 645, in <genexpr>
+    proxy_args = tuple(arg.as_proxy() for arg in args)
+                       ^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/variables/misc.py", line 660, in as_proxy
+    return GetAttrVariable.create_getattr_proxy(self.obj.as_proxy(), self.name)
+                                                ^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/variables/base.py", line 253, in as_proxy
+    raise NotImplementedError(str(self))
+NotImplementedError: UserFunctionVariable()
+The above exception was the direct cause of the following exception:
+Traceback (most recent call last):
+  File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 395, in <module>
+    loss = train_step(model_engine, batch, args, teacher_model, tokenizer)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/github/RWKVinLLAMA/train_functions.py", line 57, in train_step
+    student_outputs = model(
+                      ^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1562, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+    ret_val = func(*args, **kwargs)
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/runtime/engine.py", line 1899, in forward
+    loss = self.module(*inputs, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+    result = forward_call(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 433, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1592, in _call_impl
+    args_result = hook(self, args)
+                  ^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 1116, in __call__
+    return self._torchdynamo_orig_callable(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 472, in __call__
+    return _compile(
+           ^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_utils_internal.py", line 84, in wrapper_function
+    return StrobelightCompileTimeProfiler.profile_compile_time(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_strobelight/compile_time_profiler.py", line 129, in profile_compile_time
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/contextlib.py", line 81, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 817, in _compile
+    guarded_code = compile_inner(code, one_graph, hooks, transform)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/utils.py", line 231, in time_wrapper
+    r = func(*args, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 636, in compile_inner
+    out_code = transform_code_object(code, transform)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/bytecode_transformation.py", line 1185, in transform_code_object
+    transformations(instructions, code_options)
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 178, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 582, in transform
+    tracer.run()
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 2451, in run
+    super().run()
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 893, in run
+    while self.step():
+          ^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 805, in step
+    self.dispatch_table[inst.opcode](self, inst)
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 499, in wrapper
+    return inner_fn(self, inst)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 2059, in CALL
+    self.call_function(fn, args, kwargs)
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 743, in call_function
+    self.push(fn.call_function(self, args, kwargs))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py", line 344, in call_function
+    return super().call_function(tx, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py", line 293, in call_function
+    return super().call_function(tx, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py", line 90, in call_function
+    return tx.inline_user_function_return(self, [*self.self_args(), *args], kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 749, in inline_user_function_return
+    return InliningInstructionTranslator.inline_call(self, fn, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 2666, in inline_call
+    return cls.inline_call_(parent, func, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 2782, in inline_call_
+    tracer.run()
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 893, in run
+    while self.step():
+          ^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 805, in step
+    self.dispatch_table[inst.opcode](self, inst)
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 499, in wrapper
+    return inner_fn(self, inst)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 2059, in CALL
+    self.call_function(fn, args, kwargs)
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 743, in call_function
+    self.push(fn.call_function(self, args, kwargs))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/variables/torch.py", line 762, in call_function
+    *proxy_args_kwargs(args, kwargs),
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/utils.py", line 652, in proxy_args_kwargs
+    unimplemented(
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/exc.py", line 220, in unimplemented
+    raise Unsupported(msg) from from_exc
+torch._dynamo.exc.Unsupported: call_function args: GetAttrVariable(UserFunctionVariable(), __qualname__)
+from user code:
+   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/utils/nvtx.py", line 17, in wrapped_fn
+    get_accelerator().range_push(func.__qualname__)
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/accelerator/cuda_accelerator.py", line 232, in range_push
+    return torch.cuda.nvtx.range_push(msg)
+You can suppress this exception and fall back to eager by setting:
+    import torch._dynamo
+    torch._dynamo.config.suppress_errors = True
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/utils.py", line 645, in proxy_args_kwargs
+[rank0]:     proxy_args = tuple(arg.as_proxy() for arg in args)
+[rank0]:                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/utils.py", line 645, in <genexpr>
+[rank0]:     proxy_args = tuple(arg.as_proxy() for arg in args)
+[rank0]:                        ^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/variables/misc.py", line 660, in as_proxy
+[rank0]:     return GetAttrVariable.create_getattr_proxy(self.obj.as_proxy(), self.name)
+[rank0]:                                                 ^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/variables/base.py", line 253, in as_proxy
+[rank0]:     raise NotImplementedError(str(self))
+[rank0]: NotImplementedError: UserFunctionVariable()
+[rank0]: The above exception was the direct cause of the following exception:
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 395, in <module>
+[rank0]:     loss = train_step(model_engine, batch, args, teacher_model, tokenizer)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_functions.py", line 57, in train_step
+[rank0]:     student_outputs = model(
+[rank0]:                       ^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1562, in _call_impl
+[rank0]:     return forward_call(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+[rank0]:     ret_val = func(*args, **kwargs)
+[rank0]:               ^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/runtime/engine.py", line 1899, in forward
+[rank0]:     loss = self.module(*inputs, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+[rank0]:     result = forward_call(*args, **kwargs)
+[rank0]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 433, in _fn
+[rank0]:     return fn(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1592, in _call_impl
+[rank0]:     args_result = hook(self, args)
+[rank0]:                   ^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 1116, in __call__
+[rank0]:     return self._torchdynamo_orig_callable(
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 472, in __call__
+[rank0]:     return _compile(
+[rank0]:            ^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_utils_internal.py", line 84, in wrapper_function
+[rank0]:     return StrobelightCompileTimeProfiler.profile_compile_time(
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_strobelight/compile_time_profiler.py", line 129, in profile_compile_time
+[rank0]:     return func(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/contextlib.py", line 81, in inner
+[rank0]:     return func(*args, **kwds)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 817, in _compile
+[rank0]:     guarded_code = compile_inner(code, one_graph, hooks, transform)
+[rank0]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/utils.py", line 231, in time_wrapper
+[rank0]:     r = func(*args, **kwargs)
+[rank0]:         ^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 636, in compile_inner
+[rank0]:     out_code = transform_code_object(code, transform)
+[rank0]:                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/bytecode_transformation.py", line 1185, in transform_code_object
+[rank0]:     transformations(instructions, code_options)
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 178, in _fn
+[rank0]:     return fn(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 582, in transform
+[rank0]:     tracer.run()
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 2451, in run
+[rank0]:     super().run()
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 893, in run
+[rank0]:     while self.step():
+[rank0]:           ^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 805, in step
+[rank0]:     self.dispatch_table[inst.opcode](self, inst)
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 499, in wrapper
+[rank0]:     return inner_fn(self, inst)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 2059, in CALL
+[rank0]:     self.call_function(fn, args, kwargs)
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 743, in call_function
+[rank0]:     self.push(fn.call_function(self, args, kwargs))
+[rank0]:               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py", line 344, in call_function
+[rank0]:     return super().call_function(tx, args, kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py", line 293, in call_function
+[rank0]:     return super().call_function(tx, args, kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py", line 90, in call_function
+[rank0]:     return tx.inline_user_function_return(self, [*self.self_args(), *args], kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 749, in inline_user_function_return
+[rank0]:     return InliningInstructionTranslator.inline_call(self, fn, args, kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 2666, in inline_call
+[rank0]:     return cls.inline_call_(parent, func, args, kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 2782, in inline_call_
+[rank0]:     tracer.run()
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 893, in run
+[rank0]:     while self.step():
+[rank0]:           ^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 805, in step
+[rank0]:     self.dispatch_table[inst.opcode](self, inst)
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 499, in wrapper
+[rank0]:     return inner_fn(self, inst)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 2059, in CALL
+[rank0]:     self.call_function(fn, args, kwargs)
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 743, in call_function
+[rank0]:     self.push(fn.call_function(self, args, kwargs))
+[rank0]:               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/variables/torch.py", line 762, in call_function
+[rank0]:     *proxy_args_kwargs(args, kwargs),
+[rank0]:      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/utils.py", line 652, in proxy_args_kwargs
+[rank0]:     unimplemented(
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/_dynamo/exc.py", line 220, in unimplemented
+[rank0]:     raise Unsupported(msg) from from_exc
+[rank0]: torch._dynamo.exc.Unsupported: call_function args: GetAttrVariable(UserFunctionVariable(), __qualname__)
+[rank0]: from user code:
+[rank0]:    File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/utils/nvtx.py", line 17, in wrapped_fn
+[rank0]:     get_accelerator().range_push(func.__qualname__)
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/accelerator/cuda_accelerator.py", line 232, in range_push
+[rank0]:     return torch.cuda.nvtx.range_push(msg)
+[rank0]: You can suppress this exception and fall back to eager by setting:
+[rank0]:     import torch._dynamo
+[rank0]:     torch._dynamo.config.suppress_errors = True

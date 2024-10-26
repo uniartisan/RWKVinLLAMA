@@ -1,0 +1,10 @@
+Epoch 0:   0%|                                                                                                    | 0/841778 [00:00<?, ?it/s]Traceback (most recent call last):
+  File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 399, in <module>
+    loss = outputs['loss']
+           ~~~~~~~^^^^^^^^
+TypeError: tuple indices must be integers or slices, not str
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 399, in <module>
+[rank0]:     loss = outputs['loss']
+[rank0]:            ~~~~~~~^^^^^^^^
+[rank0]: TypeError: tuple indices must be integers or slices, not str
