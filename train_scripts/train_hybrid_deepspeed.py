@@ -194,10 +194,12 @@ def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_los
             })
 
     real_step = batch_idx
-    if real_step % args.save_per_batches == 0 and real_step > 0 :
+    if real_step % args.save_per_batches == 0 and real_step > 0 and model_engine.global_rank == 0:
         #first check if the output_dir exists and deletes older checkpoints , we only keep latest 2 checkpoints
         if os.path.exists(args.output_dir):
             checkpoints = os.listdir(args.output_dir)
+            #only list the directories
+            checkpoints = [f for f in checkpoints if os.path.isdir(os.path.join(args.output_dir, f))]
             #sort by creation time  
             checkpoints.sort(key=lambda x: os.path.getctime(os.path.join(args.output_dir, x)))
             if len(checkpoints) > 2:
