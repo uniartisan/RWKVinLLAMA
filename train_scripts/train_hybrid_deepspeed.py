@@ -166,7 +166,8 @@ def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_los
     elapsed_time = current_time - last_log_time
     steps_per_second = 1 / elapsed_time
     kt_s = token_per_step * steps_per_second / 1000  # K tokens per second
-
+    global total_loss
+    global total_updates
     # 只在实际更新参数时更新进度条
     if is_accumulation_step and model_engine.global_rank == 0:
         if pbar is None:
