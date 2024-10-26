@@ -198,8 +198,8 @@ def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_los
         #first check if the output_dir exists and deletes older checkpoints , we only keep latest 2 checkpoints
         if os.path.exists(args.output_dir):
             checkpoints = os.listdir(args.output_dir)
-            #sort using the step number
-            checkpoints.sort(key=lambda x: int(x.split('_')[-1]))
+            #sort by creation time  
+            checkpoints.sort(key=lambda x: os.path.getctime(os.path.join(args.output_dir, x)))
             if len(checkpoints) > 2:
                 print(f'deleting older checkpoints {checkpoints[0]}')
                 os.remove(os.path.join(args.output_dir, checkpoints[0]))    
