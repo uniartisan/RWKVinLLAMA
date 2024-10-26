@@ -372,7 +372,9 @@ if __name__ == '__main__':
         optimizer = configure_optimizer(model, args)
 
         print(f'optimizer is {optimizer}')
-
+        num_total_params = sum(p.numel() for p in model.parameters())
+        num_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+        print(f'num_total_params: {num_total_params}, num_trainable_params: {num_trainable_params}, percent: {num_trainable_params / num_total_params * 100:.2f}%')
         # 初始化 DeepSpeed
         model_engine, optimizer, _, _ = deepspeed.initialize(
             model=model,
@@ -396,24 +398,7 @@ if __name__ == '__main__':
     global_step = 0
     last_log_time = time.time()
     token_per_step = args.max_seq_length * args.micro_bsz * args.num_nodes * args.num_devices
-    if model_engine.local_rank == 0:
-        from deepspeed.runtime.zero.stage_1_and_2 import estimate_zero2_model_states_mem_needs_all_live
-        from deepspeed.runtime.zero.stage3 import estimate_zero3_model_states_mem_needs_all_live
-        def print_deepspeed_model_info(model_engine):
-            if hasattr(model_engine, 'module'):
-                model = model_engine.module
-            else:
-                model = model_engine
-
-            if model_engine.zero_optimization_stage() == 0:
-                print(model)
-                total_params = sum(p.numel() for p in model.parameters())
-                print(f'Total Parameters: {total_params:,d}')
-            elif model_engine.zero_optimization_stage() in [1, 2]:
-                estimate_zero2_model_states_mem_needs_all_live(model, num_gpus_per_node=1, num_nodes=1)
-            elif model_engine.zero_optimization_stage() == 3:
-                estimate_zero3_model_states_mem_needs_all_live(model, num_gpus_per_node=4, num_nodes=1)
-        print_deepspeed_model_info(model_engine)
+    
     # 训练循环
     for epoch in range(args.max_epochs):
         model_engine.train()
