@@ -91,6 +91,10 @@ def get_teacher_outputs_client_mode(model, input_ids, args):
     return teacher_logits, teacher_hidden_states
 
 def get_teacher_outputs(teacher_model, input_ids, attention_mask, labels, args):
+    device = input_ids.device
+    
+    # 将teacher模型移动到GPU
+    teacher_model.to(device)
     with torch.no_grad():
         teacher_outputs = teacher_model(
             input_ids=input_ids, attention_mask=attention_mask, labels=labels, use_cache=False, output_hidden_states=args.is_hidden_align)
@@ -99,6 +103,8 @@ def get_teacher_outputs(teacher_model, input_ids, attention_mask, labels, args):
     teacher_loss = teacher_outputs.loss
     if teacher_hidden_states is not None:
         teacher_hidden_states = torch.cat(teacher_hidden_states[1:], dim=0)
+    # 将teacher模型移回CPU
+    teacher_model.to('cpu')
     return teacher_logits, teacher_hidden_states, teacher_loss
 
 def compute_kl_loss(student_outputs, teacher_logits, labels, args):
