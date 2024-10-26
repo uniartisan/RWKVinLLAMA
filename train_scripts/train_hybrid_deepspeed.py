@@ -205,7 +205,8 @@ def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_los
                 checkpoints.sort(key=lambda x: os.path.getctime(os.path.join(args.output_dir, x)))
                 if len(checkpoints) > 2:
                     print(f'deleting older checkpoints {checkpoints[0]}')
-                    os.rmtree(os.path.join(args.output_dir, checkpoints[0]))    
+                    import shutil
+                    shutil.rmtree(os.path.join(args.output_dir, checkpoints[0]))    
         output_dir = f"{args.output_dir}/epoch_{epoch}_step_{real_step}"
         try:
             model_engine.save_checkpoint(output_dir,f'epoch_{epoch}_step_{real_step}')
