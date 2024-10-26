@@ -199,7 +199,7 @@ def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_los
         if os.path.exists(args.output_dir):
             if model_engine.local_rank == 0:
                 checkpoints = os.listdir(args.output_dir)
-                #only list the directories
+                #only list the directories   s
                 checkpoints = [f for f in checkpoints if os.path.isdir(os.path.join(args.output_dir, f))]
                 #sort by creation time  
                 checkpoints.sort(key=lambda x: os.path.getctime(os.path.join(args.output_dir, x)))
