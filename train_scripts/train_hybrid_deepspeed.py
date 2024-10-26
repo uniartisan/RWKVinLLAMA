@@ -327,7 +327,7 @@ if __name__ == '__main__':
         else:
             # 否则，根据命令行参数创建配置
             ds_config = {
-                "train_batch_size": args.trainq_batch_size,
+                "train_batch_size": args.train_batch_size,
                 "bf16": {
                     "enabled": True
                 },
