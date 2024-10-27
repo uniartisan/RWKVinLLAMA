@@ -191,7 +191,7 @@ def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_los
                 "steps_per_second": steps_per_second,
                 "kt/s": kt_s,
                 "global_step": global_step,
-                "Gtokens": global_step * token_per_step*args.accumulate_grad_batches / 1e9,
+                "Gtokens": global_step * token_per_step * args.accumulate_grad_batches / 1e9,
                 "epoch": epoch,
                 "teacher_loss": teacher_loss,
                 "kl_loss": kl_loss,
@@ -415,7 +415,7 @@ if __name__ == '__main__':
     args.epoch_steps = len(train_dataloader) // (args.world_size * args.accumulate_grad_batches)
     global_step = 0
     last_log_time = time.time()
-    token_per_step = args.max_seq_length * args.micro_bsz * args.world_size * args.accumulate_grad_batches
+    token_per_step = args.max_seq_length * args.micro_bsz * args.world_size
     
     # 训练循环
     for epoch in range(args.max_epochs):
