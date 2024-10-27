@@ -198,29 +198,29 @@ def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_los
                 "student_cross_entropy_loss": student_cross_entropy_loss,
             })
 
-        real_step = batch_idx
-        if real_step % args.save_per_batches == 0 and real_step > 0 :
-            #first check if the output_dir exists and deletes older checkpoints , we only keep latest 2 checkpoints
-            if os.path.exists(args.output_dir):
-                if model_engine.local_rank == 0:
-                    checkpoints = os.listdir(args.output_dir)
-                    #only list the directories   s
-                    checkpoints = [f for f in checkpoints if os.path.isdir(os.path.join(args.output_dir, f))]
-                    #sort by creation time  
-                    checkpoints.sort(key=lambda x: os.path.getctime(os.path.join(args.output_dir, x)))
-                    if len(checkpoints) > 2:
-                        print(f'deleting older checkpoints {checkpoints[0]}')
-                        import shutil
-                        shutil.rmtree(os.path.join(args.output_dir, checkpoints[0]))    
-            output_dir = f"{args.output_dir}/epoch_{epoch}_step_{real_step}"
-            print(f'saving checkpoint to {output_dir}')
-            try:
-                model_engine.save_checkpoint(output_dir,f'epoch_{epoch}_step_{real_step}')
-            except Exception as e:
-                print(f"Error saving checkpoint: {e}")
-                import traceback
-                traceback.print_exc()
-            print(f'saved checkpoint to {output_dir}')
+    real_step = batch_idx
+    if real_step % args.save_per_batches == 0 and real_step > 0 :
+        #first check if the output_dir exists and deletes older checkpoints , we only keep latest 2 checkpoints
+        if os.path.exists(args.output_dir):
+            if model_engine.local_rank == 0:
+                checkpoints = os.listdir(args.output_dir)
+                #only list the directories   s
+                checkpoints = [f for f in checkpoints if os.path.isdir(os.path.join(args.output_dir, f))]
+                #sort by creation time  
+                checkpoints.sort(key=lambda x: os.path.getctime(os.path.join(args.output_dir, x)))
+                if len(checkpoints) > 2:
+                    print(f'deleting older checkpoints {checkpoints[0]}')
+                    import shutil
+                    shutil.rmtree(os.path.join(args.output_dir, checkpoints[0]))    
+        output_dir = f"{args.output_dir}/epoch_{epoch}_step_{real_step}"
+        print(f'saving checkpoint to {output_dir}')
+        try:
+            model_engine.save_checkpoint(output_dir,f'epoch_{epoch}_step_{real_step}')
+        except Exception as e:
+            print(f"Error saving checkpoint: {e}")
+        import traceback
+        traceback.print_exc()
+        print(f'saved checkpoint to {output_dir}')
 
     return current_time, pbar
 import torch.distributed as dist
