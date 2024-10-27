@@ -102,6 +102,7 @@ def create_arg_parser():
     parser.add_argument('--deepspeed_stage', type=int, default=2, choices=[0, 1, 2, 3], help='DeepSpeed ZeRO stage')
     parser.add_argument('--deepspeed_offload', action='store_true', help='Enable CPU offloading')
     parser.add_argument('--train_batch_size', type=int, default=None, help='train batch size')
+    parser.add_argument('--world_size', type=int, help='world size')
     return parser
 
 def lr_schedule(args, step):
@@ -197,28 +198,28 @@ def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_los
                 "student_cross_entropy_loss": student_cross_entropy_loss,
             })
 
-    real_step = batch_idx
-    if real_step % args.save_per_batches == 0 and real_step > 0 :
-        #first check if the output_dir exists and deletes older checkpoints , we only keep latest 2 checkpoints
-        if os.path.exists(args.output_dir):
-            if model_engine.local_rank == 0:
-                checkpoints = os.listdir(args.output_dir)
-                #only list the directories   s
-                checkpoints = [f for f in checkpoints if os.path.isdir(os.path.join(args.output_dir, f))]
-                #sort by creation time  
-                checkpoints.sort(key=lambda x: os.path.getctime(os.path.join(args.output_dir, x)))
-                if len(checkpoints) > 2:
-                    print(f'deleting older checkpoints {checkpoints[0]}')
-                    import shutil
-                    shutil.rmtree(os.path.join(args.output_dir, checkpoints[0]))    
-        output_dir = f"{args.output_dir}/epoch_{epoch}_step_{real_step}"
-        try:
-            model_engine.save_checkpoint(output_dir,f'epoch_{epoch}_step_{real_step}')
-        except Exception as e:
-            print(f"Error saving checkpoint: {e}")
-            import traceback
-            traceback.print_exc()
-        print(f'saved checkpoint to {output_dir}')
+        real_step = batch_idx
+        if global_step % args.save_per_batches == 0 and real_step > 0 :
+            #first check if the output_dir exists and deletes older checkpoints , we only keep latest 2 checkpoints
+            if os.path.exists(args.output_dir):
+                if model_engine.local_rank == 0:
+                    checkpoints = os.listdir(args.output_dir)
+                    #only list the directories   s
+                    checkpoints = [f for f in checkpoints if os.path.isdir(os.path.join(args.output_dir, f))]
+                    #sort by creation time  
+                    checkpoints.sort(key=lambda x: os.path.getctime(os.path.join(args.output_dir, x)))
+                    if len(checkpoints) > 2:
+                        print(f'deleting older checkpoints {checkpoints[0]}')
+                        import shutil
+                        shutil.rmtree(os.path.join(args.output_dir, checkpoints[0]))    
+            output_dir = f"{args.output_dir}/epoch_{epoch}_step_{real_step}"
+            try:
+                model_engine.save_checkpoint(output_dir,f'epoch_{epoch}_step_{real_step}')
+            except Exception as e:
+                print(f"Error saving checkpoint: {e}")
+                import traceback
+                traceback.print_exc()
+            print(f'saved checkpoint to {output_dir}')
 
     return current_time, pbar
 import torch.distributed as dist
@@ -411,10 +412,10 @@ if __name__ == '__main__':
         wandb.init(project=args.wandb, name=args.run_name, config=args)
 
     # 初始化一些变量
-    args.epoch_steps = len(train_dataloader) // args.accumulate_grad_batches
+    args.epoch_steps = len(train_dataloader) // (args.world_size * args.accumulate_grad_batches)
     global_step = 0
     last_log_time = time.time()
-    token_per_step = args.max_seq_length * args.micro_bsz * args.num_nodes * args.num_devices
+    token_per_step = args.max_seq_length * args.micro_bsz * args.world_size * args.accumulate_grad_batches
     
     # 训练循环
     for epoch in range(args.max_epochs):
