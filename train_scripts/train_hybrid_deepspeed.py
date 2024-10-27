@@ -199,7 +199,7 @@ def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_los
             })
 
         real_step = batch_idx
-        if global_step % args.save_per_batches == 0 and real_step > 0 :
+        if real_step % args.save_per_batches == 0 and real_step > 0 :
             #first check if the output_dir exists and deletes older checkpoints , we only keep latest 2 checkpoints
             if os.path.exists(args.output_dir):
                 if model_engine.local_rank == 0:
