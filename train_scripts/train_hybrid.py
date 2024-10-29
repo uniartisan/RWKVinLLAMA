@@ -121,7 +121,7 @@ if __name__ == '__main__':
     args.kl_weight = config['kl_weight']
     args.ce_weight = config['ce_weight']
     args.model_file = config['model_file']
-    args.real_bsz = args.micro_bsz * args.accumulate_grad_batches*args.num_devices*args.num_nodes
+    args.real_bsz = args.micro_bsz *args.num_devices*args.num_nodes
     args.teacher_client_mode = config['teach_mode']['is_client']
     args.nccl_file = config['teach_mode']['nccl_file']
     args.num_groups = config['teach_mode']['num_groups']
