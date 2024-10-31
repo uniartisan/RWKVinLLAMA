@@ -79,8 +79,10 @@ def create_inputs_labels(conversations, tokenizer, is_llama, max_len):
         #otherwise the labels is already shifted by 1 relative to input_ids
         labels = labels[1:]
         labels.append(-100)
+    #make statistics
+    length = len(input_ids)
     #truncate and pad
-    if len(input_ids) > max_len:
+    if length > max_len:
         input_ids = input_ids[:max_len]
         labels = labels[:max_len]
     else:
@@ -88,7 +90,7 @@ def create_inputs_labels(conversations, tokenizer, is_llama, max_len):
         labels = labels + [-100] * (max_len - len(labels))
     assert len(input_ids) == len(labels)
     assert len(input_ids) == max_len
-    return input_ids, labels
+    return input_ids, labels,length
 
 
 def process_file(jsonl_file, tokenizer_path, max_len, tmp_output_dir):
@@ -97,7 +99,8 @@ def process_file(jsonl_file, tokenizer_path, max_len, tmp_output_dir):
     
     dict_data = {
         'input_ids': [],
-        'labels': []
+        'labels': [],
+        'length': []
     }
     print(f"开始处理文件: {jsonl_file}")
     count = 0
@@ -107,13 +110,16 @@ def process_file(jsonl_file, tokenizer_path, max_len, tmp_output_dir):
             if 'data' in data:
                 try:
                     conversations = data['data']
-                    input_ids, labels = create_inputs_labels(conversations, tokenizer, is_llama, max_len)
+                    input_ids, labels,length = create_inputs_labels(conversations, tokenizer, is_llama, max_len)
                     dict_data['input_ids'].append(input_ids)
                     dict_data['labels'].append(labels)
+                    dict_data['length'].append(length)
                     count += 1
                     
                 except Exception as e:
                     print(f"处理文件 {jsonl_file} 时出错: {e}")
+                    import traceback
+                    traceback.print_exc()
                     continue
     print(f'完成处理文件 {jsonl_file}, 共处理 {count} 条数据')
     import os

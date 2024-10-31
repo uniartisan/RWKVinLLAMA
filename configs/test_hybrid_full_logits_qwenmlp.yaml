@@ -9,7 +9,7 @@ kl_weight: 0.1
 ce_weight: 1
 model_file: Llama3.18BInstructRWKV8Layers
 teach_mode:
-  is_client: True
+  is_client: False
   nccl_file: nccl.txt
-  is_hidden_align: False
+  is_hidden_align: True
   num_groups: 2

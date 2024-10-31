@@ -63,7 +63,7 @@ def train_step(model, batch, args, teacher_model=None, tokenizer=None):
         else:
             kl_loss = None
             student_cross_entropy_loss = None
-            loss = compute_hidden_state_loss(student_outputs, teacher_hidden_states, labels)
+            loss = compute_hidden_state_loss(student_outputs, teacher_hidden_states)
         
         return loss, teacher_loss, kl_loss, student_cross_entropy_loss
     else:
@@ -102,7 +102,7 @@ def get_teacher_outputs(teacher_model, input_ids, attention_mask, labels, args):
     teacher_hidden_states = teacher_outputs.hidden_states if args.is_hidden_align else None
     teacher_loss = teacher_outputs.loss
     if teacher_hidden_states is not None:
-        teacher_hidden_states = torch.cat(teacher_hidden_states[1:], dim=0)
+        teacher_hidden_states = torch.cat(teacher_hidden_states, dim=0)
     # 将teacher模型移回CPU
     # teacher_model.to('cpu')
     return teacher_logits, teacher_hidden_states, teacher_loss
@@ -126,13 +126,18 @@ def compute_kl_loss(student_outputs, teacher_logits, labels, args):
     loss = args.kl_weight * kl_loss + args.ce_weight * student_cross_entropy_loss
     return loss, kl_loss,student_cross_entropy_loss
 
-def compute_hidden_state_loss(student_outputs, teacher_hidden_states, labels):
-    mask = torch.ne(labels, -100).to(labels.device)
-    mask = mask.unsqueeze(1).unsqueeze(3)
-    student_hidden_states = torch.cat(student_outputs.hidden_states[1:], dim=0)
-    student_hidden_states = student_hidden_states * mask
-    teacher_hidden_states = teacher_hidden_states * mask
-    loss = F.mse_loss(student_hidden_states, teacher_hidden_states.to(student_hidden_states.dtype))
+def compute_hidden_state_loss(student_outputs, teacher_hidden_states):
+    # mask = torch.ne(labels, -100).to(labels.device)
+    # mask = mask.unsqueeze(1).unsqueeze(3)
+    student_hidden_states = torch.cat(student_outputs.hidden_states, dim=0)
+    # student_hidden_states = student_hidden_states * mask
+    # teacher_hidden_states = teacher_hidden_states * mask
+    diff = student_hidden_states - teacher_hidden_states
+    norms = torch.linalg.vector_norm(diff, dim=-1)
+    scaled_norms = norms * (student_hidden_states[0].size(-1) ** -0.5)
+    loss = scaled_norms.mean()
+    # loss = torch.linalg.vector_norm(teacher_hidden_states - student_hidden_states,dim=-1).mean()*(teacher_hidden_states[0].size(-1)**-0.5)
+    # loss = F.mse_loss(student_hidden_states, teacher_hidden_states.to(student_hidden_states.dtype))
     return loss
 
 def configure_optimizer(model, args):

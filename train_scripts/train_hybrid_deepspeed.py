@@ -103,6 +103,7 @@ def create_arg_parser():
     parser.add_argument('--deepspeed_offload', action='store_true', help='Enable CPU offloading')
     parser.add_argument('--train_batch_size', type=int, default=None, help='train batch size')
     parser.add_argument('--world_size', type=int, help='world size')
+    parser.add_argument('--local_rank', type=int, help='local rank')
     return parser
 
 def lr_schedule(args, step):
@@ -232,8 +233,9 @@ if __name__ == '__main__':
     parser = create_arg_parser()
     args = parser.parse_args()
     print(args)
-    if args.num_nodes > 1:
-        setup_distributed()
+    # if args.num_nodes > 1:
+    deepspeed.init_distributed()
+        # setup_distributed()
     # 加载配置
     with open(args.config_file) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
@@ -289,6 +291,7 @@ if __name__ == '__main__':
 
     # 初始化混合模型
     model = HybridModel(transformer_model, args, teacher_model, tokenizer)
+    hybrid_model = model.model
     if args.ckpt_file is not None:
         dict_set = torch.load(args.ckpt_file)
         info = model.load_state_dict(dict_set, strict=False)
@@ -358,7 +361,7 @@ if __name__ == '__main__':
                     "offload_optimizer": {
                         "device": "cpu",
                         "pin_memory": True
-                    } ,
+                    },
                     "offload_param": {
                         "device": "cpu",
                         "pin_memory": True
@@ -396,7 +399,7 @@ if __name__ == '__main__':
         # model.model = torch.compile(model.model,fullgraph=True)
         # 初始化 DeepSpeed
         model_engine, optimizer, _, _ = deepspeed.initialize(
-            model=model,
+            model=model,  
             optimizer=optimizer,
             config=ds_config
         )
@@ -411,13 +414,25 @@ if __name__ == '__main__':
     if args.wandb and model_engine.global_rank == 0:
         print(f'init wandb, project is {args.wandb}, name is {args.run_name}')
         wandb.init(project=args.wandb, name=args.run_name, config=args)
-
+        print(f'begin training with {args.max_epochs} epochs')
     # 初始化一些变量
     args.epoch_steps = len(train_dataloader) // (args.world_size * args.accumulate_grad_batches)
     global_step = 0
     last_log_time = time.time()
     token_per_step = args.max_seq_length * args.micro_bsz * args.world_size
-    
+
+    def print_model_parameters_info(model_engine, args):
+        if model_engine.global_rank == 0:
+            print("检查模型参数初始化状态")
+            all_params_count = 0
+            trainable_params_count = 0
+            for name, param in model_engine.named_parameters():
+                print(f"参数名: {name}, requires_grad: {param.requires_grad}, 设备: {param.device}")
+                
+            
+      
+    # 在训练循环之前调用这个函数
+    print_model_parameters_info(model_engine, args)
     # 训练循环
     for epoch in range(args.max_epochs):
         model_engine.train()
@@ -435,7 +450,7 @@ if __name__ == '__main__':
             # 缩放损失
             loss = loss / args.accumulate_grad_batches
             
-            # 反向传播
+            # 反向传���
             model_engine.backward(loss)
 
             is_accumulation_step = (batch_idx + 1) % args.accumulate_grad_batches == 0
