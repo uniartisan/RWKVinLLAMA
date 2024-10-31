@@ -46,7 +46,7 @@ torchrun \
     --deepspeed_stage 3 \
     --config_file configs/test_hybrid_full_logits_qwenmlp.yaml \
     --output_dir /home/yueyulin/tmp/distill_qwen05b_1 \
-    --preprocessed_data /home/yueyulin/data/IndustryInstruction_Original_DS \
+    --preprocessed_data /home/yueyulin/data/all_train_ds \
     --num_devices $GPUS_PER_NODE \
     --num_nodes $NNODES \
     --micro_bsz $MICRO_BSZ \
