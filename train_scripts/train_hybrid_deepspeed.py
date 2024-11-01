@@ -323,14 +323,46 @@ if __name__ == '__main__':
         print(f'load preprocessed data from {args.preprocessed_data}')
         from data.multi_source_datasets import data_collator
         from functools import partial
+        from torch.utils.data.distributed import DistributedSampler
+
         data_collator = partial(data_collator, max_seq_length=args.max_seq_length)
         train_dir = args.preprocessed_data[0]
         val_dir = args.preprocessed_data[1] if len(args.preprocessed_data) > 1 else None
         train_ds = datasets.load_from_disk(train_dir)
-        train_dataloader = torch.utils.data.DataLoader(train_ds, batch_size=args.micro_bsz, shuffle=True, num_workers=4, pin_memory=True, drop_last=True, collate_fn=data_collator)
+        train_sampler = DistributedSampler(
+            train_ds,
+            num_replicas=args.world_size,
+            rank=args.local_rank,
+            shuffle=True
+        )
+        train_dataloader = torch.utils.data.DataLoader(
+            train_ds, 
+            batch_size=args.micro_bsz, 
+            sampler=train_sampler,  # 使用分布式 sampler
+            num_workers=4, 
+            pin_memory=True, 
+            drop_last=True, 
+            collate_fn=data_collator
+        )
         if val_dir is not None:
             val_ds = datasets.load_from_disk(val_dir)
-            val_dataloader = torch.utils.data.DataLoader(val_ds, batch_size=args.micro_bsz, shuffle=False, num_workers=4, pin_memory=True, drop_last=True, collate_fn=data_collator)    
+            # 验证集也需要 DistributedSampler
+            val_sampler = DistributedSampler(
+                val_ds,
+                num_replicas=args.world_size,
+                rank=args.local_rank,
+                shuffle=False  # 验证集通常不需要打乱
+            )
+            
+            val_dataloader = torch.utils.data.DataLoader(
+                val_ds, 
+                batch_size=args.micro_bsz, 
+                sampler=val_sampler,  # 使用分布式 sampler
+                num_workers=4, 
+                pin_memory=True, 
+                drop_last=True, 
+                collate_fn=data_collator
+            )    
         else:
             val_dataloader = None
         print(f'load preprocessed data from {args.preprocessed_data} done')
@@ -416,7 +448,7 @@ if __name__ == '__main__':
         wandb.init(project=args.wandb, name=args.run_name, config=args)
         print(f'begin training with {args.max_epochs} epochs')
     # 初始化一些变量
-    args.epoch_steps = len(train_dataloader) // (args.world_size * args.accumulate_grad_batches)
+    args.epoch_steps = len(train_dataloader) // (args.accumulate_grad_batches)
     global_step = 0
     last_log_time = time.time()
     token_per_step = args.max_seq_length * args.micro_bsz * args.world_size
