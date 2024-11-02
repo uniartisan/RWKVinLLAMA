@@ -303,20 +303,20 @@ if __name__ == '__main__':
         for name, param in model.named_parameters():
             if not 'self_attn.' in name:
                 param.requires_grad = False
-            print(name, param.shape, param.requires_grad)
+            # print(name, param.shape, param.requires_grad)
     else:
         if args.is_llama_ffn:
             print('keep llama ffn frozen')
             for name, param in model.named_parameters():
                 if not 'block.' in name or 'ffn' in name:
                     param.requires_grad = False
-                print(name, param.shape, param.requires_grad)
+                # print(name, param.shape, param.requires_grad)
         else:
             print('keep other modules frozen except rwkv block')
             for name, param in model.named_parameters():
                 if not 'block.' in name:
                     param.requires_grad = False
-                print(name, param.shape, param.requires_grad)
+                # print(name, param.shape, param.requires_grad)
 
     # 准备数据加载器
     if args.preprocessed_data is not None:
@@ -453,18 +453,7 @@ if __name__ == '__main__':
     last_log_time = time.time()
     token_per_step = args.max_seq_length * args.micro_bsz * args.world_size
 
-    def print_model_parameters_info(model_engine, args):
-        if model_engine.global_rank == 0:
-            print("检查模型参数初始化状态")
-            all_params_count = 0
-            trainable_params_count = 0
-            for name, param in model_engine.named_parameters():
-                print(f"参数名: {name}, requires_grad: {param.requires_grad}, 设备: {param.device}")
-                
-            
-      
-    # 在训练循环之前调用这个函数
-    print_model_parameters_info(model_engine, args)
+   
     # 训练循环
     for epoch in range(args.max_epochs):
         model_engine.train()
