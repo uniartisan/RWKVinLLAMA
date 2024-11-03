@@ -3,8 +3,10 @@ import os
 
 config_file = "configs/test_hybrid_full_logits_llamamlp_local.yaml"
 config_file = "configs/step_wise/test_hybrid_1_layer_llamamlp.yaml"
+config_file = "configs/test_hybrid_full_logits_qwenmlp_local.yaml"
 ckpt_file = '/home/yueyulin/model/all_llama3_1.pth'
 ckpt_file = '/data/rwkv/tmp/distill-en-zh_llama3_1_pseudo_ds_all_kl_div_stepwise_layer_1/one_layer.pth'
+ckpt_file = '/home/yueyulin/model/no_hiddens_step60k/pytorch_model.bin'
 input_text = "User: 请生成一个 Python 程序,输入一个整数列表,找到该列表的最大值，并且打印出最大值和最大值的位置。\n\nAssistant: 好的"
 input_text = "Please prepare a journey plan for me for two days in Beijing."
 input_text = "Tell me something about Alexander the Great."
@@ -12,6 +14,7 @@ input_text = "Tell me something about Alexander the Great."
 input_text = "Why is the sky blue?"
 input_text = "Does programming language Rust is faster than Python? Why?"
 input_text = "Which number is greater, 9.11 or 9.8?"
+input_text = "请生成一个 Python 程序,输入一个整数列表,找到该列表的最大值，并且打印出最大值和最大值的位置。"
 def main(config_file,ckpt_file,input_text,device):
     # 获取要添加的目录路径
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -37,7 +40,7 @@ def main(config_file,ckpt_file,input_text,device):
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     transformer_model = AutoModelForCausalLM.from_pretrained(model_id)
     print(transformer_model)
-    from hybrid_model_run import create_rwkv_args,HybridModel
+    from hybrid_model_run_rwkv7 import create_rwkv_args,HybridModel
     args = create_rwkv_args(transformer_model.config, config)
     print(args)
     model = HybridModel(transformer_model,args)
@@ -52,7 +55,9 @@ def main(config_file,ckpt_file,input_text,device):
             'content': input_text
         }
     ]
-    input_text = tokenizer.apply_chat_template(conversations,tokenize=False,add_generation_prompt=True)
+    input_text = tokenizer.apply_chat_template(conversations, tokenize=False, add_generation_prompt=True)
+    # index = input_text.find("<|im_start|>user")
+    # input_text = input_text[index:]
     print(input_text)
     input_ids = tokenizer(input_text, return_tensors="pt").to(device)
     print(input_ids)

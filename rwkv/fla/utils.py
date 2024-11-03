@@ -3,8 +3,8 @@
 import functools
 
 import torch
-import subprocess
-import re
+import triton
+import os
 from functools import lru_cache
 from packaging import version
 
@@ -71,45 +71,30 @@ def get_available_device():
 
 
 @lru_cache(maxsize=None)
-def check_compute_capacity(device):
-    if device == 'cuda':
-        if torch.cuda.is_available():
-            try:
-                nvidia_smi = subprocess.check_output("nvidia-smi --query-gpu=compute_cap --format=csv,noheader", shell=True)
-                compute_cap = nvidia_smi.decode('utf-8').strip()
-                compute_cap_major = int(compute_cap.split('.')[0])
-                return compute_cap_major >= 8
-            except BaseException:
-                return False
+def check_compute_capacity():
+    try:
+        max_shared_memory = triton.runtime.driver.active.utils.get_device_properties(0)['max_shared_mem']
+        if max_shared_memory < 102400:
+            return False
         else:
-            return False
-
-    elif device == 'xpu':
-        try:
-            clinfo_output = subprocess.check_output("clinfo | grep 'Max size for global variable'", shell=True)
-            clinfo_output = clinfo_output.decode('utf-8').strip()
-            sizes = re.findall(r'(\d+) \((\d+)KiB\)', clinfo_output)
-            for size in sizes:
-                if int(size[1]) > 128:
-                    return True
-            return False
-        except BaseException:
-            return False
-
-    elif device == 'musa':
+            return True
+    except BaseException as e:
         return False
 
-    elif device == 'npu':
-        return False
 
+@lru_cache(maxsize=None)
+def check_pytorch_version(version_s: str):
+    if version.parse(torch.__version__) >= version.parse(version_s):
+        return True
     else:
         return False
 
+
 device = get_available_device()
-device_capacity = check_compute_capacity(device)
+device_capacity = check_compute_capacity()
 
 
-if version.parse(torch.__version__) >= version.parse('2.4'):
+if check_pytorch_version('2.4'):
     from torch.amp import custom_fwd, custom_bwd
 
     def autocast_custom_fwd(*args, **kwargs):
@@ -125,28 +110,17 @@ if version.parse(torch.__version__) >= version.parse('2.4'):
         return custom_bwd(**kwargs)
 
 else:
-    from torch.cuda.amp import custom_fwd, custom_bwd
+    autocast_custom_fwd = getattr(torch, f"{device.split(':')[0]}").amp.custom_fwd
+    autocast_custom_bwd = getattr(torch, f"{device.split(':')[0]}").amp.custom_bwd
 
-    def autocast_custom_fwd(*args, **kwargs):
-        if len(args) == 1 and callable(args[0]):
-            return custom_fwd(device_type=device)(args[0])
 
-        kwargs.setdefault('device_type', device)
-        def decorator(func):
-            @functools.wraps(func)
-            def wrapper(*func_args, **func_kwargs):
-                return custom_fwd(**kwargs)(func)(*func_args, **func_kwargs)
-            return wrapper
-        return decorator
+@lru_cache(maxsize=None)
+def detect_tf32():
+    env_tf32 = os.environ.get('USE_TF32', 'true').lower()
 
-    def autocast_custom_bwd(*args, **kwargs):
-        if len(args) == 1 and callable(args[0]):
-            return custom_bwd(device_type=device)(args[0])
+    if env_tf32 in ('1', 'true', 'yes', 'on'):
+        return True
+    elif env_tf32 in ('0', 'false', 'no', 'off'):
+        return False
 
-        kwargs.setdefault('device_type', device)
-        def decorator(func):
-            @functools.wraps(func)
-            def wrapper(*func_args, **func_kwargs):
-                return custom_bwd(**kwargs)(func)(*func_args, **func_kwargs)
-            return wrapper
-        return decorator
+    return False

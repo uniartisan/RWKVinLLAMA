@@ -136,7 +136,7 @@ if __name__ == "__main__":
 
     #--config_file configs/step_wise/test_hybrid_5_layer_qwenmlp_local.yaml --ckpt_file /home/yueyulin/model/qwen/layer5.pth
     config_file = 'configs/step_wise/test_hybrid_5_layer_qwenmlp_local.yaml'
-    ckpt_file = '/home/yueyulin/model/qwen/layer5.pth'
+    ckpt_file = '/home/yueyulin/model/qwen/layer6.pth'
     device = 'cuda:0'
     
     prefix = prefix_template.format(**context_base)

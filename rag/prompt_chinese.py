@@ -35,7 +35,9 @@ PROMPTS["entiy_extraction_prefix"] = """-目标-
 
 5. 实体名称、实体类型、实体描述、关系描述、关系关键词、高层次关键词请用{output_language}输出。
 
-6. 完成时，输出{completion_delimiter}
+6. 不要输出文本中不存在的实体和关系，不要重复输出已经提取的实体和关系。
+
+7. 完成时，输出{completion_delimiter}
 
 ######################
 -示例-
@@ -144,7 +146,9 @@ PROMPTS["entity_extraction"] = """-目标-
 
 5. 实体名称、实体类型、实体描述、关系描述、关系关键词、高层次关键词请用{output_language}输出。
 
-6. 完成时，输出{completion_delimiter}
+6. 不要输出文本中不存在的实体和关系，不要重复输出已经提取的实体和关系。
+
+7. 完成时，输出{completion_delimiter}
 
 ######################
 -示例-
