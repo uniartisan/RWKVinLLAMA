@@ -7,41 +7,46 @@ import json
 import torch
 from torch.optim import Adam
 from deepspeed.ops.adam import DeepSpeedCPUAdam, FusedAdam
+from server.nccl_client import InferenceClient
 
-def initialize_nccl_group(args, model):
+def initialize_nccl_client(args):
     if not args.is_sft and args.teacher_client_mode:
-        logging.info('开始初始化进程组')
-        rank = args.rank
-        world_size = (args.world_size // args.num_groups) + 1
+        logging.info('开始初始化NCCL客户端')
+        rank = args.local_rank
+        world_size = args.world_size
         cp.cuda.Device(rank).use()
-        group_id = rank // (world_size - 1)
-        logging.info(f'全局rank {rank} 在组 {group_id} 中,世界大小为 {world_size}')
-        nccl_file = f'{args.nccl_file}_{group_id}'
+        nccl_file = args.nccl_file
+        group_id = rank // args.num_groups
+        nccl_file = f'{nccl_file}.{group_id}'
         
         with open(nccl_file, 'r') as f:
             print(f'从 {nccl_file} 加载nccl_id')
-            nccl_id = json.load(f)['nccl_id']
+            nccl_id = json.load(f)['nccl_ids']
             args.nccl_id = tuple(nccl_id)
             print("NCCL ID:", nccl_id)
-        
-        stream = cp.cuda.Stream(non_blocking=True)
-        
-        args.server_rank = world_size - 1
-        rank = rank % (world_size - 1)
-        recv_buffer = cp.empty((args.micro_bsz, args.max_seq_length, model.config.vocab_size), dtype=cp.float32)
-        
-        if args.is_hidden_align:
-            teacher_hidden_states_buffer = cp.empty((args.micro_bsz * model.config.num_hidden_layers, args.max_seq_length, model.config.hidden_size), dtype=cp.float32)
-        else:
-            teacher_hidden_states_buffer = None
+        world_size = (args.num_devices // args.num_groups)+1
+        global_rank = (rank % args.num_groups)+1
+        num_layers = args.n_layer
+        vocab_size = args.vocab_size
+        hidden_size = args.n_embd
 
-        logging.info(f'初始化进程组,本地rank为 {rank},世界大小为 {world_size}, nccl_id为 {args.nccl_id}')
-        comm = nccl.NcclCommunicator(world_size, args.nccl_id, rank)
-        logging.info(f'完成进程组初始化,本地rank为 {rank}')
+        print(f'初始化NCCL客户端,本地rank为 {rank},世界大小为 {world_size}, nccl_id为 {args.nccl_id}')
+        client = InferenceClient(
+            world_size=world_size,
+            global_rank=global_rank,
+            local_rank=rank,
+            nccl_id=args.nccl_id,
+            batch_size=args.micro_bsz,
+            length=args.max_seq_length,
+            vocab_size=vocab_size,
+            num_layers=num_layers,
+            hidden_size=hidden_size,
+            output_hidden_states=args.is_hidden_align
+        )
+        logging.info(f'完成NCCL客户端初始化,本地rank为 {rank}')
 
-        return comm, stream, recv_buffer, teacher_hidden_states_buffer
-    
-    return None, None, None, None
+        return client
+
 
 def train_step(model, batch, args, teacher_model=None, tokenizer=None):
     input_ids = batch['input_ids']
@@ -72,23 +77,14 @@ def train_step(model, batch, args, teacher_model=None, tokenizer=None):
 
 def get_teacher_outputs_client_mode(model, input_ids, args):
     b, t = input_ids.shape
-    logging.info(f'rank {args.rank} is sending input_ids to server, shape is {input_ids.shape}')
-    model.comm.send(input_ids.data_ptr(), input_ids.size(0)*input_ids.size(1), model.nccl.NCCL_INT64, args.server_rank, model.stream.ptr)
-    model.stream.synchronize()
-    
-    logging.info(f'rank {args.rank} is receiving teacher_logits from server')
-    model.comm.recv(model.recv_buffer.data.ptr, model.recv_buffer.size, model.nccl.NCCL_FLOAT, args.server_rank, model.stream.ptr)
-    model.stream.synchronize()
-    teacher_logits = torch.as_tensor(model.recv_buffer, device=input_ids.device, dtype=torch.float32)
-    
-    teacher_hidden_states = None
+    logging.info(f'rank {args.local_rank} is sending input_ids to server, shape is {input_ids.shape}')
+    result = model.client.forward(input_ids=input_ids,output_hidden_states=args.is_hidden_align)
     if args.is_hidden_align:
-        logging.info(f'rank {args.rank} is receiving teacher_hidden_states from server')
-        model.comm.recv(model.teacher_hidden_states_buffer.data.ptr, model.teacher_hidden_states_buffer.size, model.nccl.NCCL_FLOAT, args.server_rank, model.stream.ptr)
-        model.stream.synchronize()
-        teacher_hidden_states = torch.as_tensor(model.teacher_hidden_states_buffer, device=input_ids.device, dtype=torch.float32)
-    
-    return teacher_logits, teacher_hidden_states
+        logits, hidden_states = result
+        return logits, hidden_states
+    else:
+        logits = result
+        return logits
 
 def get_teacher_outputs(teacher_model, input_ids, attention_mask, labels, args):
     # device = input_ids.device

@@ -3,11 +3,13 @@ import os
 def setup_env():
     parent_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     sys.path.append(parent_dir)
-    rwkv_path = os.path.join(parent_dir, 'rwkv7')
-    sys.path.append(rwkv_path)
+    # rwkv_path = os.path.join(parent_dir, 'rwkv7')
+    # sys.path.append(rwkv_path)
+    
     rwkv_llama_path = os.path.join(parent_dir, 'rwkv_llama')
     sys.path.append(rwkv_llama_path)
-    print(f'add path: {rwkv_path} to sys.path')
+    # print(f'add path: {rwkv_path} to sys.path')
+    print(f'add path: {parent_dir} to sys.path')
     print(f'add path: {rwkv_llama_path} to sys.path')
     os.environ['CUDA_HOME'] = '/usr/local/cuda-12.1'
     os.environ['RWKV_JIT_ON'] = '0'
@@ -21,6 +23,8 @@ def setup_env():
         os.environ['WKV'] = ''
     if "RWKV_TRAIN_TYPE" not in os.environ:
         os.environ["RWKV_TRAIN_TYPE"] = ''
+    if 'RWKV_VERSION' not in os.environ:
+        os.environ['RWKV_VERSION'] = 'v7'
 setup_env()
 
 import argparse
@@ -29,7 +33,7 @@ import torch
 import deepspeed
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from hybrid_model import HybridModel
-from train_functions import initialize_nccl_group, configure_optimizer, train_step, validation_step
+from train_functions import initialize_nccl_client, configure_optimizer, train_step, validation_step
 from data.c4_datasets import load_and_interleave_c4, data_collator
 from data.multi_source_datasets import load_and_interleave_datasets
 import datasets
@@ -244,10 +248,10 @@ if __name__ == '__main__':
     # 设置设备和数据类型
     dtype = torch.bfloat16
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+    
     # 加载模型和分词器
     transformer_model = AutoModelForCausalLM.from_pretrained(config['Llama']['model_id'],
-                                                            torch_dtype=dtype, device_map={'':'cpu'})
+                                                            torch_dtype=dtype, device_map='cpu',low_cpu_mem_usage=True, attn_implementation='flash_attention_2')
     tokenizer = AutoTokenizer.from_pretrained(config['Llama']['model_id'])
     tokenizer.pad_token = tokenizer.eos_token
 
@@ -291,7 +295,6 @@ if __name__ == '__main__':
 
     # 初始化混合模型
     model = HybridModel(transformer_model, args, teacher_model, tokenizer)
-    hybrid_model = model.model
     if args.ckpt_file is not None:
         dict_set = torch.load(args.ckpt_file)
         info = model.load_state_dict(dict_set, strict=False)
@@ -383,47 +386,47 @@ if __name__ == '__main__':
                 "bf16": {
                     "enabled": True
                 },
+                "fp32_reduce_scatter": True,
                 "zero_optimization": {
-                    "stage": args.deepspeed_stage,
+                    "stage": 3,
                     "stage3_max_live_parameters": 1e9,
                     "stage3_max_reuse_distance": 1e9,
                     "stage3_prefetch_bucket_size": 1e7,
+                    "stage3_param_persistence_threshold": 1e5,
                     "memory_efficient_linear": True,
-                    "stage3_gather_16bit_weights_on_model_save": True,
+                    "stage3_gather_16bit_weights_on_model_save": False,
+                    "zero_quantized_weights": False,
+                    "zero_hpz_partition_size": 4,
+                    "zero_quantized_gradients": False,
                     "offload_optimizer": {
                         "device": "cpu",
-                        "pin_memory": True
+                        "pin_memory": True,
+                        "buffer_count": 4,
+                        "fast_init": True
                     },
                     "offload_param": {
                         "device": "cpu",
-                        "pin_memory": True
+                        "pin_memory": True,
+                        "buffer_count": 5,
+                        "buffer_size": 1e8,
                     },
                     "allgather_partitions": True,
-                    "allgather_bucket_size": args.ds_bucket_mb * 1000 * 1000,
+                    "sub_group_size": 1e9,
                     "overlap_comm": True,
                     "reduce_scatter": True,
-                    "reduce_bucket_size": args.ds_bucket_mb * 1000 * 1000,
+                    "reduce_bucket_size": 1e7,
                     "contiguous_gradients": True
                 },
                 "gradient_clipping": args.gradient_clip_val,
                 "gradient_checkpointing": args.grad_cp == 1,
-                "compile": {
-                    "disable": False,
-                    "backend": "inductor"
-                },
+                "zero_force_ds_cpu_initialization": True,
                 "zero_allow_untested_optimizer": True,
                 "gradient_accumulation_steps": args.accumulate_grad_batches if args.accumulate_grad_batches > 1 else None,
-                "activation_checkpointing": {
-                    "partition_activations": True,
-                    "cpu_checkpointing": True,
-                    "contiguous_memory_optimization": True,
-                    "number_checkpoints": 2
-                }
+                "wall_clock_breakdown": False
             }
 
         # 手动配置优化器
         optimizer = configure_optimizer(model, args)
-
         print(f'optimizer is {optimizer}')
         num_total_params = sum(p.numel() for p in model.parameters())
         num_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -440,7 +443,7 @@ if __name__ == '__main__':
         print('not using deepspeed, EXIT')
         exit()
     # 初始化NCCL组
-    model.comm, model.stream, model.recv_buffer, model.teacher_hidden_states_buffer = initialize_nccl_group(args, model)
+    model.client = initialize_nccl_client(args)
 
     # 只在主进程上初始化wandb
     if args.wandb and model_engine.global_rank == 0:

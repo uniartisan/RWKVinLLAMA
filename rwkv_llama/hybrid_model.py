@@ -1,5 +1,10 @@
 from functools import partial
-from src.model import Block,RWKV_Tmix_x070
+import os
+RWKV_VERSION=os.environ.get('RWKV_VERSION','v7')
+if RWKV_VERSION == 'v7':
+    from rwkv7.src.model import Block
+else:
+    from rwkv.src.model import Block
 import torch
 import pytorch_lightning as pl
 import torch.nn as nn
@@ -21,7 +26,7 @@ logging.basicConfig(
     format='%(asctime)s | %(levelname)s | %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S',
 )
-from train_functions import train_step, initialize_nccl_group, configure_optimizer, validation_step
+from train_functions import train_step,  configure_optimizer, validation_step,initialize_nccl_client
 class RWKVDecoderLayer(nn.Module):
     def __init__(
         self,
@@ -58,30 +63,6 @@ class RWKVDecoderLayer(nn.Module):
 
         return (hidden_states, None, past_key_value)
     
-class TimeMixWrapper(nn.Module):
-    def __init__(self,args,layer_idx):
-        super(TimeMixWrapper, self).__init__()
-        self.args = args
-        self.layer_idx = layer_idx
-        self.time_mixer = RWKV_Tmix_x070(args,layer_idx)
-        
-    def forward(self,
-                hidden_states,
-            attention_mask,
-            position_ids,
-            past_key_value,
-            output_attentions,
-            use_cache,
-            cache_position,
-            position_embeddings,
-            **kwargs,):
-        args = self.args
-        hidden_states.requires_grad_(True)
-        if args.grad_cp == 1:
-            x = deepspeed.checkpointing.checkpoint(self.time_mixer, hidden_states)
-        else:
-            x = self.time_mixer(hidden_states)
-        return x,None,None
 
 
 class HybridModel(pl.LightningModule):
@@ -92,28 +73,17 @@ class HybridModel(pl.LightningModule):
         assert attn_num_heads % attn_num_key_value_heads == 0
         n_share = attn_num_heads // attn_num_key_value_heads
         def init_block_params(rwkv_args,layer_idx,llama_layer):
-            if rwkv_args.is_rwkv_att_only:
-                decoder = llama_layer
-                att = TimeMixWrapper(rwkv_args,layer_idx)
-                att.time_mixer.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
-                att.time_mixer.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
-                att.time_mixer.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
-                att.time_mixer.output.weight.data = llama_layer.self_attn.o_proj.weight.data
-                del llama_layer.self_attn
-                llama_layer.self_attn = att
-                return decoder
+            decoder = RWKVDecoderLayer(rwkv_args,layer_idx)
+            decoder.block.att.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
+            decoder.block.att.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
+            decoder.block.att.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
+            decoder.block.att.output.weight.data = llama_layer.self_attn.o_proj.weight.data
+            if rwkv_args.is_llama_ffn:
+                decoder.block.ffn = llama_layer.mlp
             else:
-                decoder = RWKVDecoderLayer(rwkv_args,layer_idx)
-                decoder.block.att.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
-                decoder.block.att.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
-                decoder.block.att.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
-                decoder.block.att.output.weight.data = llama_layer.self_attn.o_proj.weight.data
-                if rwkv_args.is_llama_ffn:
-                    decoder.block.ffn = llama_layer.mlp
-                else:
-                    decoder.block.ffn.c_fc.weight.data = llama_layer.mlp.up_proj.weight.data
-                    decoder.block.ffn.c_proj.weight.data = llama_layer.mlp.down_proj.weight.data
-                return decoder
+                decoder.block.ffn.c_fc.weight.data = llama_layer.mlp.up_proj.weight.data
+                decoder.block.ffn.c_proj.weight.data = llama_layer.mlp.down_proj.weight.data
+            return decoder
         for layer_idx in range(transformer_model.config.num_hidden_layers):
             if layer_idx in rwkv_args.layers:
                 decoder = init_block_params(rwkv_args,layer_idx,transformer_model.model.layers[layer_idx])
@@ -134,10 +104,7 @@ class HybridModel(pl.LightningModule):
             if 'pad_token_id' not in self.tokenizer.__dict__:
                 self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
         torch.cuda.empty_cache()
-        self.comm = None
-        self.stream = None
-        self.recv_buffer = None
-        self.teacher_hidden_states_buffer = None
+        self.client = None
     def forward(
         self,
         input_ids,
@@ -156,7 +123,7 @@ class HybridModel(pl.LightningModule):
             return cfg.get("offload_optimizer") or cfg.get("offload_param")
         return False
     def on_fit_start(self):
-        self.comm, self.stream, self.recv_buffer, self.teacher_hidden_states_buffer = initialize_nccl_group(self.args, self.model)
+        self.client = initialize_nccl_client(self.args)
     def validation_step(self, batch, batch_idx):
         result = validation_step(self, batch, self.args, self.teacher_model, self.tokenizer)
         self.log_dict(result, prog_bar=True)
