@@ -19,7 +19,7 @@ if importlib.util.find_spec('deepspeed'):
     from deepspeed.ops.adam import DeepSpeedCPUAdam, FusedAdam
 from .infctx_module import *
 from einops import rearrange
-from rwkv.fla.ops.rwkv6 import chunk_rwkv6, fused_recurrent_rwkv6
+from fla.ops.rwkv6 import chunk_rwkv6, fused_recurrent_rwkv6
 from .rwkvLinear import make_linear_att, make_linear_ffn, LORA_CONFIG
 
 try:
