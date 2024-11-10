@@ -13,7 +13,7 @@ def initialize_nccl_client(args):
     if not args.is_sft and args.teacher_client_mode:
         logging.info('开始初始化NCCL客户端')
         rank = args.local_rank
-        world_size = args.world_size
+        # world_size = args.world_size
         cp.cuda.Device(rank).use()
         nccl_file = args.nccl_file
         group_id = rank // args.num_groups
@@ -24,7 +24,7 @@ def initialize_nccl_client(args):
             nccl_id = json.load(f)['nccl_ids']
             args.nccl_id = tuple(nccl_id)
             print("NCCL ID:", nccl_id)
-        world_size = (args.num_devices // args.num_groups)+1
+        world_size = args.num_groups+1
         global_rank = (rank % args.num_groups)+1
         num_layers = args.n_layer
         vocab_size = args.vocab_size
