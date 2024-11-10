@@ -5,7 +5,8 @@ def setup_env():
     sys.path.append(parent_dir)
     # rwkv_path = os.path.join(parent_dir, 'rwkv7')
     # sys.path.append(rwkv_path)
-    
+    rwkv6_path = os.path.join(parent_dir, 'rwkv')
+    sys.path.append(rwkv6_path)
     rwkv_llama_path = os.path.join(parent_dir, 'rwkv_llama')
     sys.path.append(rwkv_llama_path)
     # print(f'add path: {rwkv_path} to sys.path')
