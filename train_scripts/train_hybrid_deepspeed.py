@@ -397,7 +397,7 @@ if __name__ == '__main__':
                     "memory_efficient_linear": True,
                     "stage3_gather_16bit_weights_on_model_save": False,
                     "zero_quantized_weights": False,
-                    "zero_hpz_partition_size": 4,
+                    "zero_hpz_partition_size": args.world_size,
                     "zero_quantized_gradients": False,
                     "offload_optimizer": {
                         "device": "cpu",
