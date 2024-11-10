@@ -42,6 +42,7 @@ def do_model_forward(model,
                         output_hidden_states=return_hidden_states,
                         use_cache=False)
     logger.info(f"Finished model forward with logits shape {results.logits.shape} elapsed time is {time.time()-start_time}")
+    torch.cuda.empty_cache()
     return results
 
 def do_recv_send_thread(comm,
