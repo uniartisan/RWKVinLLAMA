@@ -15,36 +15,40 @@ def initialize_nccl_client(args):
         rank = args.local_rank
         # world_size = args.world_size
         cp.cuda.Device(rank).use()
-        nccl_file = args.nccl_file
-        group_id = rank // args.num_groups
-        nccl_file = f'{nccl_file}.{group_id}'
-        
-        with open(nccl_file, 'r') as f:
-            print(f'从 {nccl_file} 加载nccl_id')
+        # Create student client
+        groups = args.groups
+        for group in groups:
+            if rank in group['cuda_devices']:
+                world_size = group['num_groups']
+                global_rank = group['global_ranks'][group['cuda_devices'].index(rank)]
+                batch_size = args.micro_bsz
+                num_hidden_layers = args.n_layer
+                hidden_size = args.n_embd
+                max_length = args.max_seq_length
+                vocab_size = args.vocab_size
+                nccl_file = group['nccl_file']
+                break
+        with open(nccl_file,'r') as f:
+            import json 
             nccl_id = json.load(f)['nccl_ids']
-            args.nccl_id = tuple(nccl_id)
-            print("NCCL ID:", nccl_id)
-        world_size = args.num_groups+1
-        global_rank = (rank % args.num_groups)+1
-        num_layers = args.n_layer
-        vocab_size = args.vocab_size
-        hidden_size = args.n_embd
-
-        print(f'初始化NCCL客户端,本地rank为 {rank},世界大小为 {world_size}, nccl_id为 {args.nccl_id}')
+            nccl_id = tuple(nccl_id)
+        import os
+        process_id = os.getpid()
+        print(f'PID:{process_id} rank {rank} is initializing student client, world_size is {world_size}, global_rank is {global_rank} with nccl_id {nccl_id}')
         client = InferenceClient(
-            world_size=world_size,
-            global_rank=global_rank,
-            local_rank=rank,
-            nccl_id=args.nccl_id,
-            batch_size=args.micro_bsz,
-            length=args.max_seq_length,
-            vocab_size=vocab_size,
-            num_layers=num_layers,
-            hidden_size=hidden_size,
-            output_hidden_states=args.is_hidden_align
+            world_size = world_size,
+            global_rank = global_rank,
+            local_rank = rank,
+            nccl_id = nccl_id,
+            batch_size = batch_size,
+            length = max_length,
+            vocab_size = vocab_size,
+            num_layers = num_hidden_layers,
+            hidden_size = hidden_size,
+            output_hidden_states = args.is_hidden_align
         )
-        logging.info(f'完成NCCL客户端初始化,本地rank为 {rank}')
 
+        logging.info('NCCL客户端初始化完成')
         return client
 
 
@@ -78,7 +82,7 @@ def train_step(model, batch, args, teacher_model=None, tokenizer=None):
 def get_teacher_outputs_client_mode(model, input_ids, args):
     b, t = input_ids.shape
     logging.info(f'rank {args.local_rank} is sending input_ids to server, shape is {input_ids.shape}')
-    result = model.client.forward(input_ids=input_ids,output_hidden_states=args.is_hidden_align)
+    result = model.client.forward(input_ids=input_ids)
     if args.is_hidden_align:
         logits, hidden_states = result
         return logits, hidden_states

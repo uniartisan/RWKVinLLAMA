@@ -278,8 +278,6 @@ if __name__ == '__main__':
     args.model_file = config['model_file']
     args.real_bsz = args.micro_bsz * args.accumulate_grad_batches * args.num_devices * args.num_nodes
     args.teacher_client_mode = config['teach_mode']['is_client']
-    args.nccl_file = config['teach_mode']['nccl_file']
-    args.num_groups = config['teach_mode']['num_groups']
     args.is_hidden_align = config['teach_mode']['is_hidden_align']
     args.is_sft = config.get('is_sft', False)
     args.is_llama_ffn = config.get('is_llama_ffn', False)
@@ -291,8 +289,8 @@ if __name__ == '__main__':
         teacher_model = AutoModelForCausalLM.from_pretrained(config['Llama']['model_id'], torch_dtype=dtype, attn_implementation='flash_attention_2')
         teacher_model.eval()
     else:
-        assert args.num_devices % args.num_groups == 0
         teacher_model = None
+        args.groups = config['teach_mode']['groups']
 
     # 初始化混合模型
     model = HybridModel(transformer_model, args, teacher_model, tokenizer)

@@ -30,7 +30,6 @@ class StudentClient:
                 hidden_size,
                 max_length,
                 vocab_size,
-                model_path=None,
                 backend='nccl'):
         self.master_addr = master_addr
         self.master_port = master_port
@@ -44,7 +43,6 @@ class StudentClient:
         self.hidden_size = hidden_size
         self.max_length = max_length
         self.vocab_size = vocab_size
-        self.model_path = model_path
         self.output_logits = torch.zeros(
             (self.batch_size, self.max_length, self.vocab_size),
             dtype=torch.float32,
@@ -58,11 +56,9 @@ class StudentClient:
                 device=f'cuda:{self.device_id}'
             )
     def init_process_group(self):
-        os.environ["NCCL_DEBUG"] = "INFO"
-        os.environ["NCCL_DEBUG_SUBSYS"] = "ALL"
         os.environ["NCCL_IB_DISABLE"] = "0"
         os.environ["NCCL_NET_GDR_LEVEL"] = "5"
-        logger.info(f'Initializing process group with backend: {self.backend} with rank {self.rank} and world size {self.world_size}')
+        logger.info(f'Initializing process group with backend: {self.backend} with rank {self.rank} and world size {self.world_size} on device {self.device_id}')
         init_process_group(
             backend=self.backend,
             init_method=f'tcp://{self.master_addr}:{self.master_port}',
@@ -133,7 +129,6 @@ def run_student(rank, world_size, master_addr, master_port, model_path):
         hidden_size=hidden_size,
         max_length=max_length,
         vocab_size=vocab_size,
-        model_path=model_path,
         backend='nccl'
     )
 

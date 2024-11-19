@@ -99,7 +99,14 @@ class InferenceClient:
 
 if __name__ == "__main__":
     #find the model configuration from the model path
-    model_path = '/home/yueyulin/models/Qwen2.5-14B-Instruct/'
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--rank', type=int, required=True, help='rank of the current process')
+    parser.add_argument('--world_size', type=int, required=True, default=5,help='world size')
+    parser.add_argument('--batch', type=int, required=True, help='batch size',default=1)
+    parser.add_argument('--length', type=int, required=True, help='length of input',default=256)
+    args = parser.parse_args()
+    model_path = '/home/yueyulin/models/Qwen2.5-7B-Instruct/'
     config_path = os.path.join(model_path,'config.json')
     import json
     with open(config_path,'r') as f:
@@ -109,8 +116,8 @@ if __name__ == "__main__":
     hidden_size = config['hidden_size']
 
 
-    batch = 1
-    length = 256
+    batch = args.batch
+    length = args.length
     output_hidden_states = True
     nccl_file = 'nccl.txt'
     with open(nccl_file,'r') as f:
@@ -119,13 +126,11 @@ if __name__ == "__main__":
         nccl_id = tuple(nccl_id)
     logger.info(f"NCCL ID: {nccl_id}")
 
-    world_size = 2
-    rank = 1
-    num_server_rank = 1
-    local_rank = 0
+    world_size = args.world_size
+    rank = args.rank
+    local_rank = rank - 1
 
     logger.info(f'batch size: {batch}, length: {length}, vocab size: {vocab_size}, num layers: {num_layers}, hidden size: {hidden_size}')
-    logger.info(f'world size: {world_size}, rank: {rank}, num server rank: {num_server_rank}, local rank: {local_rank}')
 
     client = InferenceClient(
         world_size = world_size,
@@ -140,13 +145,35 @@ if __name__ == "__main__":
         output_hidden_states = output_hidden_states
     )
 
+    from transformers import AutoModelForCausalLM,AutoTokenizer
+    model = AutoModelForCausalLM.from_pretrained(model_path,
+                                                 attn_implementation="flash_attention_2", 
+                                                 torch_dtype=torch.bfloat16)
+    model.eval()
+    model.to(f'cuda:{local_rank}')
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
+    eos_id = tokenizer.pad_token_id
+    del tokenizer
     import time
     while True:
         input('Press to start sending requests')
-        input_ids = torch.randint(0, vocab_size-1, (batch, length), dtype=torch.long).to(rank)
-        logger.info(f"Input ids shape: {input_ids.shape}")
+        input_ids = torch.randint(0, vocab_size-1, (batch, length), dtype=torch.long).to(local_rank)
+        logger.info(f"Input ids shape: {input_ids.shape} input_ids {input_ids}")
         start_time = time.time()
         logits, hidden_states = client.forward(input_ids)
         logger.info(f"Time elapsed: {time.time()-start_time}")
         logger.info(f"Logits shape: {logits.shape}")
         logger.info(f"Hidden states shape: {hidden_states.shape}")
+        with torch.no_grad():
+            attention_mask = torch.ne(input_ids, eos_id).to(local_rank)
+            output = model(input_ids,
+                           attention_mask=attention_mask,
+                        output_hidden_states=True,
+                        use_cache=False)
+            logits = output.logits
+            local_hidden_states = output.hidden_states
+            logger.info(f"logits diff: {torch.abs(logits - logits).sum()}")
+            for idx,hidden_state in enumerate(local_hidden_states):
+                logger.info(f"hidden states diff: {torch.abs(hidden_states[idx] - hidden_state).sum()}")
+            local_hidden_states = torch.cat(local_hidden_states,dim=0)
+            logger.info(f"hidden states diff: {torch.abs(hidden_states - local_hidden_states).sum()}")
