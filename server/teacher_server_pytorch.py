@@ -117,7 +117,7 @@ class DistributedTeacher:
         """Initialize the distributed group"""
         logger.debug(f"Initializing process group with {self.world_size} processes")
         init_process_group(backend=self.backend,
-                           init_method=f"tcp://localhost:{self.port}",
+                           init_method=f"tcp://0.0.0.0:{self.port}",
                            world_size=self.world_size,
                            rank=0)
         logger.debug(f"Process group initialized with {self.world_size} processes")
