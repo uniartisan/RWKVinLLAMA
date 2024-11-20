@@ -88,7 +88,7 @@ def get_teacher_outputs_client_mode(model, input_ids, args):
         return logits, hidden_states
     else:
         logits = result
-        return logits
+        return logits,None
 
 def get_teacher_outputs(teacher_model, input_ids, attention_mask, labels, args):
     # device = input_ids.device
