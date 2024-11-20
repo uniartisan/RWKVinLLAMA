@@ -51,7 +51,8 @@ def do_gather_scatter_thread(comm,
         #Logits buffer, shape (client_size, batch_size, length, vocab_size)
         logits_buffer = [torch.empty((batch_size, length, model.config.vocab_size), dtype=torch.float32, device='cuda:0') for _ in range(client_size)]
         #Hidden states buffer, shape (client_size, (num_layers+1), batch_size, length, hidden_size)
-        hidden_states_buffer = [torch.empty(((num_layers+1)* batch_size, length, model.config.hidden_size), dtype=torch.float32, device='cuda:0') for _ in range(client_size)]
+        if return_hidden_states:
+            hidden_states_buffer = [torch.empty(((num_layers+1)* batch_size, length, model.config.hidden_size), dtype=torch.float32, device='cuda:0') for _ in range(client_size)]
         while RUNNING:
             # Gather input_ids from all clients at once
             logger.info("Starting gather operation from all clients")
@@ -118,20 +119,26 @@ def main(model_path,
          length,
          eos_id,
          num_layers=28,
-         output_all_hiddens=False):
+         output_all_hiddens=False,
+         device_map=None):
     print(f"Start server with model {model_path}, nccl_ids {nccl_ids}, num_gpus {num_gpus}, size {size}, batch {batch}, length {length}, eos_id {eos_id}, output_all_hiddens {output_all_hiddens}")
     """Initialize the model across available GPUs"""
-    device_map = {
-            'model.embed_tokens': num_gpus-1
-    }
-    layers_per_gpu = num_layers // (num_gpus-1)
-    gpu_id = 1
-    for i in range(num_layers):
-        device_map[f'model.layers.{i}'] = gpu_id
-        if (i+1) % layers_per_gpu == 0:
-            gpu_id += 1
-    device_map['lm_head'] = num_gpus-1
-    device_map['model.norm'] = num_gpus-1
+    if device_map is None:
+        device_map = {
+                'model.embed_tokens': num_gpus-1
+        }
+        layers_per_gpu = num_layers // (num_gpus-1)
+        gpu_id = 1
+        for i in range(num_layers):
+                device_map[f'model.layers.{i}'] = gpu_id
+                if (i+1) % layers_per_gpu == 0: 
+                    gpu_id += 1
+        device_map['lm_head'] = num_gpus-1
+        device_map['model.norm'] = num_gpus-1
+    else:
+        print(f"Loading device map from {device_map}")
+        with open(device_map,'r') as f:
+            device_map = json.load(f)
     model = AutoModelForCausalLM.from_pretrained(model_path,
                                                  device_map=device_map,
                                                  attn_implementation="flash_attention_2", 
@@ -178,6 +185,7 @@ if __name__ == "__main__":
     parser.add_argument('--nccl_id_file', type=str, default='nccl.txt',help='nccl id file')
     parser.add_argument('--num_gpus', type=int, default=3, help='number of gpus to host the teacher')
     parser.add_argument('--num_layers', type=int, default=28, help='number of layers in the model')
+    parser.add_argument('--device_map', type=str, default=None, help='device map')
     args = parser.parse_args()
     
     nccl_id_file = args.nccl_id_file
@@ -194,4 +202,4 @@ if __name__ == "__main__":
     num_gpus = args.num_gpus
     size = args.size
     num_layers = args.num_layers
-    main(args.model_id, nccl_ids,num_gpus,size,batch,length,eos_id,output_all_hiddens=args.output_all_hiddens,num_layers=num_layers)
+    main(args.model_id, nccl_ids,num_gpus,size,batch,length,eos_id,output_all_hiddens=args.output_all_hiddens,num_layers=num_layers,device_map=args.device_map)

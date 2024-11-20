@@ -6,7 +6,9 @@ PAD_ID=151645
 BATCH_SIZE=2
 MAX_LENGTH=1024
 NUM_LAYERS=28
-while getopts ":m:w:g:p:b:l:o:" opt; do
+OUTPUT_HIDDEN=
+DEVICE_MAP="server/device_map.json"
+while getopts ":m:w:g:p:b:l:o:h:d:" opt; do
     case $opt in
         m) MODEL_PATH="$OPTARG"
         ;;
@@ -22,6 +24,10 @@ while getopts ":m:w:g:p:b:l:o:" opt; do
         ;;
         o) NUM_LAYERS="$OPTARG"
         ;;
+        h) OUTPUT_HIDDEN="--output_all_hiddens"
+        ;;
+        d) DEVICE_MAP="$OPTARG"
+        ;;
     esac
 done
 
@@ -33,9 +39,10 @@ echo "NUM_GPUS: $NUM_GPUS"
 echo "PAD_ID: $PAD_ID"
 echo "BATCH_SIZE: $BATCH_SIZE"
 echo "MAX_LENGTH: $MAX_LENGTH"
+echo "DEVICE_MAP: $DEVICE_MAP"
 
 echo "Starting teacher server..."
 
-python server/teacher_server_nccl_distill.py --model_id /home/yueyulin/models/Qwen2.5-7B-Instruct/ --batch $BATCH_SIZE --length $MAX_LENGTH --size $WORLD_SIZE --output_all_hiddens --num_gpus $NUM_GPUS --num_layers $NUM_LAYERS
+python server/teacher_server_nccl_distill.py --model_id $MODEL_PATH --batch $BATCH_SIZE --length $MAX_LENGTH --size $WORLD_SIZE  --num_gpus $NUM_GPUS --num_layers $NUM_LAYERS $OUTPUT_HIDDEN --device_map $DEVICE_MAP  
  
 
