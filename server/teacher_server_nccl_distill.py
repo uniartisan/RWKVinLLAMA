@@ -39,7 +39,8 @@ def do_gather_scatter_thread(comm,
                            length,
                            return_hidden_states,
                            model,
-                           eos_id):
+                           eos_id,
+                           input_ids_device):
     global RUNNING
     logger.info(f"Start gather/scatter thread with {client_size} clients")
     
@@ -71,7 +72,7 @@ def do_gather_scatter_thread(comm,
             # Process all requests in batch
             results = []
             for i in range(client_size):
-                input_ids = torch.as_tensor(gather_buffer[i], device='cuda:0', dtype=torch.long)
+                input_ids = torch.as_tensor(gather_buffer[i], device=input_ids_device, dtype=torch.long)
                 result = do_model_forward(model, input_ids, eos_id, return_hidden_states)
                 results.append(result)
             
@@ -127,6 +128,7 @@ def main(model_path,
         device_map = {
                 'model.embed_tokens': num_gpus-1
         }
+        input_ids_device = f'cuda:{num_gpus-1}'
         layers_per_gpu = num_layers // (num_gpus-1)
         gpu_id = 1
         for i in range(num_layers):
@@ -139,6 +141,7 @@ def main(model_path,
         print(f"Loading device map from {device_map}")
         with open(device_map,'r') as f:
             device_map = json.load(f)
+        input_ids_device = f'cuda:{device_map["model.embed_tokens"]}'
     model = AutoModelForCausalLM.from_pretrained(model_path,
                                                  device_map=device_map,
                                                  attn_implementation="flash_attention_2", 
@@ -163,7 +166,8 @@ def main(model_path,
                            length,
                            output_all_hiddens,
                            model,
-                           eos_id)
+                           eos_id,
+                           input_ids_device=input_ids_device)
 
     # do_recv_send_thread(COMM,
     #                     client_size,
