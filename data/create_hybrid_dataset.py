@@ -105,22 +105,52 @@ def process_file(jsonl_file, tokenizer_path, max_len, tmp_output_dir):
     print(f"开始处理文件: {jsonl_file}")
     count = 0
     with open(jsonl_file, 'r') as f:
-        for line in f:
-            data = json.loads(line)
-            if 'data' in data:
+        try:
+            for line in f:
                 try:
-                    conversations = data['data']
-                    input_ids, labels,length = create_inputs_labels(conversations, tokenizer, is_llama, max_len)
-                    dict_data['input_ids'].append(input_ids)
-                    dict_data['labels'].append(labels)
-                    dict_data['length'].append(length)
-                    count += 1
-                    
+                    data = json.loads(line)
                 except Exception as e:
-                    print(f"处理文件 {jsonl_file} 时出错: {e}")
-                    import traceback
-                    traceback.print_exc()
+                    print(f"处理文件 {jsonl_file} 时出错: {e}, 跳过{line}")
                     continue
+                if 'data' in data or "messages" in data:
+                    try:
+                        conversations = data['data'] if 'data' in data else data['messages']
+                        input_ids, labels,length = create_inputs_labels(conversations, tokenizer, is_llama, max_len)
+                        dict_data['input_ids'].append(input_ids)
+                        dict_data['labels'].append(labels)
+                        dict_data['length'].append(length)
+                        count += 1
+                        
+                    except Exception as e:
+                        print(f"处理文件 {jsonl_file} 时出错: {e}")
+                        import traceback
+                        traceback.print_exc()
+                        continue
+                elif 'text' in data:
+                    try:
+                        text = data['text']
+                        tokenized_text = tokenizer.encode(text, add_special_tokens=True)
+                        chunks = [tokenized_text[i:i+max_len] for i in range(0, len(tokenized_text), max_len)]
+                        
+                        for chunk in chunks:
+                            input_ids = chunk
+                            labels = chunk[1:] + [-100]
+                            length = len(chunk)
+                            if len(input_ids) < max_len and len(input_ids) > 128:#discard the too short data
+                                input_ids += [tokenizer.pad_token_id] * (max_len - len(input_ids))
+                                labels += [-100] * (max_len - len(labels))
+                            dict_data['input_ids'].append(input_ids)
+                            dict_data['labels'].append(labels)
+                            dict_data['length'].append(length)
+                    except Exception as e:
+                        print(f"处理文件 {jsonl_file} 时出错: {e}")
+                        import traceback
+                        traceback.print_exc()
+                        continue
+        except Exception as e:
+            print(f"处理文件 {jsonl_file} 时出错: {e}")
+            import traceback
+            traceback.print_exc()
     print(f'完成处理文件 {jsonl_file}, 共处理 {count} 条数据')
     import os
     import random
@@ -142,7 +172,7 @@ def main():
     num_processes = args.num_processes  # 新增参数
     # print(tokenizer)
 
-    jsonl_files = glob.glob(f'{input_dir}/*.jsonl')
+    jsonl_files = glob.glob(f'{input_dir}/**/*.jsonl', recursive=True)
     # 创建进程池
     pool = mp.Pool(processes=num_processes)
     tmp_output_dir = f'{output_dir}/tmp'
@@ -214,6 +244,7 @@ async def process_file_async(jsonl_file, tokenizer, is_llama, max_len):
                 except Exception as e:
                     print(f"处理文件 {jsonl_file} 时出错: {e}")
                     continue
+            
     print(f'完成处理文件 {jsonl_file}, 共处理 {count} 条数据')
     return dict_data
 
