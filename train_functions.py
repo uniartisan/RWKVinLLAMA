@@ -124,6 +124,7 @@ def compute_kl_loss(student_outputs, teacher_logits, labels, args):
         kl_loss = kl_div.sum() / num_valid_elements
     
     loss = args.kl_weight * kl_loss + args.ce_weight * student_cross_entropy_loss
+    del student_logits, teacher_logits,labels
     return loss, kl_loss,student_cross_entropy_loss
 
 def compute_hidden_state_loss(student_outputs, teacher_hidden_states):
