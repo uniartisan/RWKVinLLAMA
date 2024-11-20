@@ -136,9 +136,13 @@ def process_file(jsonl_file, tokenizer_path, max_len, tmp_output_dir):
                             input_ids = chunk
                             labels = chunk[1:] + [-100]
                             length = len(chunk)
-                            if len(input_ids) < max_len and len(input_ids) > 128:#discard the too short data
-                                input_ids += [tokenizer.pad_token_id] * (max_len - len(input_ids))
-                                labels += [-100] * (max_len - len(labels))
+                            if len(input_ids) < max_len :#discard the too short data
+                                if len(input_ids) > 128:
+                                    input_ids += [tokenizer.pad_token_id] * (max_len - len(input_ids))
+                                    labels += [-100] * (max_len - len(labels))
+                                else:
+                                    #skip the too short data
+                                    continue
                             dict_data['input_ids'].append(input_ids)
                             dict_data['labels'].append(labels)
                             dict_data['length'].append(length)
