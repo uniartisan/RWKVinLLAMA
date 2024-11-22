@@ -1,1 +1,0 @@
-{"loss": 291.2701416015625, "Gtokens": 0.004784128, "kl_loss": 23267.212890625, "teacher_cross_entropy_loss": 8.17446517944336, "student_cross_entropy_loss": 3.4396374225616455, "_timestamp": 1729817183.3928244, "kt/s": 108.52075183672316, "_runtime": 373.3056273460388, "_step": 73}

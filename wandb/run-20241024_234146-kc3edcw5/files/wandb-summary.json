@@ -1,1 +1,0 @@
-{"loss": NaN, "Gtokens": 6.5536e-05, "kl_loss": NaN, "teacher_cross_entropy_loss": 10.465519905090332, "student_cross_entropy_loss": NaN, "_timestamp": 1729813321.1831958, "kt/s": 50.37266874180704, "_runtime": 14.58146071434021, "_step": 2, "_wandb": {"runtime": 13}}
