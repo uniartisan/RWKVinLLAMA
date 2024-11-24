@@ -58,7 +58,7 @@ def initialize_nccl_client(args):
 def train_step(model, batch, args, teacher_engine=None, tokenizer=None):
     input_ids = batch['input_ids']
     labels = batch['labels']
-    attention_mask = torch.ne(input_ids, tokenizer.eos_token_id).to(input_ids.device)
+    attention_mask = torch.ne(input_ids, tokenizer.pad_token_id).to(input_ids.device)
 
     if not args.is_sft:
         if args.teacher_client_mode:

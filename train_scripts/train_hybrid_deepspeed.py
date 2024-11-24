@@ -254,7 +254,8 @@ if __name__ == '__main__':
     transformer_model = AutoModelForCausalLM.from_pretrained(config['Llama']['model_id'],
                                                             torch_dtype=dtype, device_map='cpu',low_cpu_mem_usage=True, attn_implementation='flash_attention_2')
     tokenizer = AutoTokenizer.from_pretrained(config['Llama']['model_id'])
-    tokenizer.pad_token = tokenizer.eos_token
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
 
     # 设置参数
     args.my_pos_emb = 0
