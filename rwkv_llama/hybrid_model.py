@@ -16,6 +16,7 @@ from deepspeed.ops.adam import DeepSpeedCPUAdam, FusedAdam
 from deepspeed.accelerator import get_accelerator
 from pytorch_lightning.strategies import DeepSpeedStrategy
 # from adam_mini import Adam_mini
+from transformers import AutoModelForCausalLM
 import cupy as cp
 from cupy.cuda import nccl
 import logging
@@ -66,45 +67,53 @@ class RWKVDecoderLayer(nn.Module):
 
 
 class HybridModel(pl.LightningModule):
-    def __init__(self,transformer_model,rwkv_args,teacher_model = None,tokenizer=None):
+    def __init__(self, transformer_model, rwkv_args, tokenizer=None):
         super(HybridModel, self).__init__()
         attn_num_heads = transformer_model.config.num_attention_heads
         attn_num_key_value_heads = transformer_model.config.num_key_value_heads
         assert attn_num_heads % attn_num_key_value_heads == 0
         n_share = attn_num_heads // attn_num_key_value_heads
-        def init_block_params(rwkv_args,layer_idx,llama_layer):
-            decoder = RWKVDecoderLayer(rwkv_args,layer_idx)
-            decoder.block.att.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
-            decoder.block.att.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
-            decoder.block.att.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
-            decoder.block.att.output.weight.data = llama_layer.self_attn.o_proj.weight.data
-            if rwkv_args.is_llama_ffn:
-                decoder.block.ffn = llama_layer.mlp
-            else:
-                decoder.block.ffn.c_fc.weight.data = llama_layer.mlp.up_proj.weight.data
-                decoder.block.ffn.c_proj.weight.data = llama_layer.mlp.down_proj.weight.data
-            return decoder
+
+        # 替换层的逻辑保持不变
         for layer_idx in range(transformer_model.config.num_hidden_layers):
             if layer_idx in rwkv_args.layers:
-                decoder = init_block_params(rwkv_args,layer_idx,transformer_model.model.layers[layer_idx])
-                former_decoder = transformer_model.model.layers[layer_idx]
-                transformer_model.model.layers[layer_idx] = decoder
-                del former_decoder
+                decoder = RWKVDecoderLayer(rwkv_args, layer_idx)
+                llama_layer = transformer_model.model.layers[layer_idx]
                 
+                decoder.block.att.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
+                decoder.block.att.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
+                decoder.block.att.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
+                decoder.block.att.output.weight.data = llama_layer.self_attn.o_proj.weight.data
+                
+                if rwkv_args.is_llama_ffn:
+                    decoder.block.ffn = llama_layer.mlp
+                else:
+                    decoder.block.ffn.c_fc.weight.data = llama_layer.mlp.up_proj.weight.data
+                    decoder.block.ffn.c_proj.weight.data = llama_layer.mlp.down_proj.weight.data
+                
+                transformer_model.model.layers[layer_idx] = decoder
+                del llama_layer
+
         self.model = transformer_model
+        self.add_module("model", self.model)
         self.args = rwkv_args
-        self.teacher_model = teacher_model
-        #free the teacher model
-        if self.teacher_model is not None:
-            for param in self.teacher_model.parameters():
-                param.requires_grad = False
-            self.teacher_model.eval()
+        self.teacher_model = None  # 初始化为None，后续再设置
         self.tokenizer = tokenizer
         if self.tokenizer is not None:
             if 'pad_token_id' not in self.tokenizer.__dict__:
                 self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
+        
         torch.cuda.empty_cache()
         self.client = None
+
+    def set_teacher_model(self, teacher_model):
+        """设置teacher model的方法"""
+        self.teacher_model = teacher_model
+        self.add_module('teacher_model', self.teacher_model)
+        for param in self.teacher_model.parameters():
+            param.requires_grad = False
+        self.teacher_model.eval()
+        
     def forward(
         self,
         input_ids,
