@@ -43,7 +43,7 @@ import math
 import time
 import wandb
 from tqdm import tqdm
-
+from profiler import timer, time_function
 
 
 def create_arg_parser():
@@ -188,7 +188,7 @@ def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_los
             'steps/s': f'{steps_per_second:.2f}',
             'kt/s': f'{kt_s:.2f}'
         })
-        
+        timer.print_stats(global_step)
         if args.wandb:
             wandb.log({
                 "loss": loss,
@@ -276,7 +276,7 @@ if __name__ == '__main__':
     args.kl_weight = config['kl_weight']
     args.ce_weight = config['ce_weight']
     args.model_file = config['model_file']
-    args.real_bsz = args.micro_bsz * args.accumulate_grad_batches * args.num_devices * args.num_nodes
+    args.real_bsz = args.train_batch_size
     args.teacher_client_mode = config['teach_mode']['is_client']
     args.is_hidden_align = config['teach_mode']['is_hidden_align']
     args.is_sft = config.get('is_sft', False)
@@ -284,16 +284,17 @@ if __name__ == '__main__':
     args.is_rwkv_att_only = config.get('is_rwkv_att_only', False)
     args.is_all_labels_kl = config.get('is_all_labels_kl', False)
 
-    # 初始化教师模型
-    if not args.teacher_client_mode:
-        teacher_model = AutoModelForCausalLM.from_pretrained(config['Llama']['model_id'], torch_dtype=dtype, attn_implementation='flash_attention_2')
-        teacher_model.eval()
-    else:
-        teacher_model = None
+    # # 初始化教师模型
+    # if not args.teacher_client_mode:
+    #     teacher_model = AutoModelForCausalLM.from_pretrained(config['Llama']['model_id'], torch_dtype=dtype, attn_implementation='flash_attention_2')
+    #     teacher_model.eval()
+    # else:
+    #     teacher_model = None
+    #     args.groups = config['teach_mode']['groups']
+    if args.teacher_client_mode:
         args.groups = config['teach_mode']['groups']
-
     # 初始化混合模型
-    model = HybridModel(transformer_model, args, teacher_model, tokenizer)
+    model = HybridModel(transformer_model, args, tokenizer)
     if args.ckpt_file is not None:
         dict_set = torch.load(args.ckpt_file)
         info = model.load_state_dict(dict_set, strict=False)
@@ -430,13 +431,74 @@ if __name__ == '__main__':
         num_total_params = sum(p.numel() for p in model.parameters())
         num_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
         print(f'num_total_params: {num_total_params}, num_trainable_params: {num_trainable_params}, percent: {num_trainable_params / num_total_params * 100:.2f}%')
+        #print current gpu memory
+        print(f'current gpu memory BEFORE initializing deepspeed: {torch.cuda.memory_summary(device=None, abbreviated=False)}')
         # model.model = torch.compile(model.model,fullgraph=True)
         # 初始化 DeepSpeed
+        print(f'initializing deepspeed with config {ds_config}')
         model_engine, optimizer, _, _ = deepspeed.initialize(
             model=model,  
             optimizer=optimizer,
             config=ds_config
         )
+        timer.initialize_with_engine(model_engine)
+        #print current gpu memory
+        print(f'current gpu memory AFTER initializing deepspeed: {torch.cuda.memory_summary(device=None, abbreviated=False)}')
+        if not args.teacher_client_mode:
+            print(f'initializing teacher model')
+            print(f'current gpu memory BEFORE initializing teacher model: {torch.cuda.memory_summary(device=None, abbreviated=False)}')
+            ds_config = {
+                "train_batch_size": args.train_batch_size,
+                "bf16": {
+                    "enabled": True
+                },
+                "zero_optimization": {
+                    "stage": 3,
+                    "stage3_max_live_parameters": 1e9,
+                    "stage3_max_reuse_distance": 1e9,
+                    "stage3_prefetch_bucket_size": 5e6,
+                    "memory_efficient_linear": True,
+                    "stage3_param_persistence_threshold": 1e4,
+                    "offload_param": {
+                        "device": "cpu",
+                        "pin_memory": True,
+                        "buffer_count": 4,
+                        "buffer_size": 1e8
+                    },
+                    "allgather_partitions": True,
+                    "reduce_scatter": True,
+                    "reduce_bucket_size": 5e6,
+                    "overlap_comm": True,
+                    "contiguous_gradients": True
+                },
+                "zero_force_ds_cpu_initialization": True
+            }
+            
+            teacher_model = AutoModelForCausalLM.from_pretrained(
+                config['Llama']['model_id'],
+                torch_dtype=dtype,
+                device_map='cpu',
+                low_cpu_mem_usage=True,
+                attn_implementation='flash_attention_2'
+            )
+            teacher_model.eval()
+            print('freeze teacher_model')
+            for name, param in teacher_model.named_parameters():
+                param.requires_grad = False
+            # 使用DeepSpeed包装teacher model
+            teacher_engine, _, _, _ = deepspeed.initialize(
+                model=teacher_model,
+                config=ds_config
+            )
+            print(f'current gpu memory AFTER initializing teacher model: {torch.cuda.memory_summary(device=None, abbreviated=False)}')
+            # 将处理好的teacher model设置到model_engine中
+            # model_engine.module.set_teacher_model(teacher_engine.module)
+            print(f'current gpu memory AFTER setting teacher model: {torch.cuda.memory_summary(device=None, abbreviated=False)}')
+            # 清理不需要的引用
+            del teacher_model
+            torch.cuda.empty_cache()
+        else:
+            teacher_engine = None
     else:
         # 如果不使用 DeepSpeed，使用普通的优化器
         print('not using deepspeed, EXIT')
@@ -468,7 +530,7 @@ if __name__ == '__main__':
             batch = {k: v.to(model_engine.device) for k, v in batch.items()}
             
             # 前向传播
-            loss, teacher_loss, kl_loss, student_cross_entropy_loss = train_step(model_engine, batch, args, teacher_model, tokenizer)
+            loss, teacher_loss, kl_loss, student_cross_entropy_loss = train_step(model_engine, batch, args, teacher_engine, tokenizer)
             
             # 缩放损失
             loss = loss / args.accumulate_grad_batches

@@ -8,11 +8,14 @@ import torch
 from torch.optim import Adam
 from deepspeed.ops.adam import DeepSpeedCPUAdam, FusedAdam
 from server.nccl_client import InferenceClient
+from profiler import time_function
+
 
 def initialize_nccl_client(args):
     if not args.is_sft and args.teacher_client_mode:
-        logging.info('开始初始化NCCL客户端')
-        rank = args.local_rank
+        
+        rank = torch.cuda.current_device()
+        logging.info(f'开始初始化NCCL客户端: rank {rank}')
         # world_size = args.world_size
         cp.cuda.Device(rank).use()
         # Create student client
@@ -51,8 +54,8 @@ def initialize_nccl_client(args):
         logging.info('NCCL客户端初始化完成')
         return client
 
-
-def train_step(model, batch, args, teacher_model=None, tokenizer=None):
+@time_function
+def train_step(model, batch, args, teacher_engine=None, tokenizer=None):
     input_ids = batch['input_ids']
     labels = batch['labels']
     attention_mask = torch.ne(input_ids, tokenizer.eos_token_id).to(input_ids.device)
@@ -62,7 +65,7 @@ def train_step(model, batch, args, teacher_model=None, tokenizer=None):
             teacher_loss = None
             teacher_logits, teacher_hidden_states = get_teacher_outputs_client_mode(model, input_ids, args)
         else:
-            teacher_logits, teacher_hidden_states, teacher_loss = get_teacher_outputs(teacher_model, input_ids, attention_mask, labels, args)
+            teacher_logits, teacher_hidden_states, teacher_loss = get_teacher_outputs(teacher_engine, input_ids, attention_mask, labels, args)
         
         student_outputs = model(
             input_ids=input_ids, attention_mask=attention_mask, labels=labels, use_cache=False, output_hidden_states=args.is_hidden_align)
@@ -78,7 +81,7 @@ def train_step(model, batch, args, teacher_model=None, tokenizer=None):
     else:
         outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=labels, use_cache=False)
         return outputs.loss, None, None, None
-
+@time_function
 def get_teacher_outputs_client_mode(model, input_ids, args):
     b, t = input_ids.shape
     logging.info(f'rank {args.local_rank} is sending input_ids to server, shape is {input_ids.shape}')
@@ -89,7 +92,7 @@ def get_teacher_outputs_client_mode(model, input_ids, args):
     else:
         logits = result
         return logits,None
-
+@time_function
 def get_teacher_outputs(teacher_model, input_ids, attention_mask, labels, args):
     # device = input_ids.device
     
@@ -106,7 +109,7 @@ def get_teacher_outputs(teacher_model, input_ids, attention_mask, labels, args):
     # 将teacher模型移回CPU
     # teacher_model.to('cpu')
     return teacher_logits, teacher_hidden_states, teacher_loss
-
+@time_function
 def compute_kl_loss(student_outputs, teacher_logits, labels, args):
     student_logits = student_outputs.logits
     student_cross_entropy_loss = student_outputs.loss
@@ -126,7 +129,7 @@ def compute_kl_loss(student_outputs, teacher_logits, labels, args):
     loss = args.kl_weight * kl_loss + args.ce_weight * student_cross_entropy_loss
     del student_logits, teacher_logits,labels
     return loss, kl_loss,student_cross_entropy_loss
-
+@time_function
 def compute_hidden_state_loss(student_outputs, teacher_hidden_states):
     # mask = torch.ne(labels, -100).to(labels.device)
     # mask = mask.unsqueeze(1).unsqueeze(3)
