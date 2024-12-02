@@ -383,6 +383,7 @@ if __name__ == '__main__':
         else:
             # 否则，根据命令行参数创建配置
             ds_config = {
+                "distributed_backend": "nccl",
                 "train_batch_size": args.train_batch_size,
                 "bf16": {
                     "enabled": True
@@ -449,6 +450,7 @@ if __name__ == '__main__':
             print(f'initializing teacher model')
             print(f'current gpu memory BEFORE initializing teacher model: {torch.cuda.memory_summary(device=None, abbreviated=False)}')
             ds_config = {
+                "distributed_backend": "nccl",
                 "train_batch_size": args.train_batch_size,
                 "bf16": {
                     "enabled": True
@@ -533,8 +535,6 @@ if __name__ == '__main__':
             # 前向传播
             loss, teacher_loss, kl_loss, student_cross_entropy_loss = train_step(model_engine, batch, args, teacher_engine, tokenizer)
             
-            # 缩放损失
-            loss = loss / args.accumulate_grad_batches
             
             # 反向传���
             model_engine.backward(loss)
