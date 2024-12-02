@@ -53,6 +53,62 @@ def initialize_nccl_client(args):
 
         logging.info('NCCL客户端初始化完成')
         return client
+    
+@time_function
+def train_step_vl(model, batch, args, teacher_engine=None, tokenizer=None):
+    images = batch['images']
+    input_ids = batch['input_ids']
+    attention_mask = batch['attention_mask']
+    labels = batch['labels']
+    image_sizes = batch['image_sizes']
+
+    if not args.is_sft:
+        teacher_logits, teacher_hidden_states, teacher_loss = get_teacher_outputs_vl(teacher_engine, input_ids, attention_mask,labels,image_sizes,images, args)
+        
+        student_outputs = model(
+            input_ids=input_ids, attention_mask=attention_mask, labels=labels,images=images,image_sizes=image_sizes, use_cache=False, output_hidden_states=args.is_hidden_align)
+        
+        if not args.is_hidden_align:
+            loss, kl_loss, student_cross_entropy_loss = compute_kl_loss(student_outputs, teacher_logits, labels, args)
+        else:
+            kl_loss = None
+            student_cross_entropy_loss = None
+            loss = compute_hidden_state_loss(student_outputs, teacher_hidden_states)
+        
+        return loss, teacher_loss, kl_loss, student_cross_entropy_loss
+    else:
+        outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=labels,images=images,image_sizes=image_sizes, use_cache=False)
+        return outputs.loss, None, None, None
+@time_function
+def get_teacher_outputs_vl(teacher_model, 
+                           input_ids, 
+                           attention_mask, 
+                           labels, 
+                           image_sizes,
+                           images,
+                           args):
+    # device = input_ids.device
+    
+    # # 将teacher模型移动到GPU
+    # teacher_model.to(device)
+    
+    with torch.no_grad():
+        teacher_outputs = teacher_model.forward(input_ids=input_ids,
+                                    attention_mask=attention_mask,
+                                    images=images,
+                                    labels=labels,
+                                    image_sizes=image_sizes,
+                                    use_cache=False,
+                                    output_hidden_states=args.is_hidden_align)
+    
+    teacher_logits = teacher_outputs.logits
+    teacher_hidden_states = teacher_outputs.hidden_states if args.is_hidden_align else None
+    teacher_loss = teacher_outputs.loss
+    if teacher_hidden_states is not None:
+        teacher_hidden_states = torch.cat(teacher_hidden_states, dim=0)
+    # 将teacher模型移回CPU
+    # teacher_model.to('cpu')
+    return teacher_logits, teacher_hidden_states, teacher_loss
 
 @time_function
 def train_step(model, batch, args, teacher_engine=None, tokenizer=None):
@@ -155,20 +211,11 @@ def configure_optimizer(model, args):
         if (("_w1" in n) or ("_w2" in n)) and (args.layerwise_lr > 0):
             lr_1x.add(n)
         elif (("time_mix" in n) or ("time_maa" in n)) and (args.layerwise_lr > 0):
-            if args.my_pile_stage == 2:
-                lr_2x.add(n)
-            else:
-                lr_1x.add(n)
+            lr_2x.add(n)
         elif (("time_decay" in n) or ("time_daaaa" in n)) and (args.layerwise_lr > 0):
-            if args.my_pile_stage == 2:
-                lr_3x.add(n)
-            else:
-                lr_2x.add(n)
+            lr_2x.add(n)
         elif ("time_faaaa" in n) and (args.layerwise_lr > 0):
-            if args.my_pile_stage == 2:
-                lr_2x.add(n)
-            else:
-                lr_1x.add(n)
+            lr_1x.add(n)
         elif ("time_first" in n) and (args.layerwise_lr > 0):
             lr_3x.add(n)
         elif (len(p.squeeze().shape) >= 2) and (args.weight_decay > 0):
@@ -183,14 +230,7 @@ def configure_optimizer(model, args):
     param_dict = {n: p for n, p in model.named_parameters()}
     
     if args.layerwise_lr > 0:
-        if args.my_pile_stage == 2:
-            optim_groups = [
-                {"params": [param_dict[n] for n in lr_1x], "weight_decay": 0.0, "my_lr_scale": 1.0},
-                {"params": [param_dict[n] for n in lr_2x], "weight_decay": 0.0, "my_lr_scale": 5.0},
-                {"params": [param_dict[n] for n in lr_3x], "weight_decay": 0.0, "my_lr_scale": 5.0},
-            ]
-        else:
-            optim_groups = [
+        optim_groups = [
                 {"params": [param_dict[n] for n in lr_1x], "weight_decay": 0.0, "my_lr_scale": 1.0},
                 {"params": [param_dict[n] for n in lr_2x], "weight_decay": 0.0, "my_lr_scale": 2.0},
                 {"params": [param_dict[n] for n in lr_3x], "weight_decay": 0.0, "my_lr_scale": 3.0},
