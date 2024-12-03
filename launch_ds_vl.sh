@@ -45,14 +45,14 @@ torchrun \
     --deepspeed \
     --deepspeed_offload \
     --deepspeed_stage 3 \
-    --config_file configs/test_hybrid_full_logits_qwenmlp.yaml \
     --output_dir /home/yueyulin/tmp/vl_2b \
     --data_path /home/yueyulin/data/MM_stage3/stage3.json \
     --num_devices $GPUS_PER_NODE \
     --num_nodes $NNODES \
     --micro_bsz $MICRO_BSZ \
     --accumulate_grad_batches $ACCUMULATE_GRAD_BATCHES \
-    --max_epochs 2 \
+    --max_epochs 1 \
+    --epoch_count 1 \
     --wandb hybrid_trainer_vl_2B \
     --run_name "hybrid_trainer_vl_2B_${TIMESTAMP}" \
     --grad_cp 1 \
