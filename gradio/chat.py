@@ -26,7 +26,7 @@ def create_new_session():
         "cache": HybridCache()
     }
 
-def load_model(config_file, ckpt_file):
+def load_model(config_file, ckpt_file,num_gpus):
     global model, tokenizer, cache
     
     with open(config_file) as f:
@@ -34,16 +34,32 @@ def load_model(config_file, ckpt_file):
     
     model_id = config['Llama']['model_id']
     tokenizer = AutoTokenizer.from_pretrained(model_id)
-    transformer_model = AutoModelForCausalLM.from_pretrained(model_id)
+    dtype = torch.bfloat16
+    
+    
     if is_hybrid:
+        transformer_model = AutoModelForCausalLM.from_pretrained(model_id,device_map="cpu", low_cpu_mem_usage=True,torch_dtype=dtype)
         args = create_rwkv_args(transformer_model.config, config)
         model = HybridModel(transformer_model, args)
         model.load_ckpt(ckpt_file)
-        model = model.to(dtype=torch.bfloat16, device="cuda:0")
+        from accelerate import dispatch_model,infer_auto_device_map
+        model = model.to(dtype=dtype)
+        num_layers = model.model.config.num_hidden_layers
+        device_map = {}
+        for i in range(num_layers):
+            device_map[f'model.layers.{i}'] = i % num_gpus
+        device_map['model.embed_tokens'] = 0
+        device_map['model.norm'] = num_gpus - 1
+        device_map['model.rotary_emb'] = num_gpus - 1
+        device_map['lm_head'] = num_gpus - 1
+        # device_map = {'model.embed_tokens': 0, 'model.layers.0': 0, 'model.layers.1': 0, 'model.layers.2': 0, 'model.layers.3': 0, 'model.layers.4': 0, 'model.layers.5': 0, 'model.layers.6': 0, 'model.layers.7': 0, 'model.layers.8': 0, 'model.layers.9': 0, 'model.layers.10': 0, 'model.layers.11': 0, 'model.layers.12': 0, 'model.layers.13': 0, 'model.layers.14': 0, 'model.layers.15': 0, 'model.layers.16': 1, 'model.layers.17': 1, 'model.layers.18': 1, 'model.layers.19': 1, 'model.layers.20': 1, 'model.layers.21': 1, 'model.layers.22': 1, 'model.layers.23': 1, 'model.layers.24': 1, 'model.layers.25': 1, 'model.layers.26': 1, 'model.layers.27': 1, 'model.layers.28': 1, 'model.layers.29': 1, 'model.layers.30': 1, 'model.layers.31': 1, 'model.layers.32': 1, 'model.layers.33': 2, 'model.layers.34': 2, 'model.layers.35': 2, 'model.layers.36': 2, 'model.layers.37': 2, 'model.layers.38': 2, 'model.layers.39': 2, 'model.layers.40': 2, 'model.layers.41': 2, 'model.layers.42': 2, 'model.layers.43': 2, 'model.layers.44': 2, 'model.layers.45': 2, 'model.layers.46': 2, 'model.layers.47': 2, 'model.layers.48': 2, 'model.layers.49': 2, 'model.layers.50': 3, 'model.layers.51': 3, 'model.layers.52': 3, 'model.layers.53': 3, 'model.layers.54': 3, 'model.layers.55': 3, 'model.layers.56': 3, 'model.layers.57': 3, 'model.layers.58': 3, 'model.layers.59': 3, 'model.layers.60': 3, 'model.layers.61': 3, 'model.layers.62': 3, 'model.layers.63': 3, 'model.norm': 3, 'model.rotary_emb': 3, 'lm_head': 3}
+        model.model = dispatch_model(model.model, device_map=device_map,offload_buffers=True)
         print('Model is HYBRID!')
+        print(model)
     else:
+        transformer_model = AutoModelForCausalLM.from_pretrained(model_id,device_map="auto", low_cpu_mem_usage=True,torch_dtype=dtype)
+        print(f'device map is {transformer_model.hf_device_map}')
         model = transformer_model
-        model = model.to(dtype=torch.bfloat16, device="cuda:0")
     model.eval()
     
     print(model)    
@@ -76,15 +92,16 @@ def chat(message, history, session):
             model_to_use = model.model
         else:
             model_to_use = model
+        print(model_to_use)
         output = model_to_use.generate(
             input_ids=input_ids['input_ids'],
             attention_mask=input_ids['attention_mask'],
-            max_new_tokens=2048,
+            max_new_tokens=1024,
             num_return_sequences=1,
             past_key_values=session["cache"],
             use_cache=True,
             early_stopping=True,
-            do_sample=False,
+            do_sample=True,
         )
     
     generated_text = tokenizer.decode(output[0,input_length:], skip_special_tokens=True)            
@@ -106,10 +123,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--config_file', type=str, default=config_file)
 parser.add_argument('--ckpt_file', type=str, default=ckpt_file)
 parser.add_argument('--is_hybrid', action='store_true', default=False)
+parser.add_argument('--num_gpus', type=int, default=4)
 args = parser.parse_args()
 print(args)
 is_hybrid = args.is_hybrid
-load_model(args.config_file, args.ckpt_file)
+load_model(args.config_file, args.ckpt_file,args.num_gpus)
 def clear_cache(session):
     if session is not None and "cache" in session:
         del session["cache"]

@@ -23,12 +23,18 @@ setup_env()
 from einops import rearrange
 from fla.ops.rwkv6 import chunk_rwkv6,fused_recurrent_rwkv6
 def RUN_CUDA_RWKV6_STATE(B, T, C, H, r, k, v, w, u, s):
+    device = r.device
     dtype = r.dtype
     r = rearrange(r, 'b l (h d) -> b h l d', h = H)
     k = rearrange(k, 'b l (h d) -> b h l d', h = H)
     v = rearrange(v, 'b l (h d) -> b h l d', h = H)
     w = rearrange(-torch.exp(w), 'b l (h d) -> b h l d', h = H)
-    o, state = chunk_rwkv6(r, k, v, w, u=u, scale=1., initial_state=s, output_final_state=True,training=False)
+    if device != 'cuda:0':
+        o, state = chunk_rwkv6(r.to('cuda:0'), k.to('cuda:0'), v.to('cuda:0'), w.to('cuda:0'), u=u.to('cuda:0'), scale=1., initial_state=s.to('cuda:0'), output_final_state=True,training=False)
+        o = o.to(device)
+        state = state.to(device)
+    else:
+        o, state = chunk_rwkv6(r, k, v, w, u=u, scale=1., initial_state=s, output_final_state=True,training=False)
     x = rearrange(o, 'b h l d -> b l (h d)')
     return x.to(dtype), state.to(dtype)
 import torch
@@ -328,6 +334,7 @@ class RWKVDecoderLayer(nn.Module):
         return outputs
 
 class HybridModel(nn.Module):
+    
     def __init__(self,transformer_model,rwkv_args):
         super(HybridModel, self).__init__()
         attn_num_heads = transformer_model.config.num_attention_heads
@@ -367,8 +374,10 @@ class HybridModel(nn.Module):
             if layer_idx in rwkv_args.layers:
                 rwkv_encoder = init_block_params(rwkv_args,layer_idx,transformer_model.model.layers[layer_idx])
                 old_layer = transformer_model.model.layers[layer_idx]
-                transformer_model.model.layers[layer_idx] = rwkv_encoder
                 del old_layer
+                torch.cuda.empty_cache()
+                transformer_model.model.layers[layer_idx] = rwkv_encoder
+                print(f'layer {layer_idx} is replaced by RWKV')
         self.model = transformer_model
         self.args = rwkv_args
     def forward(
