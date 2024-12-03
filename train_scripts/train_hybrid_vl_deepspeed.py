@@ -470,7 +470,6 @@ if __name__ == '__main__':
             batch['attention_mask'] = attention_mask
             batch['labels'] = labels
             batch['images'] = images
-            print(f'input_ids: {input_ids.shape} image_sizes is {batch['image_sizes']} local_rank: {model_engine.local_rank}')
             
             
             # 前向传播
