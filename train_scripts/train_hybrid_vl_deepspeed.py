@@ -14,13 +14,14 @@ def setup_env():
     print(f'add path: {parent_dir} to sys.path')
     print(f'add path: {rwkv_llama_path} to sys.path')
     # os.environ['CUDA_HOME'] = '/usr/local/cuda-12.1'
+    MAX_LEN = os.environ.get('MAX_LEN', '4096')
+    VERSION = os.environ.get('VERSION', 'x060')
     os.environ['RWKV_JIT_ON'] = '0'
-    os.environ['RWKV_T_MAX'] = '4096'
+    os.environ['RWKV_T_MAX'] = MAX_LEN
     os.environ['RWKV_FLOAT_MODE'] = 'bf16'
     os.environ['RWKV_HEAD_SIZE_A'] = '64'
-    os.environ['RWKV_T_MAX'] = '4096'
-    os.environ["RWKV_MY_TESTING"]='x060'
-    os.environ['RWKV_CTXLEN'] = '4096'
+    os.environ["RWKV_MY_TESTING"]=VERSION
+    os.environ['RWKV_CTXLEN'] = MAX_LEN
     if 'WKV' not in os.environ:
         os.environ['WKV'] = ''
     if "RWKV_TRAIN_TYPE" not in os.environ:

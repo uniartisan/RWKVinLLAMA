@@ -101,6 +101,8 @@ def create_arg_parser():
     parser.add_argument('--skip_steps',type=int,default=0,help='skip steps in the peft checkpoint')
 
     parser.add_argument('--ckpt_file', type=str, default=None, help='checkpoint file')
+    parser.add_argument('--ckpt_dir', type=str, default=None, help='checkpoint directory')
+    parser.add_argument('--ckpt_id', type=str, default=None, help='checkpoint id')
     # 添加DeepSpeed相关的参数
     parser.add_argument('--deepspeed', action='store_true', help='Enable DeepSpeed')
     parser.add_argument('--deepspeed_config', type=str, default=None, help='Path to DeepSpeed config file')
@@ -443,6 +445,9 @@ if __name__ == '__main__':
             optimizer=optimizer,
             config=ds_config
         )
+        if args.ckpt_dir is not None and args.ckpt_id is not None:
+            print(f'load checkpoint from {args.ckpt_dir} with id {args.ckpt_id}')
+            model_engine.load_checkpoint(args.ckpt_dir, args.ckpt_id)
         timer.initialize_with_engine(model_engine)
         #print current gpu memory
         print(f'current gpu memory AFTER initializing deepspeed: {torch.cuda.memory_summary(device=None, abbreviated=False)}')
