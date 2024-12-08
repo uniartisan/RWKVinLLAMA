@@ -18,14 +18,19 @@ def setup_env():
     os.environ['RWKV_FLOAT_MODE'] = 'bf16'
     os.environ['RWKV_HEAD_SIZE_A'] = '64'
     os.environ['RWKV_T_MAX'] = '4096'
-    os.environ["RWKV_MY_TESTING"]='x060'
+    
     os.environ['RWKV_CTXLEN'] = '4096'
     if 'WKV' not in os.environ:
         os.environ['WKV'] = ''
     if "RWKV_TRAIN_TYPE" not in os.environ:
         os.environ["RWKV_TRAIN_TYPE"] = ''
-    if 'RWKV_VERSION' not in os.environ:
-        os.environ['RWKV_VERSION'] = 'v7'
+    RWKV_VERSION = os.environ.get('RWKV_VERSION', 'v7')
+    if RWKV_VERSION == 'v7':
+        os.environ["RWKV_MY_TESTING"]='x070'
+    else:
+        os.environ["RWKV_MY_TESTING"]='x060'
+    print(f'RWKV_VERSION is {RWKV_VERSION}')
+    
 setup_env()
 
 import argparse
@@ -286,6 +291,7 @@ if __name__ == '__main__':
     args.is_llama_ffn = config.get('is_llama_ffn', False)
     args.is_rwkv_att_only = config.get('is_rwkv_att_only', False)
     args.is_all_labels_kl = config.get('is_all_labels_kl', False)
+    args.init_with_llama = config.get('init_with_llama', False)
 
     # # 初始化教师模型
     # if not args.teacher_client_mode:

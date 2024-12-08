@@ -3,14 +3,14 @@ NNODES=1
 GPUS_PER_NODE=4
 MICRO_BSZ=1
 ACCUMULATE_GRAD_BATCHES=4
-export RWKV_VERSION=v6
+export RWKV_VERSION=v7
 MAX_LENGTH=512
 CONFIG_FILE=toys_playground/configs/qwen7B_KL_Local.yaml
 OUTPUT_DIR=toys_playground/output
 PREPROCESSED_DATA=toys_playground/dataset
 LR_INIT=6e-4
 LR_FINAL=1e-5
-WARMUP_STEPS=1000
+WARMUP_STEPS=50
 
 while getopts "c:o:p:n:m:b:a:l:f:w:" opt; do
     case $opt in

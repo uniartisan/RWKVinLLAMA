@@ -1,7 +1,8 @@
 from functools import partial
 import os
 RWKV_VERSION=os.environ.get('RWKV_VERSION','v7')
-if RWKV_VERSION == 'v7':
+is_rwkv_7 = RWKV_VERSION == 'v7'
+if is_rwkv_7 :
     from rwkv7.src.model import Block
 else:
     from rwkv.src.model import Block
@@ -28,15 +29,23 @@ class RWKVVLDecoderLayer(nn.Module):
         self.args = args
 
     def forward(self, hidden_states: torch.Tensor, inference_params=None, *args, **kwargs):
-        # Ensure hidden_states requires gradient
         hidden_states.requires_grad_(True)
+        if is_rwkv_7:
+            #if we don't have v_first in kwargs, we create an empty v_first tensor
+            if 'v_first' not in kwargs:
+                kwargs['v_first'] = torch.empty_like(hidden_states)
+            v_first = kwargs['v_first']
         if self.args.grad_cp == 1:
-            hidden_states = deepspeed.checkpointing.checkpoint(self.block, hidden_states)
+            if is_rwkv_7:
+                hidden_states,v_first = deepspeed.checkpointing.checkpoint(self.block, hidden_states, v_first)
+                kwargs['v_first'] = v_first
+            else:
+                hidden_states = deepspeed.checkpointing.checkpoint(self.block, hidden_states)
         else:
-            hidden_states = self.block(hidden_states)
-        # hidden_states = self.block(hidden_states)
-        # logging.info(f'forward in {self.layer_idx}')
-        # so here is just to be compatible with Transformer
+            if is_rwkv_7:
+                hidden_states,v_first = self.block(hidden_states, v_first)
+            else:
+                hidden_states = self.block(hidden_states)
 
         past_key_value = kwargs.get("past_key_value", None)
 

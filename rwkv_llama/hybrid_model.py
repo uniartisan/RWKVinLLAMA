@@ -1,7 +1,8 @@
 from functools import partial
 import os
 RWKV_VERSION=os.environ.get('RWKV_VERSION','v7')
-if RWKV_VERSION == 'v7':
+is_rwkv_7 = RWKV_VERSION == 'v7'
+if is_rwkv_7 :
     from rwkv7.src.model import Block
 else:
     from rwkv.src.model import Block
@@ -40,12 +41,23 @@ class RWKVDecoderLayer(nn.Module):
         self.args = args
 
     def forward(self, hidden_states: torch.Tensor, inference_params=None, *args, **kwargs):
-        # Ensure hidden_states requires gradient
         hidden_states.requires_grad_(True)
+        if is_rwkv_7:
+            #if we don't have v_first in kwargs, we create an empty v_first tensor
+            if 'v_first' not in kwargs:
+                kwargs['v_first'] = torch.empty_like(hidden_states)
+            v_first = kwargs['v_first']
         if self.args.grad_cp == 1:
-            hidden_states = deepspeed.checkpointing.checkpoint(self.block, hidden_states)
+            if is_rwkv_7:
+                hidden_states,v_first = deepspeed.checkpointing.checkpoint(self.block, hidden_states, v_first)
+                kwargs['v_first'] = v_first
+            else:
+                hidden_states = deepspeed.checkpointing.checkpoint(self.block, hidden_states)
         else:
-            hidden_states = self.block(hidden_states)
+            if is_rwkv_7:
+                hidden_states,v_first = self.block(hidden_states, v_first)
+            else:
+                hidden_states = self.block(hidden_states)
         # hidden_states = self.block(hidden_states)
         # logging.info(f'forward in {self.layer_idx}')
         # so here is just to be compatible with Transformer
@@ -79,11 +91,12 @@ class HybridModel(pl.LightningModule):
             if layer_idx in rwkv_args.layers:
                 decoder = RWKVDecoderLayer(rwkv_args, layer_idx)
                 llama_layer = transformer_model.model.layers[layer_idx]
-                
-                decoder.block.att.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
-                decoder.block.att.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
-                decoder.block.att.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
-                decoder.block.att.output.weight.data = llama_layer.self_attn.o_proj.weight.data
+                if rwkv_args.init_with_llama:
+                    print(f'init parameters with llama in layer {layer_idx}')
+                    decoder.block.att.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
+                    decoder.block.att.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
+                    decoder.block.att.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
+                    decoder.block.att.output.weight.data = llama_layer.self_attn.o_proj.weight.data
                 
                 if rwkv_args.is_llama_ffn:
                     decoder.block.ffn = llama_layer.mlp

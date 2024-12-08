@@ -26,8 +26,12 @@ def setup_env():
         os.environ['WKV'] = ''
     if "RWKV_TRAIN_TYPE" not in os.environ:
         os.environ["RWKV_TRAIN_TYPE"] = ''
-    if 'RWKV_VERSION' not in os.environ:
-        os.environ['RWKV_VERSION'] = 'v6'
+    RWKV_VERSION = os.environ.get('RWKV_VERSION', 'v7')
+    if RWKV_VERSION == 'v7':
+        os.environ["RWKV_MY_TESTING"]='x070'
+    else:
+        os.environ["RWKV_MY_TESTING"]='x060'
+    print(f'RWKV_VERSION is {RWKV_VERSION}')
 setup_env()
 from rwkv_llama.hybrid_vl_model import HybridModel,replace_llama_layers
 from data.llava_data import LazySupervisedDataset, DataCollatorForSupervisedDataset,DataArguments

@@ -18,13 +18,14 @@ export MAX_LEN=8192
 NODE_RANK=$1
 
 # 定义节点数和每个节点的GPU数量
-NNODES=2
+NNODES=1
 GPUS_PER_NODE_MASTER=4
 GPUS_PER_NODE_WORKER=4
 MICRO_BSZ=1
 ACCUMULATE_GRAD_BATCHES=4
 # 计算世界大小
 WORLD_SIZE=$((GPUS_PER_NODE_MASTER + GPUS_PER_NODE_WORKER))
+WORLD_SIZE=$GPUS_PER_NODE_MASTER
 TRAIN_BATCH_SIZE=$((WORLD_SIZE * MICRO_BSZ * ACCUMULATE_GRAD_BATCHES))
 # 获取当前时间戳
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
@@ -39,8 +40,6 @@ torchrun \
     --nnodes=$NNODES \
     --node_rank=$NODE_RANK \
     --nproc_per_node=$GPUS_PER_NODE \
-    --master_addr=$MASTER_ADDR \
-    --master_port=$MASTER_PORT \
     train_scripts/train_hybrid_vl_deepspeed.py \
     --deepspeed \
     --deepspeed_offload \
@@ -55,10 +54,9 @@ torchrun \
     --run_name "hybrid_trainer_vl_2B_${TIMESTAMP}" \
     --grad_cp 1 \
     --max_seq_length 8192 \
-    --dropout 0.05 \
-    --lr_init 1e-4 \
-    --lr_final 1e-5 \
-    --warmup_steps 1000 \
+    --lr_init 1e-2 \
+    --lr_final 1e-4 \
+    --warmup_steps 50 \
     --train_batch_size $TRAIN_BATCH_SIZE \
     --save_per_batches 10000 \
     --world_size $WORLD_SIZE 
