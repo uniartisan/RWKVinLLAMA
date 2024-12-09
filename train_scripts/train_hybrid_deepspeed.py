@@ -345,7 +345,7 @@ if __name__ == '__main__':
             train_ds,
             num_replicas=args.world_size,
             rank=args.local_rank,
-            shuffle=True
+            shuffle=False#TODO::Change to True
         )
         train_dataloader = torch.utils.data.DataLoader(
             train_ds, 

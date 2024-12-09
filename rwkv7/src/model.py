@@ -237,51 +237,51 @@ class RWKV_Tmix_x070(torch.nn.Module):
         if self.layer_id == 0:
             v_first = v # store the v of the first layer
         else:
-            # 1. Safe matrix multiplication
-            v1_result = safe_matrix_mult(xv, self.v1, self.layer_id, "v1")
-            v2_result = safe_matrix_mult(v1_result, self.v2, self.layer_id, "v2")
+            # # 1. Safe matrix multiplication
+            # v1_result = safe_matrix_mult(xv, self.v1, self.layer_id, "v1")
+            # v2_result = safe_matrix_mult(v1_result, self.v2, self.layer_id, "v2")
             
-            # 2. make sure the input is in a safe range
-            gate_input = self.v0 + v2_result
+            # # 2. make sure the input is in a safe range
+            # gate_input = self.v0 + v2_result
             
-            # 3. make sure the gate is in a safe range
-            max_abs_gate = torch.max(torch.abs(gate_input))
-            if max_abs_gate > 16:
-                gate_input = gate_input * (16 / max_abs_gate)
+            # # 3. make sure the gate is in a safe range
+            # max_abs_gate = torch.max(torch.abs(gate_input))
+            # if max_abs_gate > 16:
+            #     gate_input = gate_input * (16 / max_abs_gate)
                 
-            gate = torch.sigmoid(gate_input)
-            safe_check(gate, "gate", self.layer_id)
+            # gate = torch.sigmoid(gate_input)
+            # safe_check(gate, "gate", self.layer_id)
             
-            # 4. calculate the difference and then add the residual
-            v_diff = v_first - v
-            safe_check(v_diff, "v_diff", self.layer_id)
+            # # 4. calculate the difference and then add the residual
+            # v_diff = v_first - v
+            # safe_check(v_diff, "v_diff", self.layer_id)
             
-            # 5. make sure the diff is in a safe range
-            max_diff = torch.max(torch.abs(v_diff))
-            if max_diff > 1:
-                v_diff = v_diff / max_diff
+            # # 5. make sure the diff is in a safe range
+            # max_diff = torch.max(torch.abs(v_diff))
+            # if max_diff > 1:
+            #     v_diff = v_diff / max_diff
                 
-            # 6. Update the final residual
-            v_new = v + v_diff * gate
+            # # 6. Update the final residual
+            # v_new = v + v_diff * gate
             
-            # 7. Make the final range check
-            if safe_check(v_new, "v_new", self.layer_id):
-                # if NaN is detected, try to use a more conservative way
-                epsilon = 1e-6
-                safe_gate = torch.clamp(gate, epsilon, 1-epsilon)
-                v_new = v + v_diff * safe_gate * 0.1  
+            # # 7. Make the final range check
+            # if safe_check(v_new, "v_new", self.layer_id):
+            #     # if NaN is detected, try to use a more conservative way
+            #     epsilon = 1e-6
+            #     safe_gate = torch.clamp(gate, epsilon, 1-epsilon)
+            #     v_new = v + v_diff * safe_gate * 0.1  
                 
-            v = v_new
+            # v = v_new
             
             ###Original implementation
-            #v = v + (v_first - v) * torch.sigmoid(self.v0 + (xv @ self.v1) @ self.v2) # add value residual
+            v = v + (v_first - v) * torch.sigmoid(self.v0 + (xv @ self.v1) @ self.v2) # add value residual
 
             # 8. Check if v needs rescale (the values are too large)
-            if self.check_needs_rescale(v):
-                max_val = torch.max(torch.abs(v))
-                scale = self.rescale_threshold / (max_val + 1e-5)
-                v = v * scale
-                print(f'Layer {self.layer_id} rescaled v by {scale:.4f}')
+            # if self.check_needs_rescale(v):
+            #     max_val = torch.max(torch.abs(v))
+            #     scale = self.rescale_threshold / (max_val + 1e-5)
+            #     v = v * scale
+            #     print(f'Layer {self.layer_id} rescaled v by {scale:.4f}')
                 # if v_first is not None:
                 #     v_first = v_first * scale
         a = torch.sigmoid(self.a0 + (xa @ self.a1) @ self.a2) # a is "in-context learning rate"
@@ -300,12 +300,12 @@ class RWKV_Tmix_x070(torch.nn.Module):
         x = x + ((r.view(B,T,H,-1)*k.view(B,T,H,-1)*self.r_k).sum(dim=-1, keepdim=True) * v.view(B,T,H,-1)).view(B,T,C)
         self.debug_nan(x, "after_residual")
         x = self.output(x * g)
-        needs_rescale = self.check_needs_rescale(x)
+        # needs_rescale = self.check_needs_rescale(x)
         self.debug_nan(x, "final_output")
-        if needs_rescale:
-            x = x / 2
-            print(f'Layer {self.layer_id} rescaled x by 0.5')
-            # v_first = v_first / 2 if v_first is not None else None
+        # if needs_rescale:
+        #     x = x / 2
+        #     print(f'Layer {self.layer_id} rescaled x by 0.5')
+        #     # v_first = v_first / 2 if v_first is not None else None
 
         return x, v_first
     

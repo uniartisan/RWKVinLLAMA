@@ -29,6 +29,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S',
 )
 from train_functions import train_step,  configure_optimizer, validation_step,initialize_nccl_client
+v_first = None
 class RWKVDecoderLayer(nn.Module):
     def __init__(
         self,
@@ -44,13 +45,15 @@ class RWKVDecoderLayer(nn.Module):
         hidden_states.requires_grad_(True)
         if is_rwkv_7:
             #if we don't have v_first in kwargs, we create an empty v_first tensor
-            if 'v_first' not in kwargs:
-                kwargs['v_first'] = torch.empty_like(hidden_states)
-            v_first = kwargs['v_first']
+            global v_first
+            if v_first is None:
+                v_first = torch.empty_like(hidden_states)
+            #     print(f'empty v_first in layer {self.layer_idx}')
+            # else:
+            #     print(f'reuse v_first in layer {self.layer_idx}')
         if self.args.grad_cp == 1:
             if is_rwkv_7:
                 hidden_states,v_first = deepspeed.checkpointing.checkpoint(self.block, hidden_states, v_first)
-                kwargs['v_first'] = v_first
             else:
                 hidden_states = deepspeed.checkpointing.checkpoint(self.block, hidden_states)
         else:
@@ -132,7 +135,11 @@ class HybridModel(pl.LightningModule):
         input_ids,
         **kwargs,
     ):
-        return self.model(input_ids, **kwargs)
+        global v_first
+        v_first = None
+        ret = self.model(input_ids, **kwargs)
+        v_first = None
+        return ret
     
     def configure_optimizers(self):
         return configure_optimizer(self, self.args)
