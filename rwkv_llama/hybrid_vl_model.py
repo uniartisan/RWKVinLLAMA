@@ -17,6 +17,7 @@ logging.basicConfig(
     format='%(asctime)s | %(levelname)s | %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S',
 )
+v_first = None
 class RWKVVLDecoderLayer(nn.Module):
     def __init__(
         self,
@@ -72,12 +73,13 @@ def replace_llama_layers(transformer_model, rwkv_args):
         if layer_idx in rwkv_args.layers:
             decoder = RWKVVLDecoderLayer(rwkv_args, layer_idx)
             llama_layer = transformer_model.model.layers[layer_idx]
-            
-            decoder.block.att.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
-            decoder.block.att.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
-            decoder.block.att.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
-            decoder.block.att.output.weight.data = llama_layer.self_attn.o_proj.weight.data
-            
+            if rwkv_args.init_with_llama:
+                print(f'init parameters with llama in layer {layer_idx}')
+                decoder.block.att.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
+                decoder.block.att.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
+                decoder.block.att.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
+                decoder.block.att.output.weight.data = llama_layer.self_attn.o_proj.weight.data
+    
             if rwkv_args.is_llama_ffn:
                 decoder.block.ffn = llama_layer.mlp
             else:
@@ -136,5 +138,9 @@ class HybridModel(nn.Module):
         input_ids,
         **kwargs,
     ):
-        return self.model(input_ids, **kwargs)
+        global v_first
+        v_first = None
+        ret = self.model(input_ids, **kwargs)
+        v_first = None
+        return ret
     

@@ -5,3 +5,4 @@ kl_weight: 1
 ce_weight: 0
 is_llama_ffn: True
 is_hidden_align: False
+init_with_llama: False
