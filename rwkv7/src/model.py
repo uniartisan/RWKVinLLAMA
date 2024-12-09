@@ -81,7 +81,28 @@ else:#use fast
 ########################################################################################################
 # RWKV TimeMix
 ########################################################################################################
+def safe_check(x, name, layer_id):
+    if torch.isnan(x).any():
+        max_val = torch.max(torch.abs(x[~torch.isnan(x)])) if (~torch.isnan(x)).any() else float('nan')
+        print(f"NaN detected in layer {layer_id}, {name}, max non-nan value: {max_val}")
+        return True
+    return False
 
+def safe_matrix_mult(x, weight, layer_id, name):
+    """Safe mamul"""
+    result = x @ weight
+    if safe_check(result, f"{name} matrix multiplication", layer_id):
+        # in case NaN is detected, try to use a more conservative way
+        # 1. Normalize x
+        x_normalized = x / (torch.max(torch.abs(x)) + 1e-5)
+        # 2. Multiply
+        result = x_normalized @ weight
+        # 3. Check result
+        if safe_check(result, f"{name} safe multiplication", layer_id):
+            # in case NaN is still detected, scale down the result
+            x_scaled = x_normalized * 0.01  # scale down to 1%
+            result = x_scaled @ weight
+    return result
 class RWKV_Tmix_x070(torch.nn.Module):
     def __init__(self, args, layer_id):
         super().__init__()
@@ -189,10 +210,12 @@ class RWKV_Tmix_x070(torch.nn.Module):
             return True
         return False
 
+    
+    
     def forward(self, x, v_first):
         B, T, C = x.size()
         H = self.n_head
-        # 检查输入
+        # Check if input tensor has NaN
         has_nan = self.debug_nan(x, "input x")
         xx = self.time_shift(x) - x
         self.debug_nan(xx, "time_shift_diff")
@@ -214,38 +237,53 @@ class RWKV_Tmix_x070(torch.nn.Module):
         if self.layer_id == 0:
             v_first = v # store the v of the first layer
         else:
-             # 1. First projection calculation
-            v1_proj = xv @ self.v1
-            # check the max value of the first matrix multiplication
-            v1_max = torch.max(torch.abs(v1_proj))
-            if v1_max > 1:
-                v1_proj = v1_proj / v1_max  # rescale the first matrix multiplication
-
-            v2_proj = v1_proj @ self.v2
-            # check the max value of the second matrix multiplication
-            v2_max = torch.max(torch.abs(v2_proj))
-            if v2_max > 1:
-                v2_proj = v2_proj / v2_max
+            # 1. Safe matrix multiplication
+            v1_result = safe_matrix_mult(xv, self.v1, self.layer_id, "v1")
+            v2_result = safe_matrix_mult(v1_result, self.v2, self.layer_id, "v2")
+            
+            # 2. make sure the input is in a safe range
+            gate_input = self.v0 + v2_result
+            
+            # 3. make sure the gate is in a safe range
+            max_abs_gate = torch.max(torch.abs(gate_input))
+            if max_abs_gate > 16:
+                gate_input = gate_input * (16 / max_abs_gate)
                 
-            # 2. safe gate calculation
-            gate_input = self.v0 + v2_proj
-            # sigmoid input should be in [-16, 16] to avoid overflow
-            gate_input = torch.max(torch.min(gate_input, torch.tensor(16.0)), torch.tensor(-16.0))
             gate = torch.sigmoid(gate_input)
+            safe_check(gate, "gate", self.layer_id)
             
-            # 3. calculate the difference between the first v and the current v
+            # 4. calculate the difference and then add the residual
             v_diff = v_first - v
-            diff_max = torch.max(torch.abs(v_diff))
-            if diff_max > 1:
-                v_diff = v_diff / diff_max
-                
-            # 4. final v update
-            v_update = v_diff * gate
-            v = v + v_update
+            safe_check(v_diff, "v_diff", self.layer_id)
             
-            #Original code
-            # v = v + (v_first - v) * torch.sigmoid(self.v0 + (xv @ self.v1) @ self.v2) # add value residual
-            self.debug_nan(v, "v_shift")
+            # 5. make sure the diff is in a safe range
+            max_diff = torch.max(torch.abs(v_diff))
+            if max_diff > 1:
+                v_diff = v_diff / max_diff
+                
+            # 6. Update the final residual
+            v_new = v + v_diff * gate
+            
+            # 7. Make the final range check
+            if safe_check(v_new, "v_new", self.layer_id):
+                # if NaN is detected, try to use a more conservative way
+                epsilon = 1e-6
+                safe_gate = torch.clamp(gate, epsilon, 1-epsilon)
+                v_new = v + v_diff * safe_gate * 0.1  
+                
+            v = v_new
+            
+            ###Original implementation
+            #v = v + (v_first - v) * torch.sigmoid(self.v0 + (xv @ self.v1) @ self.v2) # add value residual
+
+            # 8. Check if v needs rescale (the values are too large)
+            if self.check_needs_rescale(v):
+                max_val = torch.max(torch.abs(v))
+                scale = self.rescale_threshold / (max_val + 1e-5)
+                v = v * scale
+                print(f'Layer {self.layer_id} rescaled v by {scale:.4f}')
+                # if v_first is not None:
+                #     v_first = v_first * scale
         a = torch.sigmoid(self.a0 + (xa @ self.a1) @ self.a2) # a is "in-context learning rate"
         self.debug_nan(a, "attention_a")
         g = torch.sigmoid(xg @ self.g1) @ self.g2
@@ -256,17 +294,18 @@ class RWKV_Tmix_x070(torch.nn.Module):
         k = k * (1 + (a-1) * self.k_a)
         self.debug_nan(k, "final_k")
         x = RUN_CUDA_RWKV7g(r, w, k, v, -kk, kk*a)
-        needs_rescale = self.check_needs_rescale(x)
         self.debug_nan(x, "after_RUN_CUDA_RWKV7g")
         x = self.ln_x(x.view(B * T, C)).view(B, T, C)
         self.debug_nan(x, "after_ln_x")
         x = x + ((r.view(B,T,H,-1)*k.view(B,T,H,-1)*self.r_k).sum(dim=-1, keepdim=True) * v.view(B,T,H,-1)).view(B,T,C)
         self.debug_nan(x, "after_residual")
         x = self.output(x * g)
+        needs_rescale = self.check_needs_rescale(x)
         self.debug_nan(x, "final_output")
         if needs_rescale:
             x = x / 2
-            v_first = v_first / 2 if v_first is not None else None
+            print(f'Layer {self.layer_id} rescaled x by 0.5')
+            # v_first = v_first / 2 if v_first is not None else None
 
         return x, v_first
     
