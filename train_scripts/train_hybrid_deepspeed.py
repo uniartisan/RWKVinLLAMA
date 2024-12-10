@@ -104,7 +104,7 @@ def create_arg_parser():
     parser.add_argument('--optim',type=str,default='adam',help='optimizer')
     parser.add_argument('--train_type', type=str, default='', help='train type')
     parser.add_argument('--skip_steps',type=int,default=0,help='skip steps in the peft checkpoint')
-
+    parser.add_argument('--full_params',action='store_true',help='full params update',default=False)
     parser.add_argument('--ckpt_file', type=str, default=None, help='checkpoint file')
     parser.add_argument('--ckpt_dir', type=str, default=None, help='checkpoint directory')
     parser.add_argument('--ckpt_id', type=str, default=None, help='checkpoint id')
@@ -112,7 +112,7 @@ def create_arg_parser():
     parser.add_argument('--deepspeed', action='store_true', help='Enable DeepSpeed')
     parser.add_argument('--deepspeed_config', type=str, default=None, help='Path to DeepSpeed config file')
     parser.add_argument('--deepspeed_stage', type=int, default=2, choices=[0, 1, 2, 3], help='DeepSpeed ZeRO stage')
-    parser.add_argument('--deepspeed_offload', action='store_true', help='Enable CPU offloading')
+    parser.add_argument('--deepspeed_offload', action='store_true', help='Enable CPU offloading',default=False)
     parser.add_argument('--train_batch_size', type=int, default=None, help='train batch size')
     parser.add_argument('--world_size', type=int, help='world size')
     parser.add_argument('--local_rank', type=int, help='local rank')
@@ -310,25 +310,31 @@ if __name__ == '__main__':
         print(f'load model from {args.ckpt_file}, info is {info}')
         del dict_set
     # 设置模型参数的训练状态
-    if args.is_rwkv_att_only:
-        print('only rwkv att is trained')
+    if args.full_params:
+        print('all params are trainable')
         for name, param in model.named_parameters():
-            if not 'self_attn.' in name:
-                param.requires_grad = False
-            # print(name, param.shape, param.requires_grad)
+            param.requires_grad = True
     else:
-        if args.is_llama_ffn:
-            print('keep llama ffn frozen')
+        print('Only some params(RWKV related) are trainable')
+        if args.is_rwkv_att_only:
+            print('only rwkv att is trained')
             for name, param in model.named_parameters():
-                if not 'block.' in name or 'ffn' in name:
+                if not 'self_attn.' in name:
                     param.requires_grad = False
                 # print(name, param.shape, param.requires_grad)
         else:
-            print('keep other modules frozen except rwkv block')
-            for name, param in model.named_parameters():
-                if not 'block.' in name:
-                    param.requires_grad = False
-                # print(name, param.shape, param.requires_grad)
+            if args.is_llama_ffn:
+                print('keep llama ffn frozen')
+                for name, param in model.named_parameters():
+                    if not 'block.' in name or 'ffn' in name:
+                        param.requires_grad = False
+                    # print(name, param.shape, param.requires_grad)
+            else:
+                print('keep other modules frozen except rwkv block')
+                for name, param in model.named_parameters():
+                    if not 'block.' in name:
+                        param.requires_grad = False
+                    # print(name, param.shape, param.requires_grad)
 
     # 准备数据加载器
     if args.preprocessed_data is not None:
@@ -398,7 +404,7 @@ if __name__ == '__main__':
                 },
                 "fp32_reduce_scatter": True,
                 "zero_optimization": {
-                    "stage": 3,
+                    "stage": args.deepspeed_stage,
                     "stage3_max_live_parameters": 1e9,
                     "stage3_max_reuse_distance": 1e9,
                     "stage3_prefetch_bucket_size": 1e7,
@@ -434,7 +440,9 @@ if __name__ == '__main__':
                 "gradient_accumulation_steps": args.accumulate_grad_batches if args.accumulate_grad_batches > 1 else None,
                 "wall_clock_breakdown": False
             }
-
+        if not args.deepspeed_offload:
+            ds_config['zero_optimization']['offload_optimizer'] = None
+            ds_config['zero_optimization']['offload_param'] = None
         # 手动配置优化器
         optimizer = configure_optimizer(model, args)
         print(f'optimizer is {optimizer}')
@@ -467,7 +475,7 @@ if __name__ == '__main__':
                     "enabled": True
                 },
                 "zero_optimization": {
-                    "stage": 3,
+                    "stage": args.deepspeed_stage,
                     "stage3_max_live_parameters": 1e9,
                     "stage3_max_reuse_distance": 1e9,
                     "stage3_prefetch_bucket_size": 5e6,
@@ -487,6 +495,8 @@ if __name__ == '__main__':
                 },
                 "zero_force_ds_cpu_initialization": True
             }
+            if not args.deepspeed_offload:
+                ds_config['zero_optimization']['offload_param'] = None
             
             teacher_model = AutoModelForCausalLM.from_pretrained(
                 config['Llama']['model_id'],
