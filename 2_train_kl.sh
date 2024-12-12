@@ -18,8 +18,8 @@ FULL_PARAMS=""
 STAGE=1
 export WKV=""
 DEEPSTATE_STAGE=3
-MAX_TRAINED_TOKENS=10_000_000
-while getopts "c:o:p:n:m:b:a:l:f:w:k:g:d:F:s:R:W:S:" opt; do
+MAX_TRAINED_TOKENS=100_000_000
+while getopts "c:o:p:n:m:b:a:l:f:w:k:g:d:F:s:R:W:S:t:" opt; do
     case $opt in
         c) CONFIG_FILE="$OPTARG";;
         o) OUTPUT_DIR="$OPTARG";;
@@ -39,6 +39,7 @@ while getopts "c:o:p:n:m:b:a:l:f:w:k:g:d:F:s:R:W:S:" opt; do
         R) export RWKV_VERSION="$OPTARG";;
         W) export WKV="$OPTARG";;
         S) DEEPSTATE_STAGE="$OPTARG";;
+        t) MAX_TRAINED_TOKENS="$OPTARG";;
         \?) echo "无效的选项 -$OPTARG" >&2; exit 1;;
     esac
 done
@@ -74,4 +75,5 @@ deepspeed \
     --train_batch_size $TRAIN_BATCH_SIZE \
     --world_size $WORLD_SIZE \
     $CKPT_FILE \
-    --stage $STAGE
+    --stage $STAGE \
+    --max_trained_tokens $MAX_TRAINED_TOKENS 
