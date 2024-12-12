@@ -3,7 +3,7 @@ NNODES=1
 GPUS_PER_NODE=4
 MICRO_BSZ=1
 ACCUMULATE_GRAD_BATCHES=4
-export RWKV_VERSION=v7
+export RWKV_VERSION=v6
 MAX_LENGTH=512
 CONFIG_FILE=toys_playground/configs/qwen7B_KL_Local.yaml
 OUTPUT_DIR=toys_playground/output
@@ -15,7 +15,11 @@ CKPT_FILE=""
 GRAD_CP=1
 DEEPSPEED_OFFLOAD=""
 FULL_PARAMS=""
-while getopts "c:o:p:n:m:b:a:l:f:w:k:g:d:F:" opt; do
+STAGE=1
+export WKV=""
+DEEPSTATE_STAGE=3
+MAX_TRAINED_TOKENS=10_000_000
+while getopts "c:o:p:n:m:b:a:l:f:w:k:g:d:F:s:R:W:S:" opt; do
     case $opt in
         c) CONFIG_FILE="$OPTARG";;
         o) OUTPUT_DIR="$OPTARG";;
@@ -31,6 +35,10 @@ while getopts "c:o:p:n:m:b:a:l:f:w:k:g:d:F:" opt; do
         g) GRAD_CP="$OPTARG";;
         d) DEEPSPEED_OFFLOAD="--deepspeed_offload";;
         F) FULL_PARAMS="--full_params";;
+        s) STAGE="$OPTARG";;
+        R) export RWKV_VERSION="$OPTARG";;
+        W) export WKV="$OPTARG";;
+        S) DEEPSTATE_STAGE="$OPTARG";;
         \?) echo "无效的选项 -$OPTARG" >&2; exit 1;;
     esac
 done
@@ -46,7 +54,7 @@ deepspeed \
     --deepspeed \
     $DEEPSPEED_OFFLOAD \
     $FULL_PARAMS \
-    --deepspeed_stage 3 \
+    --deepspeed_stage $DEEPSTATE_STAGE \
     --config_file $CONFIG_FILE \
     --output_dir $OUTPUT_DIR \
     --preprocessed_data $PREPROCESSED_DATA \
@@ -65,4 +73,5 @@ deepspeed \
     --warmup_steps $WARMUP_STEPS \
     --train_batch_size $TRAIN_BATCH_SIZE \
     --world_size $WORLD_SIZE \
-    $CKPT_FILE
+    $CKPT_FILE \
+    --stage $STAGE

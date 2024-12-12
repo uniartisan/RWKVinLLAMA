@@ -1,11 +1,14 @@
 from functools import partial
 import os
+from typing import Optional, Tuple
 RWKV_VERSION=os.environ.get('RWKV_VERSION','v7')
 is_rwkv_7 = RWKV_VERSION == 'v7'
 if is_rwkv_7 :
     from rwkv7.src.model import Block
+    from rwkv7.src.model import RWKV_Tmix_x070 as TimeMixer
 else:
     from rwkv.src.model import Block
+    from rwkv.src.model import RWKV_Tmix_x060 as TimeMixer
 import torch
 import pytorch_lightning as pl
 import torch.nn as nn
@@ -81,6 +84,58 @@ class RWKVDecoderLayer(nn.Module):
     
 
 
+
+class AttentionWrapper(nn.Module):
+    
+    def __init__(self,teacher_attn,student_attn,args):
+        super(AttentionWrapper, self).__init__()
+        self.teacher_attn = teacher_attn
+        self.student_attn = student_attn
+        self.args = args
+    
+    def forward(self, 
+        # hidden_states: torch.Tensor,
+        # attention_mask: Optional[torch.Tensor] = None,
+        # position_ids: Optional[torch.LongTensor] = None,
+        # past_key_value: Optional[Cache] = None,
+        # output_attentions: bool = False,
+        # use_cache: bool = False,
+        # cache_position: Optional[torch.LongTensor] = None,
+        # position_embeddings: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,  # will become mandatory in v4.46
+        *args,
+        **kwargs,
+    ) -> Tuple[torch.Tensor, Optional[torch.Tensor], Optional[Tuple[torch.Tensor]]]:
+        kwargs['output_attentions'] = False
+
+        # NOTE - instead of returning attentions here we return a special attention loss
+        hidden_states = kwargs['hidden_states']
+        past_key_value = kwargs.get("past_key_value", None)
+        
+        if is_rwkv_7:
+            #if we don't have v_first in kwargs, we create an empty v_first tensor
+            global v_first
+            if v_first is None:
+                v_first = torch.empty_like(hidden_states)
+        if self.args.grad_cp == 1:
+            if is_rwkv_7:
+                student_hidden_states,v_first = deepspeed.checkpointing.checkpoint(self.student_attn, hidden_states, v_first)
+            else:
+                student_hidden_states = deepspeed.checkpointing.checkpoint(self.student_attn, hidden_states)
+        else:
+            if is_rwkv_7:
+                student_hidden_states,v_first = self.student_attn(hidden_states, v_first)
+            else:
+                student_hidden_states = self.student_attn(hidden_states)
+        if self.args.stage == 2:
+            return (student_hidden_states, None, past_key_value)
+        # student_outputs = self.student_attn(hidden_states)
+        teacher_outputs = self.teacher_attn(*args, **kwargs)
+        # special attention loss is the vector norm of the difference between the student and teacher attn outputs
+        # student_hidden_states = student_outputs[0]
+        teacher_hidden_states = teacher_outputs[0]
+        special_attn_loss = torch.linalg.vector_norm(teacher_hidden_states - student_hidden_states, dim=-1).mean() * (teacher_hidden_states[0].size(-1) ** -0.5)
+        return (teacher_outputs[0], special_attn_loss, ) + teacher_outputs[2:]
+
 class HybridModel(pl.LightningModule):
     def __init__(self, transformer_model, rwkv_args, tokenizer=None):
         super(HybridModel, self).__init__()
@@ -88,28 +143,49 @@ class HybridModel(pl.LightningModule):
         attn_num_key_value_heads = transformer_model.config.num_key_value_heads
         assert attn_num_heads % attn_num_key_value_heads == 0
         n_share = attn_num_heads // attn_num_key_value_heads
-
+        stage = rwkv_args.stage
+        if stage == 1:
+            #Freeze the model
+            transformer_model.requires_grad_(False)
+        else:
+            #Unfreeze the model
+            transformer_model.requires_grad_(True)
+            if transformer_model.config.tie_word_embeddings:
+                # copy untied embeddings
+                transformer_model.get_output_embeddings().weight = nn.Parameter(transformer_model.get_input_embeddings().weight.clone())
+                # untie the embeddings in the config, too
+                transformer_model.tie_word_embeddings = False
         # 替换层的逻辑保持不变
         for layer_idx in range(transformer_model.config.num_hidden_layers):
             if layer_idx in rwkv_args.layers:
-                decoder = RWKVDecoderLayer(rwkv_args, layer_idx)
-                llama_layer = transformer_model.model.layers[layer_idx]
-                if rwkv_args.init_with_llama:
-                    print(f'init parameters with llama in layer {layer_idx}')
-                    decoder.block.att.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
-                    decoder.block.att.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
-                    decoder.block.att.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
-                    decoder.block.att.output.weight.data = llama_layer.self_attn.o_proj.weight.data
-                
-                if rwkv_args.is_llama_ffn:
-                    decoder.block.ffn = llama_layer.mlp
+                if not rwkv_args.is_rwkv_att_only:
+                    decoder = RWKVDecoderLayer(rwkv_args, layer_idx)
+                    llama_layer = transformer_model.model.layers[layer_idx]
+                    if rwkv_args.init_with_llama:
+                        print(f'init parameters with llama in layer {layer_idx}')
+                        decoder.block.att.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
+                        decoder.block.att.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
+                        decoder.block.att.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
+                        decoder.block.att.output.weight.data = llama_layer.self_attn.o_proj.weight.data
+                    
+                    if rwkv_args.is_llama_ffn:
+                        decoder.block.ffn = llama_layer.mlp
+                    else:
+                        decoder.block.ffn.c_fc.weight.data = llama_layer.mlp.up_proj.weight.data
+                        decoder.block.ffn.c_proj.weight.data = llama_layer.mlp.down_proj.weight.data
+                    
+                    transformer_model.model.layers[layer_idx] = decoder
+                    del llama_layer
                 else:
-                    decoder.block.ffn.c_fc.weight.data = llama_layer.mlp.up_proj.weight.data
-                    decoder.block.ffn.c_proj.weight.data = llama_layer.mlp.down_proj.weight.data
-                
-                transformer_model.model.layers[layer_idx] = decoder
-                del llama_layer
-
+                    #Only replace the attention layer with TimeMixer
+                    student_attn = TimeMixer(rwkv_args, layer_idx)
+                    llama_layer = transformer_model.model.layers[layer_idx]
+                    if stage == 1:
+                        teacher_attn = llama_layer.self_attn
+                    else:
+                        teacher_attn = None
+                    attn_wrapper = AttentionWrapper(teacher_attn,student_attn,rwkv_args)
+                    llama_layer.self_attn = attn_wrapper
         self.model = transformer_model
         self.add_module("model", self.model)
         self.args = rwkv_args

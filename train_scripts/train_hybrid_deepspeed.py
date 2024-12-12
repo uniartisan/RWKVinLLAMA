@@ -116,6 +116,8 @@ def create_arg_parser():
     parser.add_argument('--train_batch_size', type=int, default=None, help='train batch size')
     parser.add_argument('--world_size', type=int, help='world size')
     parser.add_argument('--local_rank', type=int, help='local rank')
+    parser.add_argument('--stage', type=int, default=1,choices=[1,2], help='stage 1 only align attn output and stage 2 do kl-divergence')
+    parser.add_argument('--max_trained_tokens', type=int, default=100_000_000, help='max trained tokens')
     return parser
 
 def lr_schedule(args, step):
@@ -175,6 +177,7 @@ def on_train_batch_start(args, model_engine, global_step, epoch):
 pbar = None
 total_loss = 0
 total_updates = 0
+trained_tokens = 0
 def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_loss, student_cross_entropy_loss, global_step, epoch, last_log_time, token_per_step, is_accumulation_step, pbar):
     current_time = time.time()
     elapsed_time = current_time - last_log_time
@@ -182,7 +185,9 @@ def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_los
     kt_s = token_per_step * steps_per_second / 1000  # K tokens per second
     global total_loss
     global total_updates
+    global trained_tokens
     # 只在实际更新参数时更新进度条
+    trained_tokens += token_per_step
     if is_accumulation_step and model_engine.global_rank == 0:
         if pbar is None:
             pbar = tqdm(total=args.epoch_steps, desc=f"Epoch {epoch}")
@@ -193,7 +198,9 @@ def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_los
         pbar.set_postfix({
             'loss': f'{total_loss / total_updates:.4f}',
             'steps/s': f'{steps_per_second:.2f}',
-            'kt/s': f'{kt_s:.2f}'
+            'kt/s': f'{kt_s:.2f}',
+            'trained_tokens': f'{trained_tokens / 1e6:.2f} MT',
+            'remained_tokens': f'{(args.max_trained_tokens - trained_tokens) / 1e6:.2f} MT'
         })
         timer.print_stats(global_step)
         if args.wandb:
@@ -300,41 +307,43 @@ if __name__ == '__main__':
     # else:
     #     teacher_model = None
     #     args.groups = config['teach_mode']['groups']
-    if args.teacher_client_mode:
-        args.groups = config['teach_mode']['groups']
+    # if args.teacher_client_mode:
+    #     args.groups = config['teach_mode']['groups']
     # 初始化混合模型
     model = HybridModel(transformer_model, args, tokenizer)
     if args.ckpt_file is not None:
         dict_set = torch.load(args.ckpt_file)
         info = model.load_state_dict(dict_set, strict=False)
-        print(f'load model from {args.ckpt_file}, info is {info}')
+        if args.local_rank == 0:
+            print(f'load model from {args.ckpt_file}, info is {info}')
+            print(model)
         del dict_set
     # 设置模型参数的训练状态
     if args.full_params:
         print('all params are trainable')
         for name, param in model.named_parameters():
             param.requires_grad = True
-    else:
-        print('Only some params(RWKV related) are trainable')
-        if args.is_rwkv_att_only:
-            print('only rwkv att is trained')
-            for name, param in model.named_parameters():
-                if not 'self_attn.' in name:
-                    param.requires_grad = False
-                # print(name, param.shape, param.requires_grad)
-        else:
-            if args.is_llama_ffn:
-                print('keep llama ffn frozen')
-                for name, param in model.named_parameters():
-                    if not 'block.' in name or 'ffn' in name:
-                        param.requires_grad = False
-                    # print(name, param.shape, param.requires_grad)
-            else:
-                print('keep other modules frozen except rwkv block')
-                for name, param in model.named_parameters():
-                    if not 'block.' in name:
-                        param.requires_grad = False
-                    # print(name, param.shape, param.requires_grad)
+    # else:
+    #     print('Only some params(RWKV related) are trainable')
+    #     if args.is_rwkv_att_only:
+    #         print('only rwkv att is trained')
+    #         for name, param in model.named_parameters():
+    #             if not 'self_attn.' in name:
+    #                 param.requires_grad = False
+    #             # print(name, param.shape, param.requires_grad)
+    #     else:
+    #         if args.is_llama_ffn:
+    #             print('keep llama ffn frozen')
+    #             for name, param in model.named_parameters():
+    #                 if not 'block.' in name or 'ffn' in name:
+    #                     param.requires_grad = False
+    #                 # print(name, param.shape, param.requires_grad)
+    #         else:
+    #             print('keep other modules frozen except rwkv block')
+    #             for name, param in model.named_parameters():
+    #                 if not 'block.' in name:
+    #                     param.requires_grad = False
+    #                 # print(name, param.shape, param.requires_grad)
 
     # 准备数据加载器
     if args.preprocessed_data is not None:
@@ -383,7 +392,8 @@ if __name__ == '__main__':
             )    
         else:
             val_dataloader = None
-        print(f'load preprocessed data from {args.preprocessed_data} done')
+        if args.local_rank == 0:
+            print(f'load preprocessed data from {args.preprocessed_data} done')
     else:
         # 处理其他数据加载情况
         pass
@@ -445,15 +455,16 @@ if __name__ == '__main__':
             ds_config['zero_optimization']['offload_param'] = None
         # 手动配置优化器
         optimizer = configure_optimizer(model, args)
-        print(f'optimizer is {optimizer}')
-        num_total_params = sum(p.numel() for p in model.parameters())
-        num_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-        print(f'num_total_params: {num_total_params}, num_trainable_params: {num_trainable_params}, percent: {num_trainable_params / num_total_params * 100:.2f}%')
-        #print current gpu memory
-        print(f'current gpu memory BEFORE initializing deepspeed: {torch.cuda.memory_summary(device=None, abbreviated=False)}')
-        # model.model = torch.compile(model.model,fullgraph=True)
-        # 初始化 DeepSpeed
-        print(f'initializing deepspeed with config {ds_config}')
+        if args.local_rank == 0:
+            print(f'optimizer is {optimizer}')
+            num_total_params = sum(p.numel() for p in model.parameters())
+            num_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+            print(f'num_total_params: {num_total_params}, num_trainable_params: {num_trainable_params}, percent: {num_trainable_params / num_total_params * 100:.2f}%')
+            #print current gpu memory
+            print(f'current gpu memory BEFORE initializing deepspeed: {torch.cuda.memory_summary(device=None, abbreviated=False)}')
+            # model.model = torch.compile(model.model,fullgraph=True)
+            # 初始化 DeepSpeed
+            print(f'initializing deepspeed with config {ds_config}')
         model_engine, optimizer, _, _ = deepspeed.initialize(
             model=model,  
             optimizer=optimizer,
@@ -464,10 +475,12 @@ if __name__ == '__main__':
             model_engine.load_checkpoint(args.ckpt_dir, args.ckpt_id)
         timer.initialize_with_engine(model_engine)
         #print current gpu memory
-        print(f'current gpu memory AFTER initializing deepspeed: {torch.cuda.memory_summary(device=None, abbreviated=False)}')
-        if not args.teacher_client_mode:
-            print(f'initializing teacher model')
-            print(f'current gpu memory BEFORE initializing teacher model: {torch.cuda.memory_summary(device=None, abbreviated=False)}')
+        if args.local_rank == 0:
+            print(f'current gpu memory AFTER initializing deepspeed: {torch.cuda.memory_summary(device=None, abbreviated=False)}')
+        if args.stage == 2:
+            if args.local_rank == 0:
+                print(f'initializing teacher model')
+                print(f'current gpu memory BEFORE initializing teacher model: {torch.cuda.memory_summary(device=None, abbreviated=False)}')
             ds_config = {
                 "distributed_backend": "nccl",
                 "train_batch_size": args.train_batch_size,
@@ -506,7 +519,8 @@ if __name__ == '__main__':
                 attn_implementation='flash_attention_2'
             )
             teacher_model.eval()
-            print('freeze teacher_model')
+            if args.local_rank == 0:
+                print('freeze teacher_model')
             for name, param in teacher_model.named_parameters():
                 param.requires_grad = False
             # 使用DeepSpeed包装teacher model
@@ -514,21 +528,24 @@ if __name__ == '__main__':
                 model=teacher_model,
                 config=ds_config
             )
-            print(f'current gpu memory AFTER initializing teacher model: {torch.cuda.memory_summary(device=None, abbreviated=False)}')
-            # 将处理好的teacher model设置到model_engine中
-            # model_engine.module.set_teacher_model(teacher_engine.module)
-            print(f'current gpu memory AFTER setting teacher model: {torch.cuda.memory_summary(device=None, abbreviated=False)}')
+            if args.local_rank == 0:
+                print(f'current gpu memory AFTER initializing teacher model: {torch.cuda.memory_summary(device=None, abbreviated=False)}')
+                # 将处理好的teacher model设置到model_engine中
+                # model_engine.module.set_teacher_model(teacher_engine.module)
+                print(f'current gpu memory AFTER setting teacher model: {torch.cuda.memory_summary(device=None, abbreviated=False)}')
             # 清理不需要的引用
             del teacher_model
             torch.cuda.empty_cache()
         else:
+            #in stage 1, we don't need teacher model and 
+            #we only align the original self attn output with TimeMixer output
             teacher_engine = None
     else:
         # 如果不使用 DeepSpeed，使用普通的优化器
         print('not using deepspeed, EXIT')
         exit()
     # 初始化NCCL组
-    model.client = initialize_nccl_client(args)
+    # model.client = initialize_nccl_client(args)
 
     # 只在主进程上初始化wandb
     if args.wandb and model_engine.global_rank == 0:
@@ -541,7 +558,6 @@ if __name__ == '__main__':
     last_log_time = time.time()
     token_per_step = args.max_seq_length * args.micro_bsz * args.world_size
 
-   
     # 训练循环
     for epoch in range(args.max_epochs):
         model_engine.train()
@@ -572,6 +588,8 @@ if __name__ == '__main__':
                 args, batch_idx, model_engine, loss.item(), teacher_loss, kl_loss, student_cross_entropy_loss,
                 global_step, epoch, last_log_time, token_per_step, is_accumulation_step, pbar
             )
+            if trained_tokens >= args.max_trained_tokens:
+                break
 
         # 处理最后一个不完整的累积批次（如果有的话）
         if len(train_dataloader) % args.accumulate_grad_batches != 0:
