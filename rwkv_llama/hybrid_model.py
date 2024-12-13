@@ -89,9 +89,26 @@ class AttentionWrapper(nn.Module):
     
     def __init__(self,teacher_attn,student_attn,args):
         super(AttentionWrapper, self).__init__()
-        self.teacher_attn = teacher_attn
-        self.student_attn = student_attn
         self.args = args
+        if teacher_attn is not None:
+            # 创建一个新的相同类型的 attention 模块
+            self.teacher_attn = type(teacher_attn)(
+                config=teacher_attn.config
+            )
+            # 复制状态字典
+            self.teacher_attn.load_state_dict(teacher_attn.state_dict())
+            # 确保在 CPU 上
+            self.teacher_attn = self.teacher_attn.to('cpu')
+            # 冻结参数
+            for param in self.teacher_attn.parameters():
+                param.requires_grad = False
+            self.add_module("teacher_attn", self.teacher_attn)
+            del teacher_attn
+        else:
+            self.teacher_attn = None
+        self.student_attn = student_attn
+        self.student_attn.requires_grad_(True)
+        self.add_module("student_attn", self.student_attn)
     
     def forward(self, 
         # hidden_states: torch.Tensor,
@@ -180,12 +197,16 @@ class HybridModel(pl.LightningModule):
                     #Only replace the attention layer with TimeMixer
                     student_attn = TimeMixer(rwkv_args, layer_idx)
                     llama_layer = transformer_model.model.layers[layer_idx]
-                    if stage == 1:
-                        teacher_attn = llama_layer.self_attn
-                    else:
-                        teacher_attn = None
-                    attn_wrapper = AttentionWrapper(teacher_attn,student_attn,rwkv_args)
+                    # if stage == 1:
+                    #     teacher_attn = llama_layer.self_attn
+                    # else:
+                    #     teacher_attn = None
+                    #Remove the teacher_attn out of the model which makes
+                    #deepspeed can initialize the model easily
+                    attn_wrapper = AttentionWrapper(None,student_attn,rwkv_args)
                     llama_layer.self_attn = attn_wrapper
+                    import gc
+                    gc.collect()
         self.model = transformer_model
         self.add_module("model", self.model)
         self.args = rwkv_args

@@ -251,6 +251,8 @@ def setup_distributed():
 if __name__ == '__main__':
     parser = create_arg_parser()
     args = parser.parse_args()
+    if 'LOCAL_RANK' in os.environ:
+        args.local_rank = int(os.environ['LOCAL_RANK'])
     print(args)
     # if args.num_nodes > 1:
     deepspeed.init_distributed()
@@ -310,7 +312,14 @@ if __name__ == '__main__':
     # if args.teacher_client_mode:
     #     args.groups = config['teach_mode']['groups']
     # 初始化混合模型
+    if args.stage == 1 and args.is_rwkv_att_only:
+        #create a module list to contain the self_attn
+        teacher_attn_module_list = torch.nn.ModuleList()
+        for layer_idx in range(transformer_model.config.num_hidden_layers):
+            llama_layer = transformer_model.model.layers[layer_idx]
+            teacher_attn_module_list.append(llama_layer.self_attn)
     model = HybridModel(transformer_model, args, tokenizer)
+    model = model.to(dtype=torch.bfloat16)
     if args.ckpt_file is not None:
         dict_set = torch.load(args.ckpt_file)
         info = model.load_state_dict(dict_set, strict=False)
@@ -415,10 +424,10 @@ if __name__ == '__main__':
                 "fp32_reduce_scatter": True,
                 "zero_optimization": {
                     "stage": args.deepspeed_stage,
-                    "stage3_max_live_parameters": 1e9,
-                    "stage3_max_reuse_distance": 1e9,
-                    "stage3_prefetch_bucket_size": 1e7,
-                    "stage3_param_persistence_threshold": 1e5,
+                    "stage3_max_live_parameters": 1e7,
+                    "stage3_max_reuse_distance": 1e7,
+                    "stage3_prefetch_bucket_size": 1e5,
+                    "stage3_param_persistence_threshold": 1e4,
                     "memory_efficient_linear": True,
                     "stage3_gather_16bit_weights_on_model_save": False,
                     "zero_quantized_weights": False,
@@ -427,8 +436,7 @@ if __name__ == '__main__':
                     "offload_optimizer": {
                         "device": "cpu",
                         "pin_memory": True,
-                        "buffer_count": 4,
-                        "fast_init": True
+                        "buffer_count": 4
                     },
                     "offload_param": {
                         "device": "cpu",
@@ -448,7 +456,8 @@ if __name__ == '__main__':
                 "zero_force_ds_cpu_initialization": True,
                 "zero_allow_untested_optimizer": True,
                 "gradient_accumulation_steps": args.accumulate_grad_batches if args.accumulate_grad_batches > 1 else None,
-                "wall_clock_breakdown": False
+                "wall_clock_breakdown": False,
+                "dump_state": True
             }
         if not args.deepspeed_offload:
             ds_config['zero_optimization']['offload_optimizer'] = None
@@ -459,6 +468,9 @@ if __name__ == '__main__':
             print(f'optimizer is {optimizer}')
             num_total_params = sum(p.numel() for p in model.parameters())
             num_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+            for n, p in model.named_parameters():
+                if p.requires_grad:
+                    print(f'param {n} is trainable')
             print(f'num_total_params: {num_total_params}, num_trainable_params: {num_trainable_params}, percent: {num_trainable_params / num_total_params * 100:.2f}%')
             #print current gpu memory
             print(f'current gpu memory BEFORE initializing deepspeed: {torch.cuda.memory_summary(device=None, abbreviated=False)}')
@@ -539,7 +551,61 @@ if __name__ == '__main__':
         else:
             #in stage 1, we don't need teacher model and 
             #we only align the original self attn output with TimeMixer output
+            #Init the teacher module list engine with deepspeed
             teacher_engine = None
+            if args.local_rank == 0:
+                print(f'initializing teacher model')
+                print(f'current gpu memory BEFORE initializing teacher attn list: {torch.cuda.memory_summary(device=None, abbreviated=False)}')
+            ds_config = {
+                "distributed_backend": "nccl",
+                "train_batch_size": args.train_batch_size,
+                "bf16": {
+                    "enabled": True
+                },
+                "zero_optimization": {
+                    "stage": args.deepspeed_stage,
+                    "stage3_max_live_parameters": 1e9,
+                    "stage3_max_reuse_distance": 1e9,
+                    "stage3_prefetch_bucket_size": 5e6,
+                    "memory_efficient_linear": True,
+                    "stage3_param_persistence_threshold": 1e4,
+                    "offload_param": {
+                        "device": "cpu",
+                        "pin_memory": True,
+                        "buffer_count": 4,
+                        "buffer_size": 1e8
+                    },
+                    "allgather_partitions": True,
+                    "reduce_scatter": True,
+                    "reduce_bucket_size": 5e6,
+                    "overlap_comm": True,
+                    "contiguous_gradients": True
+                },
+                "zero_force_ds_cpu_initialization": True
+            }
+            teacher_attn_module_list.requires_grad_(False)
+            teacher_engine, _, _, _ = deepspeed.initialize(
+                model=teacher_attn_module_list,
+                config=ds_config
+            )
+            # 遍历所有层
+            for layer_idx in args.layers:
+                # 获取当前层的 AttentionWrapper
+                if args.local_rank == 0:
+                    print(f'set teacher attn for layer {layer_idx}')
+                attention_wrapper = model_engine.module.model.model.layers[layer_idx].self_attn
+                # 获取对应的 teacher attention 模块
+                teacher_attn = teacher_engine.module[layer_idx]
+                
+                # 设置 teacher_attn
+                attention_wrapper.teacher_attn = teacher_attn
+                # 确保添加为子模块
+                attention_wrapper.add_module("teacher_attn", teacher_attn)
+                # 确保参数被冻结
+                for param in teacher_attn.parameters():
+                    param.requires_grad = False
+            if args.local_rank == 0:
+                print(f'current gpu memory AFTER initializing teacher attn list: {torch.cuda.memory_summary(device=None, abbreviated=False)}')
     else:
         # 如果不使用 DeepSpeed，使用普通的优化器
         print('not using deepspeed, EXIT')
