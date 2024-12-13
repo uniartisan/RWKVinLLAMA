@@ -604,6 +604,10 @@ if __name__ == '__main__':
                 # 确保参数被冻结
                 for param in teacher_attn.parameters():
                     param.requires_grad = False
+            
+            # 清理不再需要的引用
+            del teacher_attn_module_list
+            torch.cuda.empty_cache()
             if args.local_rank == 0:
                 print(f'current gpu memory AFTER initializing teacher attn list: {torch.cuda.memory_summary(device=None, abbreviated=False)}')
     else:

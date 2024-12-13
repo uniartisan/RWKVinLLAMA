@@ -127,7 +127,7 @@ class AttentionWrapper(nn.Module):
         # NOTE - instead of returning attentions here we return a special attention loss
         hidden_states = kwargs['hidden_states']
         past_key_value = kwargs.get("past_key_value", None)
-        
+        hidden_states = hidden_states.requires_grad_(True)
         if is_rwkv_7:
             #if we don't have v_first in kwargs, we create an empty v_first tensor
             global v_first
@@ -146,7 +146,8 @@ class AttentionWrapper(nn.Module):
         if self.args.stage == 2:
             return (student_hidden_states, None, past_key_value)
         # student_outputs = self.student_attn(hidden_states)
-        teacher_outputs = self.teacher_attn(*args, **kwargs)
+        with torch.no_grad():
+            teacher_outputs = self.teacher_attn(*args, **kwargs)
         # special attention loss is the vector norm of the difference between the student and teacher attn outputs
         # student_hidden_states = student_outputs[0]
         teacher_hidden_states = teacher_outputs[0]
