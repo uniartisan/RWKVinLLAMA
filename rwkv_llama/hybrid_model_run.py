@@ -337,12 +337,14 @@ class HybridModel(nn.Module):
     
     def __init__(self,transformer_model,rwkv_args):
         super(HybridModel, self).__init__()
-        attn_num_heads = transformer_model.config.num_attention_heads
-        attn_num_key_value_heads = transformer_model.config.num_key_value_heads
-        assert attn_num_heads % attn_num_key_value_heads == 0
-        n_share = attn_num_heads // attn_num_key_value_heads
+        if transformer_model.config.tie_word_embeddings:
+            # copy untied embeddings
+            transformer_model.get_output_embeddings().weight = nn.Parameter(transformer_model.get_input_embeddings().weight.clone())
+            # untie the embeddings in the config, too
+            transformer_model.tie_word_embeddings = False
         def init_block_params(rwkv_args,layer_idx,llama_layer):
             if rwkv_args.is_rwkv_att_only:
+                print(f'init RWKV att only in layer {layer_idx}')
                 decoder = llama_layer
                 att = RWKV_Tmix_x060_infctx_Wrapper(rwkv_args,layer_idx)
                 # att.time_mixer.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
@@ -352,6 +354,7 @@ class HybridModel(nn.Module):
                 llama_layer.self_attn = att
                 return decoder
             else:
+                print(f'init RWKVDecoder in layer {layer_idx}')
                 decoder = RWKVDecoderLayer(rwkv_args,layer_idx)
                 # decoder.block.att.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
                 # decoder.block.att.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
