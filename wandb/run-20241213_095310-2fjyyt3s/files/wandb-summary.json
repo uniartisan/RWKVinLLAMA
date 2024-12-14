@@ -1,0 +1,1 @@
+{"loss": 0.01171875, "lr": 9.999399326466242e-05, "weight_decay": 0.0, "steps_per_second": 1.3529065868615004, "kt/s": 22.166021519138823, "global_step": 551, "Gtokens": 0.036110336, "epoch": 0, "teacher_loss": null, "kl_loss": null, "student_cross_entropy_loss": null, "_timestamp": 1734086069.784392, "_runtime": 2479.0971250534058, "_step": 550}

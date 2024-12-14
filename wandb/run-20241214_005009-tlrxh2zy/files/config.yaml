@@ -1,0 +1,327 @@
+wandb_version: 1
+
+config_file:
+  desc: null
+  value: configs/qwen_0.5b.yaml
+preprocessed_data:
+  desc: null
+  value:
+  - /home/yueyulin/data/all_train_ds_v1+magpie/
+output_dir:
+  desc: null
+  value: /home/yueyulin/model/qwen_0.5b_full_layers_stage1
+num_epochs:
+  desc: null
+  value: 1
+max_seq_length:
+  desc: null
+  value: 512
+num_devices:
+  desc: null
+  value: 4
+dropout:
+  desc: null
+  value: 0.05
+grad_cp:
+  desc: null
+  value: 1
+save_per_batches:
+  desc: null
+  value: 2000
+my_exit:
+  desc: null
+  value: 300
+weight_decay:
+  desc: null
+  value: 0.1
+lr_init:
+  desc: null
+  value: 4.0e-05
+lr_final:
+  desc: null
+  value: 4.0e-06
+beta1:
+  desc: null
+  value: 0.9
+beta2:
+  desc: null
+  value: 0.95
+layerwise_lr:
+  desc: null
+  value: 1
+adam_eps:
+  desc: null
+  value: 1.0e-08
+warmup_steps:
+  desc: null
+  value: 50
+epoch_begin:
+  desc: null
+  value: 0
+epoch_count:
+  desc: null
+  value: 150
+epoch_save:
+  desc: null
+  value: 1
+max_epochs:
+  desc: null
+  value: 2
+check_val_every_n_epoch:
+  desc: null
+  value: 1
+val_check_interval:
+  desc: null
+  value: 5000
+num_sanity_val_steps:
+  desc: null
+  value: 0
+log_every_n_steps:
+  desc: null
+  value: 5000
+enable_checkpointing:
+  desc: null
+  value: false
+accumulate_grad_batches:
+  desc: null
+  value: 4
+gradient_clip_val:
+  desc: null
+  value: 1.0
+num_nodes:
+  desc: null
+  value: 1
+micro_bsz:
+  desc: null
+  value: 8
+real_bsz:
+  desc: null
+  value: 128
+my_pile_stage:
+  desc: null
+  value: 0
+my_pile_edecay:
+  desc: null
+  value: 0
+weight_decay_final:
+  desc: null
+  value: -1
+proj_dir:
+  desc: null
+  value: null
+eval_every_steps:
+  desc: null
+  value: 100
+wandb:
+  desc: null
+  value: hybrid_trainer_toys
+run_name:
+  desc: null
+  value: hybrid_trainer_toys
+strategy:
+  desc: null
+  value: deepspeed_stage_2_offload
+ds_bucket_mb:
+  desc: null
+  value: 200
+my_qa_mask:
+  desc: null
+  value: 0
+optim:
+  desc: null
+  value: adam
+train_type:
+  desc: null
+  value: ''
+skip_steps:
+  desc: null
+  value: 0
+full_params:
+  desc: null
+  value: true
+ckpt_file:
+  desc: null
+  value: null
+ckpt_dir:
+  desc: null
+  value: null
+ckpt_id:
+  desc: null
+  value: null
+deepspeed:
+  desc: null
+  value: true
+deepspeed_config:
+  desc: null
+  value: null
+deepspeed_stage:
+  desc: null
+  value: 3
+deepspeed_offload:
+  desc: null
+  value: true
+train_batch_size:
+  desc: null
+  value: 128
+world_size:
+  desc: null
+  value: 4
+local_rank:
+  desc: null
+  value: 0
+stage:
+  desc: null
+  value: 1
+max_trained_tokens:
+  desc: null
+  value: 600000000
+terminate_at_loss:
+  desc: null
+  value: 0.001
+my_pos_emb:
+  desc: null
+  value: 0
+head_size_a:
+  desc: null
+  value: 64
+head_size_divisor:
+  desc: null
+  value: 8
+ctx_len:
+  desc: null
+  value: 4096
+n_layer:
+  desc: null
+  value: 24
+n_embd:
+  desc: null
+  value: 896
+dim_att:
+  desc: null
+  value: 896
+dim_ffn:
+  desc: null
+  value: 4864
+pre_ffn:
+  desc: null
+  value: 0
+head_qk:
+  desc: null
+  value: 0
+tiny_att_dim:
+  desc: null
+  value: 0
+tiny_att_layer:
+  desc: null
+  value: -999
+vocab_size:
+  desc: null
+  value: 151936
+layers:
+  desc: null
+  value:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  - 9
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
+  - 17
+  - 18
+  - 19
+  - 20
+  - 21
+  - 22
+  - 23
+pad_id:
+  desc: null
+  value: 151645
+betas:
+  desc: null
+  value:
+  - 0.9
+  - 0.95
+kl_weight:
+  desc: null
+  value: 1
+ce_weight:
+  desc: null
+  value: 0
+model_file:
+  desc: null
+  value: QWen2.5-0.5B
+teacher_client_mode:
+  desc: null
+  value: false
+is_hidden_align:
+  desc: null
+  value: false
+is_sft:
+  desc: null
+  value: false
+is_llama_ffn:
+  desc: null
+  value: true
+is_rwkv_att_only:
+  desc: null
+  value: true
+is_all_labels_kl:
+  desc: null
+  value: true
+init_with_llama:
+  desc: null
+  value: false
+_wandb:
+  desc: null
+  value:
+    python_version: 3.12.4
+    cli_version: 0.17.4
+    framework: huggingface
+    huggingface_version: 4.46.3
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    start_time: 1734137409
+    t:
+      1:
+      - 1
+      - 9
+      - 11
+      - 41
+      - 49
+      - 51
+      - 55
+      - 71
+      - 103
+      - 105
+      2:
+      - 1
+      - 9
+      - 11
+      - 41
+      - 49
+      - 51
+      - 55
+      - 71
+      - 103
+      - 105
+      3:
+      - 13
+      - 16
+      - 23
+      4: 3.12.4
+      5: 0.17.4
+      6: 4.46.3
+      8:
+      - 5
+      13: linux-x86_64

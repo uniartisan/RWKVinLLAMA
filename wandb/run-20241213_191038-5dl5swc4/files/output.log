@@ -1,0 +1,260 @@
+
+begin training with 2 epochs
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 0:   0%| | 99/32007 [05:04<24:34:18,  2.77s/it, loss=0.1727, steps/s=1.67, kt/s=27.42, trained_tokens=6.49 MT, remained_tokens=393.51 MT]
+=== Function Timing Statistics ===
+Step: 100
+Total time: 241.95 seconds
+Function breakdown:
+train_step                    :   121.03s ( 50.0%) | Calls:    400 | Avg:   302.56ms
+get_student_outputs           :   120.89s ( 50.0%) | Calls:    400 | Avg:   302.24ms
+get_attn_loss                 :     0.03s (  0.0%) | Calls:    400 | Avg:     0.09ms
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 0:   1%| | 199/32007 [10:04<24:25:32,  2.76s/it, loss=0.1054, steps/s=1.66, kt/s=27.21, trained_tokens=13.04 MT, remained_tokens=386.96 M
+=== Function Timing Statistics ===
+Step: 200
+Total time: 476.46 seconds
+Function breakdown:
+train_step                    :   238.32s ( 50.0%) | Calls:    800 | Avg:   297.90ms
+get_student_outputs           :   238.08s ( 50.0%) | Calls:    800 | Avg:   297.60ms
+get_attn_loss                 :     0.06s (  0.0%) | Calls:    800 | Avg:     0.08ms
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 0:   1%| | 212/32007 [10:45<28:30:33,  3.23s/it, loss=0.1003, steps/s=0.66, kt/s=10.85, trained_tokens=13.89 MT, remained_tokens=386.11 M
+Terminating training at loss 0.0999675625366784
+saving epoch checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1
+set teacher attn to None 0
+set teacher attn to None 1
+set teacher attn to None 2
+set teacher attn to None 3
+set teacher attn to None 4
+set teacher attn to None 5
+set teacher attn to None 6
+set teacher attn to None 7
+set teacher attn to None 8
+set teacher attn to None 9
+set teacher attn to None 10
+set teacher attn to None 11
+set teacher attn to None 12
+set teacher attn to None 13
+set teacher attn to None 14
+set teacher attn to None 15
+set teacher attn to None 16
+set teacher attn to None 17
+set teacher attn to None 18
+set teacher attn to None 19
+set teacher attn to None 20
+set teacher attn to None 21
+set teacher attn to None 22
+

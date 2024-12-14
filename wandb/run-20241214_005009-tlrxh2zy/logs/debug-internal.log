@@ -1,0 +1,601 @@
+2024-12-14 00:50:09,140 INFO    StreamThr :1570423 [internal.py:wandb_internal():85] W&B internal server running at pid: 1570423, started at: 2024-12-14 00:50:09.139523
+2024-12-14 00:50:09,141 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status
+2024-12-14 00:50:09,143 INFO    WriterThread:1570423 [datastore.py:open_for_write():87] open: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/run-tlrxh2zy.wandb
+2024-12-14 00:50:09,143 DEBUG   SenderThread:1570423 [sender.py:send():379] send: header
+2024-12-14 00:50:09,181 DEBUG   SenderThread:1570423 [sender.py:send():379] send: run
+2024-12-14 00:50:10,085 INFO    SenderThread:1570423 [dir_watcher.py:__init__():211] watching files in: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files
+2024-12-14 00:50:10,085 INFO    SenderThread:1570423 [sender.py:_start_run_threads():1188] run started: tlrxh2zy with start time 1734137409.139472
+2024-12-14 00:50:10,097 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: check_version
+2024-12-14 00:50:10,097 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: check_version
+2024-12-14 00:50:10,391 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: run_start
+2024-12-14 00:50:10,429 DEBUG   HandlerThread:1570423 [system_info.py:__init__():26] System info init
+2024-12-14 00:50:10,430 DEBUG   HandlerThread:1570423 [system_info.py:__init__():41] System info init done
+2024-12-14 00:50:10,430 INFO    HandlerThread:1570423 [system_monitor.py:start():194] Starting system monitor
+2024-12-14 00:50:10,430 INFO    SystemMonitor:1570423 [system_monitor.py:_start():158] Starting system asset monitoring threads
+2024-12-14 00:50:10,430 INFO    HandlerThread:1570423 [system_monitor.py:probe():214] Collecting system info
+2024-12-14 00:50:10,431 INFO    SystemMonitor:1570423 [interfaces.py:start():188] Started cpu monitoring
+2024-12-14 00:50:10,431 INFO    SystemMonitor:1570423 [interfaces.py:start():188] Started disk monitoring
+2024-12-14 00:50:10,433 INFO    SystemMonitor:1570423 [interfaces.py:start():188] Started gpu monitoring
+2024-12-14 00:50:10,433 INFO    SystemMonitor:1570423 [interfaces.py:start():188] Started memory monitoring
+2024-12-14 00:50:10,434 INFO    SystemMonitor:1570423 [interfaces.py:start():188] Started network monitoring
+2024-12-14 00:50:10,481 DEBUG   HandlerThread:1570423 [system_info.py:probe():152] Probing system
+2024-12-14 00:50:10,483 DEBUG   HandlerThread:1570423 [system_info.py:_probe_git():137] Probing git
+2024-12-14 00:50:10,488 DEBUG   HandlerThread:1570423 [system_info.py:_probe_git():145] Probing git done
+2024-12-14 00:50:10,488 DEBUG   HandlerThread:1570423 [system_info.py:probe():200] Probing system done
+2024-12-14 00:50:10,488 DEBUG   HandlerThread:1570423 [system_monitor.py:probe():223] {'os': 'Linux-5.15.0-125-generic-x86_64-with-glibc2.35', 'python': '3.12.4', 'heartbeatAt': '2024-12-14T00:50:10.481557', 'startedAt': '2024-12-14T00:50:09.124926', 'docker': None, 'cuda': None, 'args': ('--local_rank=0', '--deepspeed', '--deepspeed_offload', '--full_params', '--deepspeed_stage', '3', '--config_file', 'configs/qwen_0.5b.yaml', '--output_dir', '/home/yueyulin/model/qwen_0.5b_full_layers_stage1', '--preprocessed_data', '/home/yueyulin/data/all_train_ds_v1+magpie/', '--num_devices', '4', '--num_nodes', '1', '--micro_bsz', '8', '--accumulate_grad_batches', '4', '--max_epochs', '2', '--wandb', 'hybrid_trainer_toys', '--run_name', 'hybrid_trainer_toys', '--grad_cp', '1', '--max_seq_length', '512', '--dropout', '0.05', '--lr_init', '0.00004', '--lr_final', '0.000004', '--warmup_steps', '50', '--train_batch_size', '128', '--world_size', '4', '--save_per_batches', '2000', '--stage', '1', '--terminate_at_loss', '0.001', '--max_trained_tokens', '600_000_000'), 'state': 'running', 'program': '/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py', 'codePathLocal': 'train_scripts/train_hybrid_deepspeed.py', 'codePath': 'train_scripts/train_hybrid_deepspeed.py', 'git': {'remote': 'https://github.com/yynil/RWKVinLLAMA', 'commit': '10b41be8cf8be18e18d11a4568a869e18e5e8ac3'}, 'email': 'yueyu.lin@me.com', 'root': '/home/yueyulin/github/RWKVinLLAMA', 'host': 'server1', 'username': 'yueyulin', 'executable': '/home/yueyulin/miniconda3/envs/new_torch_env/bin/python', 'cpu_count': 8, 'cpu_count_logical': 16, 'cpu_freq': {'current': 1999.6495625, 'min': 1500.0, 'max': 3200.0}, 'cpu_freq_per_core': [{'current': 3397.825, 'min': 1500.0, 'max': 3200.0}, {'current': 2500.0, 'min': 1500.0, 'max': 3200.0}, {'current': 1500.0, 'min': 1500.0, 'max': 3200.0}, {'current': 1500.0, 'min': 1500.0, 'max': 3200.0}, {'current': 1500.0, 'min': 1500.0, 'max': 3200.0}, {'current': 1500.0, 'min': 1500.0, 'max': 3200.0}, {'current': 1500.0, 'min': 1500.0, 'max': 3200.0}, {'current': 1500.0, 'min': 1500.0, 'max': 3200.0}, {'current': 3394.128, 'min': 1500.0, 'max': 3200.0}, {'current': 3200.0, 'min': 1500.0, 'max': 3200.0}, {'current': 2500.0, 'min': 1500.0, 'max': 3200.0}, {'current': 1500.0, 'min': 1500.0, 'max': 3200.0}, {'current': 1500.0, 'min': 1500.0, 'max': 3200.0}, {'current': 1500.0, 'min': 1500.0, 'max': 3200.0}, {'current': 1500.0, 'min': 1500.0, 'max': 3200.0}, {'current': 1500.0, 'min': 1500.0, 'max': 3200.0}], 'disk': {'/': {'total': 3728.65633392334, 'used': 2136.556797027588}}, 'gpu': 'NVIDIA GeForce RTX 4090', 'gpu_count': 4, 'gpu_devices': [{'name': 'NVIDIA GeForce RTX 4090', 'memory_total': 25757220864}, {'name': 'NVIDIA GeForce RTX 4090', 'memory_total': 25757220864}, {'name': 'NVIDIA GeForce RTX 4090', 'memory_total': 25757220864}, {'name': 'NVIDIA GeForce RTX 4090', 'memory_total': 25757220864}], 'memory': {'total': 251.76148986816406}}
+2024-12-14 00:50:10,488 INFO    HandlerThread:1570423 [system_monitor.py:probe():224] Finished collecting system info
+2024-12-14 00:50:10,488 INFO    HandlerThread:1570423 [system_monitor.py:probe():227] Publishing system info
+2024-12-14 00:50:10,488 DEBUG   HandlerThread:1570423 [system_info.py:_save_conda():209] Saving list of conda packages installed into the current environment
+2024-12-14 00:50:11,087 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_created():271] file/dir created: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/conda-environment.yaml
+2024-12-14 00:50:14,086 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/conda-environment.yaml
+2024-12-14 00:50:14,110 DEBUG   HandlerThread:1570423 [system_info.py:_save_conda():224] Saving conda packages done
+2024-12-14 00:50:14,110 INFO    HandlerThread:1570423 [system_monitor.py:probe():229] Finished publishing system info
+2024-12-14 00:50:14,113 DEBUG   SenderThread:1570423 [sender.py:send():379] send: files
+2024-12-14 00:50:14,113 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-metadata.json with policy now
+2024-12-14 00:50:14,299 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: python_packages
+2024-12-14 00:50:14,299 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: python_packages
+2024-12-14 00:50:14,300 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:50:14,300 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: stop_status
+2024-12-14 00:50:14,301 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: stop_status
+2024-12-14 00:50:14,303 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:14,905 DEBUG   SenderThread:1570423 [sender.py:send():379] send: telemetry
+2024-12-14 00:50:15,086 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_created():271] file/dir created: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/requirements.txt
+2024-12-14 00:50:15,087 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_created():271] file/dir created: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-metadata.json
+2024-12-14 00:50:15,087 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_created():271] file/dir created: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:50:15,302 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:15,327 INFO    wandb-upload_0:1570423 [upload_job.py:push():130] Uploaded file /tmp/tmpyb98l6enwandb/glu4s8s7-wandb-metadata.json
+2024-12-14 00:50:16,302 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:17,087 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:50:17,309 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:18,307 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:19,302 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:50:19,306 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:20,307 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:21,070 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:50:21,071 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:50:21,072 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:50:21,072 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:50:21,088 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_created():271] file/dir created: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:50:21,307 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:22,307 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:23,089 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:50:23,307 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:23,714 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:50:23,715 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:50:23,715 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:50:23,716 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:50:24,089 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:50:24,303 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:50:24,307 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:25,090 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:50:25,307 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:26,346 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:50:26,347 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:26,347 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:50:26,347 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:50:26,348 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:50:27,098 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:50:27,098 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:50:27,308 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:28,308 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:29,300 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: stop_status
+2024-12-14 00:50:29,301 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: stop_status
+2024-12-14 00:50:29,342 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:29,554 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:50:30,310 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:50:30,311 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:30,311 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:50:30,311 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:50:30,313 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:50:31,099 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:50:31,100 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:50:31,308 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:32,308 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:33,006 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:50:33,007 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:50:33,007 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:50:33,008 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:50:33,100 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:50:33,309 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:34,309 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:35,101 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:50:35,303 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:50:35,309 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:35,674 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:50:35,675 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:50:35,675 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:50:35,676 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:50:36,101 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:50:36,309 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:37,101 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:50:37,309 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:38,314 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:50:38,314 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:38,315 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:50:38,315 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:50:38,316 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:50:39,102 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:50:39,102 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:50:39,310 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:40,309 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:50:40,311 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:41,103 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/config.yaml
+2024-12-14 00:50:41,311 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:42,042 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:50:42,043 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:50:42,043 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:50:42,045 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:50:42,103 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:50:42,310 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:43,103 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:50:43,311 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:44,300 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: stop_status
+2024-12-14 00:50:44,301 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: stop_status
+2024-12-14 00:50:44,342 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:44,746 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:50:44,747 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:50:44,747 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:50:44,749 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:50:45,104 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:50:45,311 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:45,749 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:50:46,311 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:47,105 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:50:47,312 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:47,426 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:50:47,427 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:50:47,427 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:50:47,428 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:50:48,105 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:50:48,312 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:49,105 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:50:49,312 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:50,098 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:50:50,099 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:50:50,099 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:50:50,100 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:50:50,106 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:50:50,312 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:51,100 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:50:51,106 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:50:51,312 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:52,312 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:53,313 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:53,822 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:50:53,823 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:50:53,823 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:50:53,824 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:50:54,107 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:50:54,312 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:55,107 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:50:55,312 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:56,304 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:50:56,313 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:56,526 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:50:56,527 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:50:56,527 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:50:56,528 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:50:57,108 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:50:57,313 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:58,313 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:50:59,109 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:50:59,186 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:50:59,187 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:50:59,187 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:50:59,187 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:50:59,301 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: stop_status
+2024-12-14 00:50:59,301 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: stop_status
+2024-12-14 00:50:59,313 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:00,109 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:51:00,313 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:01,109 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:51:01,313 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:01,633 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:51:01,870 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:51:01,871 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:51:01,871 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:51:01,871 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:51:02,110 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:51:02,314 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:03,110 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:51:03,314 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:04,313 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:05,314 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:05,578 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:51:05,579 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:51:05,579 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:51:05,580 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:51:06,111 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:51:06,314 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:07,112 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:51:07,314 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:07,581 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:51:08,274 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:51:08,275 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:51:08,275 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:51:08,277 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:51:08,314 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:09,112 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:51:09,113 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:51:09,314 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:10,314 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:10,434 DEBUG   SystemMonitor:1570423 [system_monitor.py:_start():172] Starting system metrics aggregation loop
+2024-12-14 00:51:10,436 DEBUG   SenderThread:1570423 [sender.py:send():379] send: stats
+2024-12-14 00:51:10,942 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:51:10,943 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:51:10,943 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:51:10,943 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:51:11,113 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:51:11,314 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:12,315 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:12,944 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:51:13,114 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:51:13,315 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:13,598 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:51:13,599 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:51:13,599 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:51:13,599 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:51:14,114 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:51:14,301 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: stop_status
+2024-12-14 00:51:14,301 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: stop_status
+2024-12-14 00:51:14,315 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:15,114 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:51:15,315 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:16,315 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:17,315 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:17,362 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:51:17,363 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:51:17,363 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:51:17,363 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:51:18,115 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:51:18,316 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:18,364 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:51:19,116 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:51:19,315 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:20,086 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:51:20,087 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:51:20,087 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:51:20,088 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:51:20,116 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:51:20,316 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:21,116 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:51:21,316 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:22,316 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:22,750 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:51:22,751 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:51:22,752 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:51:22,752 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:51:23,117 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:51:23,317 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:23,753 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:51:24,316 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:25,118 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:51:25,317 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:25,430 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:51:25,431 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:51:25,431 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:51:25,431 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:51:26,118 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:51:26,316 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:27,118 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:51:27,317 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:28,317 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:29,139 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:51:29,182 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:51:29,183 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:51:29,183 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:51:29,183 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:51:29,301 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: stop_status
+2024-12-14 00:51:29,302 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: stop_status
+2024-12-14 00:51:29,317 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:30,119 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:51:30,317 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:31,120 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:51:31,317 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:31,894 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:51:31,895 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:51:31,895 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:51:31,895 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:51:32,120 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:51:32,317 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:33,121 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:51:33,317 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:34,304 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:51:34,317 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:34,542 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:51:34,543 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:51:34,543 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:51:34,543 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:51:35,121 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:51:35,318 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:36,318 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:37,122 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:51:37,202 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:51:37,203 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:51:37,203 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:51:37,203 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:51:37,318 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:38,122 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:51:38,318 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:39,123 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:51:39,305 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:51:39,318 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:40,319 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:40,437 DEBUG   SenderThread:1570423 [sender.py:send():379] send: stats
+2024-12-14 00:51:40,938 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:51:40,939 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:51:40,939 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:51:40,939 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:51:41,123 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:51:41,319 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:42,319 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:43,124 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:51:43,319 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:43,654 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:51:43,655 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:51:43,655 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:51:43,656 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:51:44,124 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:51:44,302 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: stop_status
+2024-12-14 00:51:44,302 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: stop_status
+2024-12-14 00:51:44,319 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:44,558 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:51:45,125 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:51:45,320 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:46,338 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:51:46,338 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:46,339 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:51:46,339 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:51:46,340 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:51:47,125 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:51:47,126 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:51:47,320 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:48,320 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:48,986 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:51:48,987 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:51:48,987 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:51:48,988 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:51:49,126 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:51:49,320 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:50,305 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:51:50,320 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:51,127 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:51:51,321 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:52,321 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:52,754 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:51:52,762 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:51:52,763 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:51:52,763 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:51:53,127 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:51:53,321 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:54,321 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:55,128 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:51:55,305 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:51:55,321 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:55,458 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:51:55,459 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:51:55,459 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:51:55,460 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:51:56,128 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:51:56,321 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:57,129 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:51:57,321 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:58,138 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:51:58,139 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:51:58,145 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:51:58,145 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:51:58,321 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:51:59,129 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:51:59,130 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:51:59,302 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: stop_status
+2024-12-14 00:51:59,302 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: stop_status
+2024-12-14 00:51:59,346 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:00,321 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:00,575 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:52:00,822 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:52:00,823 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:52:00,823 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:52:00,824 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:52:01,130 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:52:01,322 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:02,323 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:03,131 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:52:03,322 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:04,322 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:04,534 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:52:04,535 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:52:04,535 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:52:04,536 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:52:05,132 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:52:05,322 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:06,323 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:06,537 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:52:07,133 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:52:07,270 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:52:07,271 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:52:07,271 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:52:07,272 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:52:07,323 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:08,133 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:52:08,324 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:09,133 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:52:09,323 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:09,938 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:52:09,939 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:52:09,939 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:52:09,940 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:52:10,134 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:52:10,324 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:10,438 DEBUG   SenderThread:1570423 [sender.py:send():379] send: stats
+2024-12-14 00:52:11,134 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:52:11,324 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:12,324 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:12,439 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:52:12,582 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:52:12,583 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:52:12,583 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:52:12,584 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:52:13,135 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:52:13,324 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:14,302 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: stop_status
+2024-12-14 00:52:14,302 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: stop_status
+2024-12-14 00:52:14,342 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:15,135 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:52:15,324 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:16,334 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:52:16,335 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:16,335 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:52:16,335 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:52:16,336 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:52:17,136 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:52:17,136 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:52:17,324 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:18,325 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:18,336 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:52:19,058 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:52:19,059 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:52:19,059 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:52:19,060 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:52:19,137 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:52:19,325 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:20,325 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:21,137 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:52:21,325 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:21,746 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:52:21,747 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:52:21,747 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:52:21,748 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:52:22,138 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:52:22,325 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:23,138 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:52:23,326 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:23,749 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:52:24,326 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:24,410 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:52:24,411 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:52:24,411 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:52:24,412 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:52:25,139 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:52:25,139 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:52:25,326 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:26,326 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:27,326 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:28,154 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:52:28,161 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:52:28,161 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:52:28,161 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:52:28,326 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:29,140 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:52:29,140 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:52:29,162 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:52:29,302 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: stop_status
+2024-12-14 00:52:29,303 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: stop_status
+2024-12-14 00:52:29,346 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:30,327 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:30,878 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:52:30,879 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:52:30,879 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:52:30,880 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:52:31,141 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:52:31,327 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:32,327 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:33,141 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:52:33,327 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:33,530 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:52:33,531 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:52:33,531 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:52:33,532 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:52:34,142 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:52:34,307 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:52:34,327 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:35,142 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:52:35,327 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:36,218 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:52:36,219 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:52:36,219 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:52:36,220 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:52:36,327 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:37,143 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:52:37,143 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:52:37,327 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:38,327 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:39,327 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:39,914 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:52:39,958 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:52:39,958 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:52:39,959 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:52:39,959 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:52:40,144 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:52:40,328 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:40,439 DEBUG   SenderThread:1570423 [sender.py:send():379] send: stats
+2024-12-14 00:52:41,144 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:52:41,328 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:42,328 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:42,718 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:52:42,719 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:52:42,719 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:52:42,720 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:52:43,145 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:52:43,145 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:52:43,329 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:44,303 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: stop_status
+2024-12-14 00:52:44,303 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: stop_status
+2024-12-14 00:52:44,350 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:45,329 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:45,371 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:52:45,414 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:52:45,415 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:52:45,415 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:52:45,417 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:52:46,146 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:52:46,329 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:47,146 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:52:47,329 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:48,094 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:52:48,095 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:52:48,095 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:52:48,096 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:52:48,147 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:52:48,330 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:49,147 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:52:49,329 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:50,329 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:51,307 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:52:51,330 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:51,898 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:52:51,898 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:52:51,899 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:52:51,899 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:52:52,148 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:52:52,330 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:53,148 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:52:53,330 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:54,330 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:54,694 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:52:54,695 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:52:54,695 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:52:54,696 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:52:55,149 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:52:55,330 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:56,331 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:56,697 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: status_report
+2024-12-14 00:52:57,150 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:52:57,330 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:57,414 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:52:57,415 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:52:57,415 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:52:57,415 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:52:58,150 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:52:58,331 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:52:59,151 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:52:59,304 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: stop_status
+2024-12-14 00:52:59,304 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: stop_status
+2024-12-14 00:52:59,346 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:53:00,106 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: partial_history
+2024-12-14 00:53:00,107 DEBUG   SenderThread:1570423 [sender.py:send():379] send: history
+2024-12-14 00:53:00,107 DEBUG   SenderThread:1570423 [sender.py:send_request():406] send_request: summary_record
+2024-12-14 00:53:00,108 INFO    SenderThread:1570423 [sender.py:_save_file():1454] saving file wandb-summary.json with policy end
+2024-12-14 00:53:00,151 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/wandb-summary.json
+2024-12-14 00:53:00,331 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages
+2024-12-14 00:53:01,151 INFO    Thread-12 :1570423 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/yueyulin/github/RWKVinLLAMA/wandb/run-20241214_005009-tlrxh2zy/files/output.log
+2024-12-14 00:53:01,331 DEBUG   HandlerThread:1570423 [handler.py:handle_request():158] handle_request: internal_messages

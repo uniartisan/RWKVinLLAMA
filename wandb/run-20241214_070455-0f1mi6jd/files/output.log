@@ -1,0 +1,102 @@
+
+begin training with 2 epochs
+Epoch 0:   0%|                                                                                                         | 0/16003 [00:00<?, ?it/s]Traceback (most recent call last):
+  File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 698, in <module>
+    loss, teacher_loss, kl_loss, student_cross_entropy_loss = train_step(model_engine, batch, args, teacher_engine, tokenizer)
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/github/RWKVinLLAMA/profiler.py", line 92, in wrapper
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/github/RWKVinLLAMA/train_functions.py", line 129, in train_step
+    student_outputs = get_student_outputs(model, args, input_ids, labels, attention_mask)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/github/RWKVinLLAMA/profiler.py", line 92, in wrapper
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/github/RWKVinLLAMA/train_functions.py", line 152, in get_student_outputs
+    student_outputs = model(
+                      ^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1562, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+    ret_val = func(*args, **kwargs)
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/runtime/engine.py", line 1899, in forward
+    loss = self.module(*inputs, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+    result = forward_call(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/github/RWKVinLLAMA/rwkv_llama/hybrid_model.py", line 238, in forward
+    ret = self.model(input_ids, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+    result = forward_call(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 1182, in forward
+    loss = self.loss_function(logits, labels, self.vocab_size, **loss_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/transformers/loss/loss_utils.py", line 38, in ForCausalLMLoss
+    shift_logits = logits[..., :-1, :].contiguous()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 4.63 GiB. GPU 0 has a total capacity of 23.55 GiB of which 828.81 MiB is free. Including non-PyTorch memory, this process has 22.73 GiB memory in use. Of the allocated memory 19.97 GiB is allocated by PyTorch, and 2.18 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 698, in <module>
+[rank0]:     loss, teacher_loss, kl_loss, student_cross_entropy_loss = train_step(model_engine, batch, args, teacher_engine, tokenizer)
+[rank0]:                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/profiler.py", line 92, in wrapper
+[rank0]:     result = func(*args, **kwargs)
+[rank0]:              ^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_functions.py", line 129, in train_step
+[rank0]:     student_outputs = get_student_outputs(model, args, input_ids, labels, attention_mask)
+[rank0]:                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/profiler.py", line 92, in wrapper
+[rank0]:     result = func(*args, **kwargs)
+[rank0]:              ^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_functions.py", line 152, in get_student_outputs
+[rank0]:     student_outputs = model(
+[rank0]:                       ^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1562, in _call_impl
+[rank0]:     return forward_call(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+[rank0]:     ret_val = func(*args, **kwargs)
+[rank0]:               ^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/deepspeed/runtime/engine.py", line 1899, in forward
+[rank0]:     loss = self.module(*inputs, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+[rank0]:     result = forward_call(*args, **kwargs)
+[rank0]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/rwkv_llama/hybrid_model.py", line 238, in forward
+[rank0]:     ret = self.model(input_ids, **kwargs)
+[rank0]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1603, in _call_impl
+[rank0]:     result = forward_call(*args, **kwargs)
+[rank0]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 1182, in forward
+[rank0]:     loss = self.loss_function(logits, labels, self.vocab_size, **loss_kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/transformers/loss/loss_utils.py", line 38, in ForCausalLMLoss
+[rank0]:     shift_logits = logits[..., :-1, :].contiguous()
+[rank0]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]: torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 4.63 GiB. GPU 0 has a total capacity of 23.55 GiB of which 828.81 MiB is free. Including non-PyTorch memory, this process has 22.73 GiB memory in use. Of the allocated memory 19.97 GiB is allocated by PyTorch, and 2.18 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)

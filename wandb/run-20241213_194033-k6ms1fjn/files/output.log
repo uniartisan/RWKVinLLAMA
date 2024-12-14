@@ -1,0 +1,227 @@
+
+begin training with 2 epochs
+
+
+
+
+
+Epoch 0:   0%|  | 5/32007 [00:19<31:50:01,  3.58s/it, loss=0.3012, steps/s=1.66, kt/s=27.21, trained_tokens=0.33 MT, remained_tokens=399.67 MT]
+saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_20
+Saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_20 at epoch 0 step 20 rank 0
+[2024-12-13 19:40:58,400] [INFO] [logging.py:129:log_dist] [Rank 0] [Torch] Checkpoint epoch_0_step_20 is about to be saved!
+[2024-12-13 19:40:58,408] [INFO] [logging.py:129:log_dist] [Rank 0] Saving model checkpoint: /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_20/epoch_0_step_20/zero_pp_rank_0_mp_rank_00_model_states.pt
+[2024-12-13 19:40:58,408] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_20/epoch_0_step_20/zero_pp_rank_0_mp_rank_00_model_states.pt...
+[2024-12-13 19:40:58,431] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_20/epoch_0_step_20/zero_pp_rank_0_mp_rank_00_model_states.pt.
+[2024-12-13 19:40:58,434] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_20/epoch_0_step_20/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt...
+[2024-12-13 19:41:01,574] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_20/epoch_0_step_20/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt.
+[2024-12-13 19:41:01,574] [INFO] [engine.py:3536:_save_zero_checkpoint] zero checkpoint saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_20/epoch_0_step_20/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt
+
+
+
+
+
+Epoch 0:   0%|  | 9/32007 [00:35<31:45:45,  3.57s/it, loss=0.3014, steps/s=1.65, kt/s=26.98, trained_tokens=0.59 MT, remained_tokens=399.41 MT]
+saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_40
+Saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_40 at epoch 0 step 40 rank 0
+[2024-12-13 19:41:16,193] [INFO] [logging.py:129:log_dist] [Rank 0] [Torch] Checkpoint epoch_0_step_40 is about to be saved!
+[2024-12-13 19:41:16,200] [INFO] [logging.py:129:log_dist] [Rank 0] Saving model checkpoint: /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_40/epoch_0_step_40/zero_pp_rank_0_mp_rank_00_model_states.pt
+[2024-12-13 19:41:16,200] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_40/epoch_0_step_40/zero_pp_rank_0_mp_rank_00_model_states.pt...
+[2024-12-13 19:41:16,222] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_40/epoch_0_step_40/zero_pp_rank_0_mp_rank_00_model_states.pt.
+
+Epoch 0:   0%| | 10/32007 [00:37<28:35:32,  3.22s/it, loss=0.2998, steps/s=1.66, kt/s=27.14, trained_tokens=0.66 MT, remained_tokens=399.34 MT]
+[2024-12-13 19:41:18,890] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_40/epoch_0_step_40/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt.
+[2024-12-13 19:41:18,891] [INFO] [engine.py:3536:_save_zero_checkpoint] zero checkpoint saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_40/epoch_0_step_40/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt
+
+
+
+
+Epoch 0:   0%| | 14/32007 [00:52<29:01:34,  3.27s/it, loss=0.2952, steps/s=1.61, kt/s=26.41, trained_tokens=0.92 MT, remained_tokens=399.08 MT]
+deleting older checkpoints epoch_0_step_10000
+saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_60
+Saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_60 at epoch 0 step 60 rank 0
+[2024-12-13 19:41:34,092] [INFO] [logging.py:129:log_dist] [Rank 0] [Torch] Checkpoint epoch_0_step_60 is about to be saved!
+[2024-12-13 19:41:34,099] [INFO] [logging.py:129:log_dist] [Rank 0] Saving model checkpoint: /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_60/epoch_0_step_60/zero_pp_rank_0_mp_rank_00_model_states.pt
+[2024-12-13 19:41:34,100] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_60/epoch_0_step_60/zero_pp_rank_0_mp_rank_00_model_states.pt...
+[2024-12-13 19:41:34,121] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_60/epoch_0_step_60/zero_pp_rank_0_mp_rank_00_model_states.pt.
+
+Epoch 0:   0%| | 15/32007 [00:54<27:13:14,  3.06s/it, loss=0.2941, steps/s=1.29, kt/s=21.07, trained_tokens=0.98 MT, remained_tokens=399.02 MT]
+[2024-12-13 19:41:37,059] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_60/epoch_0_step_60/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt.
+[2024-12-13 19:41:37,060] [INFO] [engine.py:3536:_save_zero_checkpoint] zero checkpoint saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_60/epoch_0_step_60/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt
+
+
+
+
+
+Epoch 0:   0%|  | 20/32007 [01:15<32:15:51,  3.63s/it, loss=0.2862, steps/s=0.54, kt/s=8.92, trained_tokens=1.31 MT, remained_tokens=398.69 MT]
+deleting older checkpoints epoch_0_step_20
+saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_80
+Saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_80 at epoch 0 step 80 rank 0
+[2024-12-13 19:41:55,745] [INFO] [logging.py:129:log_dist] [Rank 0] [Torch] Checkpoint epoch_0_step_80 is about to be saved!
+[2024-12-13 19:41:55,753] [INFO] [logging.py:129:log_dist] [Rank 0] Saving model checkpoint: /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_80/epoch_0_step_80/zero_pp_rank_0_mp_rank_00_model_states.pt
+[2024-12-13 19:41:55,753] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_80/epoch_0_step_80/zero_pp_rank_0_mp_rank_00_model_states.pt...
+[2024-12-13 19:41:55,776] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_80/epoch_0_step_80/zero_pp_rank_0_mp_rank_00_model_states.pt.
+[2024-12-13 19:41:55,777] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_80/epoch_0_step_80/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt...
+[2024-12-13 19:41:58,267] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_80/epoch_0_step_80/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt.
+[2024-12-13 19:41:58,267] [INFO] [engine.py:3536:_save_zero_checkpoint] zero checkpoint saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_80/epoch_0_step_80/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt
+
+
+
+
+Epoch 0:   0%| | 24/32007 [01:32<34:15:47,  3.86s/it, loss=0.2797, steps/s=0.64, kt/s=10.45, trained_tokens=1.57 MT, remained_tokens=398.43 MT]
+
+Epoch 0:   0%| | 25/32007 [01:35<31:31:19,  3.55s/it, loss=0.2777, steps/s=1.68, kt/s=27.47, trained_tokens=1.64 MT, remained_tokens=398.36 MT]
+saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_100
+Saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_100 at epoch 0 step 100 rank 0
+[2024-12-13 19:42:15,374] [INFO] [logging.py:129:log_dist] [Rank 0] [Torch] Checkpoint epoch_0_step_100 is about to be saved!
+[2024-12-13 19:42:15,381] [INFO] [logging.py:129:log_dist] [Rank 0] Saving model checkpoint: /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_100/epoch_0_step_100/zero_pp_rank_0_mp_rank_00_model_states.pt
+[2024-12-13 19:42:15,381] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_100/epoch_0_step_100/zero_pp_rank_0_mp_rank_00_model_states.pt...
+[2024-12-13 19:42:15,403] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_100/epoch_0_step_100/zero_pp_rank_0_mp_rank_00_model_states.pt.
+[2024-12-13 19:42:15,408] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_100/epoch_0_step_100/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt...
+[2024-12-13 19:42:17,849] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_100/epoch_0_step_100/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt.
+[2024-12-13 19:42:17,850] [INFO] [engine.py:3536:_save_zero_checkpoint] zero checkpoint saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_100/epoch_0_step_100/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt
+
+
+
+
+
+Epoch 0:   0%| | 30/32007 [01:54<29:15:25,  3.29s/it, loss=0.2687, steps/s=1.67, kt/s=27.37, trained_tokens=1.97 MT, remained_tokens=398.03 MT]
+deleting older checkpoints epoch_0_step_60
+saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_120
+Saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_120 at epoch 0 step 120 rank 0
+[2024-12-13 19:42:34,182] [INFO] [logging.py:129:log_dist] [Rank 0] [Torch] Checkpoint epoch_0_step_120 is about to be saved!
+[2024-12-13 19:42:34,191] [INFO] [logging.py:129:log_dist] [Rank 0] Saving model checkpoint: /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_120/epoch_0_step_120/zero_pp_rank_0_mp_rank_00_model_states.pt
+[2024-12-13 19:42:34,191] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_120/epoch_0_step_120/zero_pp_rank_0_mp_rank_00_model_states.pt...
+[2024-12-13 19:42:34,214] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_120/epoch_0_step_120/zero_pp_rank_0_mp_rank_00_model_states.pt.
+[2024-12-13 19:42:34,216] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_120/epoch_0_step_120/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt...
+[2024-12-13 19:42:37,202] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_120/epoch_0_step_120/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt.
+[2024-12-13 19:42:37,203] [INFO] [engine.py:3536:_save_zero_checkpoint] zero checkpoint saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_120/epoch_0_step_120/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt
+
+
+
+
+Epoch 0:   0%| | 34/32007 [02:10<30:21:45,  3.42s/it, loss=0.2619, steps/s=1.66, kt/s=27.22, trained_tokens=2.23 MT, remained_tokens=397.77 MT]
+
+Epoch 0:   0%| | 35/32007 [02:12<27:43:09,  3.12s/it, loss=0.2601, steps/s=1.65, kt/s=27.06, trained_tokens=2.29 MT, remained_tokens=397.71 MT]
+saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_140
+Saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_140 at epoch 0 step 140 rank 0
+[2024-12-13 19:42:53,231] [INFO] [logging.py:129:log_dist] [Rank 0] [Torch] Checkpoint epoch_0_step_140 is about to be saved!
+[2024-12-13 19:42:53,239] [INFO] [logging.py:129:log_dist] [Rank 0] Saving model checkpoint: /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_140/epoch_0_step_140/zero_pp_rank_0_mp_rank_00_model_states.pt
+[2024-12-13 19:42:53,239] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_140/epoch_0_step_140/zero_pp_rank_0_mp_rank_00_model_states.pt...
+[2024-12-13 19:42:53,261] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_140/epoch_0_step_140/zero_pp_rank_0_mp_rank_00_model_states.pt.
+[2024-12-13 19:42:53,264] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_140/epoch_0_step_140/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt...
+[2024-12-13 19:42:56,142] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_140/epoch_0_step_140/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt.
+[2024-12-13 19:42:56,142] [INFO] [engine.py:3536:_save_zero_checkpoint] zero checkpoint saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_140/epoch_0_step_140/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt
+
+
+
+
+Epoch 0:   0%| | 39/32007 [02:30<30:57:38,  3.49s/it, loss=0.2535, steps/s=1.66, kt/s=27.28, trained_tokens=2.56 MT, remained_tokens=397.44 MT]
+
+Epoch 0:   0%| | 40/32007 [02:34<32:42:59,  3.68s/it, loss=0.2521, steps/s=0.69, kt/s=11.34, trained_tokens=2.62 MT, remained_tokens=397.38 MT]
+saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_160
+Saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_160 at epoch 0 step 160 rank 0
+[2024-12-13 19:43:15,095] [INFO] [logging.py:129:log_dist] [Rank 0] [Torch] Checkpoint epoch_0_step_160 is about to be saved!
+[2024-12-13 19:43:15,102] [INFO] [logging.py:129:log_dist] [Rank 0] Saving model checkpoint: /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_160/epoch_0_step_160/zero_pp_rank_0_mp_rank_00_model_states.pt
+[2024-12-13 19:43:15,102] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_160/epoch_0_step_160/zero_pp_rank_0_mp_rank_00_model_states.pt...
+[2024-12-13 19:43:15,124] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_160/epoch_0_step_160/zero_pp_rank_0_mp_rank_00_model_states.pt.
+[2024-12-13 19:43:15,128] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_160/epoch_0_step_160/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt...
+[2024-12-13 19:43:18,008] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_160/epoch_0_step_160/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt.
+[2024-12-13 19:43:18,009] [INFO] [engine.py:3536:_save_zero_checkpoint] zero checkpoint saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_160/epoch_0_step_160/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt
+
+
+
+
+Epoch 0:   0%| | 43/32007 [02:46<31:56:55,  3.60s/it, loss=0.2470, steps/s=1.65, kt/s=26.98, trained_tokens=2.82 MT, remained_tokens=397.18 MT]
+deleting older checkpoints epoch_0_step_120
+saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_180
+Saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_180 at epoch 0 step 180 rank 0
+[2024-12-13 19:43:36,249] [INFO] [logging.py:129:log_dist] [Rank 0] [Torch] Checkpoint epoch_0_step_180 is about to be saved!
+[2024-12-13 19:43:36,257] [INFO] [logging.py:129:log_dist] [Rank 0] Saving model checkpoint: /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_180/epoch_0_step_180/zero_pp_rank_0_mp_rank_00_model_states.pt
+[2024-12-13 19:43:36,257] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_180/epoch_0_step_180/zero_pp_rank_0_mp_rank_00_model_states.pt...
+[2024-12-13 19:43:36,279] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_180/epoch_0_step_180/zero_pp_rank_0_mp_rank_00_model_states.pt.
+
+Epoch 0:   0%| | 45/32007 [02:53<30:43:21,  3.46s/it, loss=0.2433, steps/s=1.69, kt/s=27.63, trained_tokens=2.95 MT, remained_tokens=397.05 MT]
+[2024-12-13 19:43:38,892] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_180/epoch_0_step_180/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt.
+[2024-12-13 19:43:38,893] [INFO] [engine.py:3536:_save_zero_checkpoint] zero checkpoint saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_180/epoch_0_step_180/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt
+
+
+
+
+
+Epoch 0:   0%| | 50/32007 [03:15<31:53:15,  3.59s/it, loss=0.2344, steps/s=1.65, kt/s=27.08, trained_tokens=3.28 MT, remained_tokens=396.72 MT]
+deleting older checkpoints epoch_0_step_140
+saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_200
+Saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_200 at epoch 0 step 200 rank 0
+[2024-12-13 19:43:55,924] [INFO] [logging.py:129:log_dist] [Rank 0] [Torch] Checkpoint epoch_0_step_200 is about to be saved!
+[2024-12-13 19:43:55,931] [INFO] [logging.py:129:log_dist] [Rank 0] Saving model checkpoint: /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_200/epoch_0_step_200/zero_pp_rank_0_mp_rank_00_model_states.pt
+[2024-12-13 19:43:55,931] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_200/epoch_0_step_200/zero_pp_rank_0_mp_rank_00_model_states.pt...
+[2024-12-13 19:43:55,954] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_200/epoch_0_step_200/zero_pp_rank_0_mp_rank_00_model_states.pt.
+[2024-12-13 19:43:55,955] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_200/epoch_0_step_200/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt...
+[2024-12-13 19:43:58,529] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_200/epoch_0_step_200/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt.
+[2024-12-13 19:43:58,530] [INFO] [engine.py:3536:_save_zero_checkpoint] zero checkpoint saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_200/epoch_0_step_200/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt
+
+
+
+
+
+Epoch 0:   0%| | 55/32007 [03:34<28:28:43,  3.21s/it, loss=0.2261, steps/s=1.31, kt/s=21.50, trained_tokens=3.60 MT, remained_tokens=396.40 MT]
+deleting older checkpoints epoch_0_step_160
+saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_220
+Saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_220 at epoch 0 step 220 rank 0
+[2024-12-13 19:44:15,238] [INFO] [logging.py:129:log_dist] [Rank 0] [Torch] Checkpoint epoch_0_step_220 is about to be saved!
+[2024-12-13 19:44:15,245] [INFO] [logging.py:129:log_dist] [Rank 0] Saving model checkpoint: /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_220/epoch_0_step_220/zero_pp_rank_0_mp_rank_00_model_states.pt
+[2024-12-13 19:44:15,245] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_220/epoch_0_step_220/zero_pp_rank_0_mp_rank_00_model_states.pt...
+[2024-12-13 19:44:15,267] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_220/epoch_0_step_220/zero_pp_rank_0_mp_rank_00_model_states.pt.
+[2024-12-13 19:44:15,269] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_220/epoch_0_step_220/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt...
+[2024-12-13 19:44:17,869] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_220/epoch_0_step_220/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt.
+[2024-12-13 19:44:17,870] [INFO] [engine.py:3536:_save_zero_checkpoint] zero checkpoint saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_220/epoch_0_step_220/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt
+
+
+
+
+
+Epoch 0:   0%| | 60/32007 [03:55<31:35:56,  3.56s/it, loss=0.2181, steps/s=0.71, kt/s=11.67, trained_tokens=3.93 MT, remained_tokens=396.07 MT]
+deleting older checkpoints epoch_0_step_180
+saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_240
+Saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_240 at epoch 0 step 240 rank 0
+[2024-12-13 19:44:35,539] [INFO] [logging.py:129:log_dist] [Rank 0] [Torch] Checkpoint epoch_0_step_240 is about to be saved!
+[2024-12-13 19:44:35,546] [INFO] [logging.py:129:log_dist] [Rank 0] Saving model checkpoint: /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_240/epoch_0_step_240/zero_pp_rank_0_mp_rank_00_model_states.pt
+[2024-12-13 19:44:35,546] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_240/epoch_0_step_240/zero_pp_rank_0_mp_rank_00_model_states.pt...
+[2024-12-13 19:44:35,569] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_240/epoch_0_step_240/zero_pp_rank_0_mp_rank_00_model_states.pt.
+[2024-12-13 19:44:35,570] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_240/epoch_0_step_240/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt...
+[2024-12-13 19:44:38,590] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_240/epoch_0_step_240/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt.
+[2024-12-13 19:44:38,591] [INFO] [engine.py:3536:_save_zero_checkpoint] zero checkpoint saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_240/epoch_0_step_240/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt
+
+
+
+
+
+Epoch 0:   0%| | 65/32007 [04:14<30:25:16,  3.43s/it, loss=0.2108, steps/s=1.68, kt/s=27.49, trained_tokens=4.26 MT, remained_tokens=395.74 MT]
+deleting older checkpoints epoch_0_step_200
+saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_260
+Saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_260 at epoch 0 step 260 rank 0
+[2024-12-13 19:44:54,227] [INFO] [logging.py:129:log_dist] [Rank 0] [Torch] Checkpoint epoch_0_step_260 is about to be saved!
+[2024-12-13 19:44:54,235] [INFO] [logging.py:129:log_dist] [Rank 0] Saving model checkpoint: /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_260/epoch_0_step_260/zero_pp_rank_0_mp_rank_00_model_states.pt
+[2024-12-13 19:44:54,235] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_260/epoch_0_step_260/zero_pp_rank_0_mp_rank_00_model_states.pt...
+[2024-12-13 19:44:54,257] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_260/epoch_0_step_260/zero_pp_rank_0_mp_rank_00_model_states.pt.
+[2024-12-13 19:44:54,283] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_260/epoch_0_step_260/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt...
+[2024-12-13 19:44:57,005] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_260/epoch_0_step_260/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt.
+[2024-12-13 19:44:57,006] [INFO] [engine.py:3536:_save_zero_checkpoint] zero checkpoint saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_260/epoch_0_step_260/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt
+
+
+
+
+
+Epoch 0:   0%| | 70/32007 [04:32<28:45:30,  3.24s/it, loss=0.2039, steps/s=1.62, kt/s=26.62, trained_tokens=4.59 MT, remained_tokens=395.41 MT]
+deleting older checkpoints epoch_0_step_220
+saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_280
+Saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_280 at epoch 0 step 280 rank 0
+[2024-12-13 19:45:12,868] [INFO] [logging.py:129:log_dist] [Rank 0] [Torch] Checkpoint epoch_0_step_280 is about to be saved!
+[2024-12-13 19:45:12,875] [INFO] [logging.py:129:log_dist] [Rank 0] Saving model checkpoint: /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_280/epoch_0_step_280/zero_pp_rank_0_mp_rank_00_model_states.pt
+[2024-12-13 19:45:12,876] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_280/epoch_0_step_280/zero_pp_rank_0_mp_rank_00_model_states.pt...
+[2024-12-13 19:45:12,897] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_280/epoch_0_step_280/zero_pp_rank_0_mp_rank_00_model_states.pt.
+[2024-12-13 19:45:12,900] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_280/epoch_0_step_280/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt...
+[2024-12-13 19:45:15,716] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_280/epoch_0_step_280/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt.
+[2024-12-13 19:45:15,716] [INFO] [engine.py:3536:_save_zero_checkpoint] zero checkpoint saved /home/yueyulin/model/qwen_0.5b_full_layers_stage1/epoch_0_step_280/epoch_0_step_280/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt
+
+

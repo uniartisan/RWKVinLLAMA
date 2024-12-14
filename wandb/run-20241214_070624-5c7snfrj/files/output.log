@@ -1,0 +1,592 @@
+
+begin training with 2 epochs
+
+
+
+Epoch 0:   0%| | 3/32007 [00:15<42:31:20,  4.78s/it, loss=1032.3333, steps/s=1.09, kt/s=17.89, trained_tokens=0.20 MT, remained_tokens=769.80 MT]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 0:   0%| | 99/32007 [07:12<36:04:29,  4.07s/it, loss=717.1970, steps/s=1.08, kt/s=17.74, trained_tokens=6.49 MT, remained_tokens=763.51 MT]
+=== Function Timing Statistics ===
+Step: 100
+Total time: 334.05 seconds
+Function breakdown:
+train_step                    :   167.05s ( 50.0%) | Calls:    400 | Avg:   417.63ms
+get_student_outputs           :   103.12s ( 30.9%) | Calls:    400 | Avg:   257.79ms
+get_teacher_outputs           :    63.76s ( 19.1%) | Calls:    400 | Avg:   159.40ms
+compute_kl_loss               :     0.12s (  0.0%) | Calls:    400 | Avg:     0.31ms
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 0:   1%| | 199/32007 [14:25<35:59:22,  4.07s/it, loss=573.7965, steps/s=1.07, kt/s=17.51, trained_tokens=13.04 MT, remained_tokens=756.96 M
+=== Function Timing Statistics ===
+Step: 200
+Total time: 661.98 seconds
+Function breakdown:
+train_step                    :   331.03s ( 50.0%) | Calls:    800 | Avg:   413.79ms
+get_student_outputs           :   204.28s ( 30.9%) | Calls:    800 | Avg:   255.35ms
+get_teacher_outputs           :   126.47s ( 19.1%) | Calls:    800 | Avg:   158.09ms
+compute_kl_loss               :     0.19s (  0.0%) | Calls:    800 | Avg:     0.24ms
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 0:   1%| | 299/32007 [21:38<35:41:01,  4.05s/it, loss=507.0535, steps/s=1.07, kt/s=17.61, trained_tokens=19.60 MT, remained_tokens=750.40 M
+=== Function Timing Statistics ===
+Step: 300
+Total time: 989.48 seconds
+Function breakdown:
+train_step                    :   494.80s ( 50.0%) | Calls:   1200 | Avg:   412.33ms
+get_student_outputs           :   305.25s ( 30.8%) | Calls:   1200 | Avg:   254.38ms
+get_teacher_outputs           :   189.16s ( 19.1%) | Calls:   1200 | Avg:   157.64ms
+compute_kl_loss               :     0.27s (  0.0%) | Calls:   1200 | Avg:     0.22ms
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 0:   1%| | 399/32007 [28:51<35:41:04,  4.06s/it, loss=464.1040, steps/s=1.08, kt/s=17.74, trained_tokens=26.15 MT, remained_tokens=743.85 M
+=== Function Timing Statistics ===
+Step: 400
+Total time: 1317.41 seconds
+Function breakdown:
+train_step                    :   658.78s ( 50.0%) | Calls:   1600 | Avg:   411.74ms
+get_student_outputs           :   406.35s ( 30.8%) | Calls:   1600 | Avg:   253.97ms
+get_teacher_outputs           :   251.94s ( 19.1%) | Calls:   1600 | Avg:   157.46ms
+compute_kl_loss               :     0.34s (  0.0%) | Calls:   1600 | Avg:     0.21ms
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 0:   2%| | 500/32007 [36:10<40:17:05,  4.60s/it, loss=433.5545, steps/s=0.52, kt/s=8.53, trained_tokens=32.77 MT, remained_tokens=737.23 MT
+=== Function Timing Statistics ===
+Step: 500
+Total time: 1645.30 seconds
+Function breakdown:
+train_step                    :   822.74s ( 50.0%) | Calls:   2000 | Avg:   411.37ms
+get_student_outputs           :   507.46s ( 30.8%) | Calls:   2000 | Avg:   253.73ms
+get_teacher_outputs           :   314.69s ( 19.1%) | Calls:   2000 | Avg:   157.34ms
+compute_kl_loss               :     0.41s (  0.0%) | Calls:   2000 | Avg:     0.21ms
+================================
+saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage2/epoch_0_step_2000
+Saving checkpoint to /home/yueyulin/model/qwen_0.5b_full_layers_stage2/epoch_0_step_2000 at epoch 0 step 2000 rank 0
+[2024-12-14 07:42:41,954] [INFO] [logging.py:129:log_dist] [Rank 0] [Torch] Checkpoint epoch_0_step_2000 is about to be saved!
+[2024-12-14 07:42:41,962] [INFO] [logging.py:129:log_dist] [Rank 0] Saving model checkpoint: /home/yueyulin/model/qwen_0.5b_full_layers_stage2/epoch_0_step_2000/epoch_0_step_2000/zero_pp_rank_0_mp_rank_00_model_states.pt
+[2024-12-14 07:42:41,962] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage2/epoch_0_step_2000/epoch_0_step_2000/zero_pp_rank_0_mp_rank_00_model_states.pt...
+[2024-12-14 07:42:41,991] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage2/epoch_0_step_2000/epoch_0_step_2000/zero_pp_rank_0_mp_rank_00_model_states.pt.
+[2024-12-14 07:42:41,992] [INFO] [torch_checkpoint_engine.py:21:save] [Torch] Saving /home/yueyulin/model/qwen_0.5b_full_layers_stage2/epoch_0_step_2000/epoch_0_step_2000/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt...
+[2024-12-14 07:42:44,896] [INFO] [torch_checkpoint_engine.py:23:save] [Torch] Saved /home/yueyulin/model/qwen_0.5b_full_layers_stage2/epoch_0_step_2000/epoch_0_step_2000/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt.
+[2024-12-14 07:42:44,897] [INFO] [engine.py:3536:_save_zero_checkpoint] zero checkpoint saved /home/yueyulin/model/qwen_0.5b_full_layers_stage2/epoch_0_step_2000/epoch_0_step_2000/bf16_zero_pp_rank_0_mp_rank_00_optim_states.pt
+Epoch 0:   2%| | 500/32007 [36:10<40:17:05,  4.60s/it, loss=433.5545, steps/s=0.52, kt/s=8.53, trained_tokens=32.77 MT, remained_tokens=737.23 MTTraceback (most recent call last):
+  File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 712, in <module>
+    last_log_time, pbar = on_train_batch_end(
+                          ^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 243, in on_train_batch_end
+    with teacher_attn_manager.temporarily_remove_teacher_attn():
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/contextlib.py", line 144, in __exit__
+    next(self.gen)
+  File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 291, in temporarily_remove_teacher_attn
+    attention_wrapper.add_module("teacher_attn", stored_attn)
+  File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 589, in add_module
+    raise KeyError(f"attribute '{name}' already exists")
+KeyError: "attribute 'teacher_attn' already exists"
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 712, in <module>
+[rank0]:     last_log_time, pbar = on_train_batch_end(
+[rank0]:                           ^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 243, in on_train_batch_end
+[rank0]:     with teacher_attn_manager.temporarily_remove_teacher_attn():
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/contextlib.py", line 144, in __exit__
+[rank0]:     next(self.gen)
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 291, in temporarily_remove_teacher_attn
+[rank0]:     attention_wrapper.add_module("teacher_attn", stored_attn)
+[rank0]:   File "/home/yueyulin/miniconda3/envs/new_torch_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 589, in add_module
+[rank0]:     raise KeyError(f"attribute '{name}' already exists")
+[rank0]: KeyError: "attribute 'teacher_attn' already exists"

@@ -1,0 +1,20 @@
+RWKV:
+  layers: [0,2,4,6,8,10,12,14,16,18,20,22,24,26]
+  grad_cp: 0
+
+Llama:
+  model_id: /home/yueyulin/models/Qwen2.5-0.5B-Instruct/
+is_llama_ffn: True
+kl_weight: 1
+ce_weight: 0
+model_file: QWen2.5-32B
+init_with_llama: False
+teach_mode:
+  is_client: False
+  groups :
+    - nccl_file: nccl.txt
+      cuda_devices: [0, 1, 2, 3, 4, 5, 6, 7]
+      global_ranks: [1, 2, 3, 4, 5, 6, 7, 8]
+      num_groups: 25
+  is_hidden_align: False
+is_all_labels_kl: True

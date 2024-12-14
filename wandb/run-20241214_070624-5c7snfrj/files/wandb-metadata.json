@@ -1,0 +1,193 @@
+{
+    "os": "Linux-5.15.0-125-generic-x86_64-with-glibc2.35",
+    "python": "3.12.4",
+    "heartbeatAt": "2024-12-14T07:06:26.043839",
+    "startedAt": "2024-12-14T07:06:24.484306",
+    "docker": null,
+    "cuda": null,
+    "args": [
+        "--local_rank=0",
+        "--deepspeed",
+        "--deepspeed_offload",
+        "--full_params",
+        "--deepspeed_stage",
+        "3",
+        "--config_file",
+        "configs/qwen_0.5b.yaml",
+        "--output_dir",
+        "/home/yueyulin/model/qwen_0.5b_full_layers_stage2",
+        "--preprocessed_data",
+        "/home/yueyulin/data/all_train_ds_v1+magpie/",
+        "--num_devices",
+        "4",
+        "--num_nodes",
+        "1",
+        "--micro_bsz",
+        "8",
+        "--accumulate_grad_batches",
+        "4",
+        "--max_epochs",
+        "2",
+        "--wandb",
+        "hybrid_trainer_toys",
+        "--run_name",
+        "hybrid_trainer_toys",
+        "--grad_cp",
+        "1",
+        "--max_seq_length",
+        "512",
+        "--dropout",
+        "0.05",
+        "--lr_init",
+        "0.00004",
+        "--lr_final",
+        "0.000004",
+        "--warmup_steps",
+        "50",
+        "--train_batch_size",
+        "128",
+        "--world_size",
+        "4",
+        "--save_per_batches",
+        "2000",
+        "--ckpt_file",
+        "/home/yueyulin/model/qwen_0.5b_full_layers_stage1/pytorch_model.bin",
+        "--stage",
+        "2",
+        "--terminate_at_loss",
+        "0.001",
+        "--max_trained_tokens",
+        "770_000_000"
+    ],
+    "state": "running",
+    "program": "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py",
+    "codePathLocal": "train_scripts/train_hybrid_deepspeed.py",
+    "codePath": "train_scripts/train_hybrid_deepspeed.py",
+    "git": {
+        "remote": "https://github.com/yynil/RWKVinLLAMA",
+        "commit": "fbf435b8aa4b9f4c361de74aa5d8ad6903d95552"
+    },
+    "email": "yueyu.lin@me.com",
+    "root": "/home/yueyulin/github/RWKVinLLAMA",
+    "host": "server1",
+    "username": "yueyulin",
+    "executable": "/home/yueyulin/miniconda3/envs/new_torch_env/bin/python",
+    "cpu_count": 8,
+    "cpu_count_logical": 16,
+    "cpu_freq": {
+        "current": 2123.973125,
+        "min": 1500.0,
+        "max": 3200.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 3200.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 3078.115,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1500.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1500.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1500.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1500.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1500.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1500.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 3399.787,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 3200.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 3200.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1500.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1500.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1500.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1500.0,
+            "min": 1500.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1500.0,
+            "min": 1500.0,
+            "max": 3200.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 3728.65633392334,
+            "used": 2144.278003692627
+        }
+    },
+    "gpu": "NVIDIA GeForce RTX 4090",
+    "gpu_count": 4,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce RTX 4090",
+            "memory_total": 25757220864
+        },
+        {
+            "name": "NVIDIA GeForce RTX 4090",
+            "memory_total": 25757220864
+        },
+        {
+            "name": "NVIDIA GeForce RTX 4090",
+            "memory_total": 25757220864
+        },
+        {
+            "name": "NVIDIA GeForce RTX 4090",
+            "memory_total": 25757220864
+        }
+    ],
+    "memory": {
+        "total": 251.76148986816406
+    }
+}

@@ -375,6 +375,7 @@ if __name__ == '__main__':
     # 设置模型参数的训练状态
     if args.stage == 2:
         print('all params are trainable')
+        model.model.gradient_checkpointing_enable()
         for name, param in model.named_parameters():
             param.requires_grad = True
     else:

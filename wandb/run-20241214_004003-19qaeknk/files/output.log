@@ -1,0 +1,19 @@
+
+begin training with 2 epochs
+
+Epoch 0:   0%|                                                                                              | 1/32007 [00:07<70:33:08,  7.94s/it]Traceback (most recent call last):
+  File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 705, in <module>
+    last_log_time, pbar = on_train_batch_end(
+                          ^^^^^^^^^^^^^^^^^^^
+  File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 198, in on_train_batch_end
+    'loss': f'{total_loss / total_updates:.4f}',
+               ~~~~~~~~~~~^~~~~~~~~~~~~~~
+ZeroDivisionError: division by zero
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 705, in <module>
+[rank0]:     last_log_time, pbar = on_train_batch_end(
+[rank0]:                           ^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/yueyulin/github/RWKVinLLAMA/train_scripts/train_hybrid_deepspeed.py", line 198, in on_train_batch_end
+[rank0]:     'loss': f'{total_loss / total_updates:.4f}',
+[rank0]:                ~~~~~~~~~~~^~~~~~~~~~~~~~~
+[rank0]: ZeroDivisionError: division by zero
