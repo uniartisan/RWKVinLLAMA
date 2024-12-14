@@ -118,6 +118,7 @@ def create_arg_parser():
     parser.add_argument('--local_rank', type=int, help='local rank')
     parser.add_argument('--stage', type=int, default=1,choices=[1,2], help='stage 1 only align attn output and stage 2 do kl-divergence')
     parser.add_argument('--max_trained_tokens', type=int, default=100_000_000, help='max trained tokens')
+    parser.add_argument('--terminate_at_loss', type=float, default=0, help='terminate the training at loss')
     return parser
 
 def lr_schedule(args, step):
@@ -178,7 +179,8 @@ pbar = None
 total_loss = 0
 total_updates = 0
 trained_tokens = 0
-def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_loss, student_cross_entropy_loss, global_step, epoch, last_log_time, token_per_step, is_accumulation_step, pbar):
+avg_loss = 0
+def on_train_batch_end(args, batch_idx, model_engine,teacher_engine, loss, teacher_loss, kl_loss, student_cross_entropy_loss, global_step, epoch, last_log_time, token_per_step, is_accumulation_step, pbar):
     current_time = time.time()
     elapsed_time = current_time - last_log_time
     steps_per_second = 1 / elapsed_time
@@ -186,6 +188,10 @@ def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_los
     global total_loss
     global total_updates
     global trained_tokens
+    global avg_loss
+    total_loss += loss
+    total_updates += 1
+    avg_loss = total_loss / total_updates
     # 只在实际更新参数时更新进度条
     trained_tokens += token_per_step
     if is_accumulation_step and model_engine.global_rank == 0:
@@ -193,10 +199,8 @@ def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_los
             pbar = tqdm(total=args.epoch_steps, desc=f"Epoch {epoch}")
         
         pbar.update(1)
-        total_loss += loss
-        total_updates += 1
         pbar.set_postfix({
-            'loss': f'{total_loss / total_updates:.4f}',
+            'loss': f'{avg_loss:.4f}',
             'steps/s': f'{steps_per_second:.2f}',
             'kt/s': f'{kt_s:.2f}',
             'trained_tokens': f'{trained_tokens / 1e6:.2f} MT',
@@ -234,20 +238,60 @@ def on_train_batch_end(args, batch_idx, model_engine, loss, teacher_loss, kl_los
                     shutil.rmtree(os.path.join(args.output_dir, checkpoints[0]))    
         output_dir = f"{args.output_dir}/epoch_{epoch}_step_{real_step}"
         print(f'saving checkpoint to {output_dir}')
-        try:
-            model_engine.save_checkpoint(output_dir,f'epoch_{epoch}_step_{real_step}')
-        except Exception as e:
-            print(f"Error saving checkpoint: {e}")
-        import traceback
-        traceback.print_exc()
-        print(f'saved checkpoint to {output_dir}')
+  
+        # 在保存检查点的代码处使用上下文管理器
+        with teacher_attn_manager.temporarily_remove_teacher_attn():
+            try:
+                print(f"Saving checkpoint to {output_dir} at epoch {epoch} step {real_step} rank {model_engine.global_rank}")
+                model_engine.save_checkpoint(output_dir, f'epoch_{epoch}_step_{real_step}')
+            except Exception as e:
+                print(f"Error saving checkpoint: {e}")
+                import traceback
+                traceback.print_exc()
 
     return current_time, pbar
 import torch.distributed as dist
 def setup_distributed():
     dist.init_process_group(backend='nccl')
     torch.cuda.set_device(int(os.environ["LOCAL_RANK"]))
+import contextlib
+from typing import List
 
+class TeacherAttnManager:
+    def __init__(self, model_engine, layers: List[int]):
+        self.model_engine = model_engine
+        self.layers = layers
+        self.stored_teacher_attns = {}
+        
+    @contextlib.contextmanager
+    def temporarily_remove_teacher_attn(self):
+        """
+        上下文管理器，临时移除所有层的teacher_attn并在退出时恢复
+        """
+        try:
+            # 保存并移除所有teacher_attn
+            for layer_idx in self.layers:
+                attention_wrapper = self.model_engine.module.model.model.layers[layer_idx].self_attn
+                if hasattr(attention_wrapper, 'teacher_attn'):
+                    self.stored_teacher_attns[layer_idx] = attention_wrapper.teacher_attn
+                    # 移除teacher_attn模块
+                    if hasattr(attention_wrapper, '_modules') and 'teacher_attn' in attention_wrapper._modules:
+                        del attention_wrapper._modules['teacher_attn']
+                    attention_wrapper.teacher_attn = None
+            
+            yield  # 允许在此上下文中执行代码
+            
+        finally:
+            # 恢复所有teacher_attn
+            for layer_idx, stored_attn in self.stored_teacher_attns.items():
+                attention_wrapper = self.model_engine.module.model.model.layers[layer_idx].self_attn
+                attention_wrapper.teacher_attn = stored_attn
+                # 重新注册为子模块
+                if hasattr(attention_wrapper, 'add_module'):
+                    attention_wrapper.add_module("teacher_attn", stored_attn)
+            
+            # 清空存储的引用
+            self.stored_teacher_attns.clear()
 if __name__ == '__main__':
     parser = create_arg_parser()
     args = parser.parse_args()
@@ -313,11 +357,12 @@ if __name__ == '__main__':
     #     args.groups = config['teach_mode']['groups']
     # 初始化混合模型
     if args.stage == 1 and args.is_rwkv_att_only:
-        #create a module list to contain the self_attn
         teacher_attn_module_list = torch.nn.ModuleList()
         for layer_idx in range(transformer_model.config.num_hidden_layers):
             llama_layer = transformer_model.model.layers[layer_idx]
             teacher_attn_module_list.append(llama_layer.self_attn)
+        for n,p in teacher_attn_module_list.named_parameters():
+            p.requires_grad = False
     model = HybridModel(transformer_model, args, tokenizer)
     model = model.to(dtype=torch.bfloat16)
     if args.ckpt_file is not None:
@@ -328,10 +373,17 @@ if __name__ == '__main__':
             print(model)
         del dict_set
     # 设置模型参数的训练状态
-    if args.full_params:
+    if args.stage == 2:
         print('all params are trainable')
         for name, param in model.named_parameters():
             param.requires_grad = True
+    else:
+        print(f'Only self_attn params are trainable')
+        for name,param in model.named_parameters():
+            if 'self_attn' in name:
+                param.requires_grad = True
+            else:
+                param.requires_grad = False
     # else:
     #     print('Only some params(RWKV related) are trainable')
     #     if args.is_rwkv_att_only:
@@ -424,9 +476,9 @@ if __name__ == '__main__':
                 "fp32_reduce_scatter": True,
                 "zero_optimization": {
                     "stage": args.deepspeed_stage,
-                    "stage3_max_live_parameters": 1e7,
-                    "stage3_max_reuse_distance": 1e7,
-                    "stage3_prefetch_bucket_size": 1e5,
+                    "stage3_max_live_parameters": 1e9,
+                    "stage3_max_reuse_distance": 1e9,
+                    "stage3_prefetch_bucket_size": 1e7,
                     "stage3_param_persistence_threshold": 1e4,
                     "memory_efficient_linear": True,
                     "stage3_gather_16bit_weights_on_model_save": False,
@@ -505,7 +557,7 @@ if __name__ == '__main__':
                     "stage3_max_reuse_distance": 1e9,
                     "stage3_prefetch_bucket_size": 5e6,
                     "memory_efficient_linear": True,
-                    "stage3_param_persistence_threshold": 1e4,
+                    "stage3_param_persistence_threshold": 1e5,
                     "offload_param": {
                         "device": "cpu",
                         "pin_memory": True,
@@ -518,7 +570,8 @@ if __name__ == '__main__':
                     "overlap_comm": True,
                     "contiguous_gradients": True
                 },
-                "zero_force_ds_cpu_initialization": True
+                "zero_force_ds_cpu_initialization": True,
+                "dump_state": True
             }
             if not args.deepspeed_offload:
                 ds_config['zero_optimization']['offload_param'] = None
@@ -581,7 +634,8 @@ if __name__ == '__main__':
                     "overlap_comm": True,
                     "contiguous_gradients": True
                 },
-                "zero_force_ds_cpu_initialization": True
+                "zero_force_ds_cpu_initialization": True,
+                "dump_state": True
             }
             teacher_attn_module_list.requires_grad_(False)
             teacher_engine, _, _, _ = deepspeed.initialize(
@@ -601,9 +655,7 @@ if __name__ == '__main__':
                 attention_wrapper.teacher_attn = teacher_attn
                 # 确保添加为子模块
                 attention_wrapper.add_module("teacher_attn", teacher_attn)
-                # 确保参数被冻结
-                for param in teacher_attn.parameters():
-                    param.requires_grad = False
+                
             
             # 清理不再需要的引用
             del teacher_attn_module_list
@@ -629,6 +681,9 @@ if __name__ == '__main__':
     token_per_step = args.max_seq_length * args.micro_bsz * args.world_size
 
     # 训练循环
+    # 创建管理器实例
+    terminate = True
+    teacher_attn_manager = TeacherAttnManager(model_engine, args.layers)
     for epoch in range(args.max_epochs):
         model_engine.train()
         if model_engine.global_rank == 0:
@@ -655,22 +710,14 @@ if __name__ == '__main__':
 
             # 每一步都调用 on_train_batch_end，但只在累积步骤结束时更新进度条
             last_log_time, pbar = on_train_batch_end(
-                args, batch_idx, model_engine, loss.item(), teacher_loss, kl_loss, student_cross_entropy_loss,
+                args, batch_idx, model_engine,teacher_engine, loss.item(), teacher_loss, kl_loss, student_cross_entropy_loss,
                 global_step, epoch, last_log_time, token_per_step, is_accumulation_step, pbar
             )
-            if trained_tokens >= args.max_trained_tokens:
-                break
 
-        # 处理最后一个不完整的累积批次（如果有的话）
-        if len(train_dataloader) % args.accumulate_grad_batches != 0:
-            model_engine.step()
-            model_engine.zero_grad()
-            global_step += 1
-            
-            last_log_time, pbar = on_train_batch_end(
-                args, batch_idx, model_engine, loss, teacher_loss, kl_loss, student_cross_entropy_loss,
-                global_step, epoch, last_log_time, token_per_step, True, pbar
-            )
+            if trained_tokens >= args.max_trained_tokens:
+                terminate = True
+                break
+        
 
         # 验证
         if val_dataloader:
@@ -688,10 +735,49 @@ if __name__ == '__main__':
         # 保存检查点
         if args.output_dir:
             if args.deepspeed:
-                model_engine.save_checkpoint(args.output_dir, f"checkpoint-epoch{epoch}")
+                
+                # 在保存检查点的代码处使用上下文管理器
+                with teacher_attn_manager.temporarily_remove_teacher_attn():
+                    try:
+                        print(f"Saving checkpoint to {args.output_dir} at epoch {epoch} rank {model_engine.global_rank}")
+                        model_engine.save_checkpoint(args.output_dir, f"checkpoint-epoch{epoch}")
+                    except Exception as e:
+                        print(f"Error saving checkpoint: {e}")
+                        import traceback
+                        traceback.print_exc()
+                
+                # if args.local_rank == 0:
+                #     print(f'saving epoch checkpoint to {args.output_dir}')
+                # #temporarily set attention_wrapper's teacher_attn to None
+                # # 遍历所有层
+                # for layer_idx in args.layers:
+                #     # 获取当前层的 AttentionWrapper
+                #     if args.local_rank == 0:
+                #         print(f'set teacher attn to None {layer_idx}')
+                #     attention_wrapper = model_engine.module.model.model.layers[layer_idx].self_attn
+                #     # 设置 teacher_attn to None
+                #     attention_wrapper.teacher_attn = None
+                # model_engine.save_checkpoint(args.output_dir, f"checkpoint-epoch{epoch}")
+                # # 遍历所有层
+                # for layer_idx in args.layers:
+                #     # 获取当前层的 AttentionWrapper
+                #     if args.local_rank == 0:
+                #         print(f'set teacher attn for layer {layer_idx}')
+                #     attention_wrapper = model_engine.module.model.model.layers[layer_idx].self_attn
+                #     # 获取对应的 teacher attention 模块
+                #     teacher_attn = teacher_engine.module[layer_idx]
+                    
+                #     # 设置 teacher_attn
+                #     attention_wrapper.teacher_attn = teacher_attn
+                #     # 确保添加为子模块
+                #     attention_wrapper.add_module("teacher_attn", teacher_attn)
+                
             else:
                 torch.save(model.state_dict(), os.path.join(args.output_dir, f"checkpoint-epoch{epoch}.pt"))
-
+        if terminate:
+            if args.local_rank == 0:
+                print(f"Terminating training at epoch {epoch}")
+            break
         if pbar is not None:
             pbar.close()
 
