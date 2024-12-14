@@ -1,3 +1,4 @@
+import deepspeed
 import torch
 import torch.nn.functional as F
 import logging
@@ -10,7 +11,10 @@ from deepspeed.ops.adam import DeepSpeedCPUAdam, FusedAdam
 from server.nccl_client import InferenceClient
 from profiler import time_function
 
-
+def rank0_print(*args, **kwargs):
+    if deepspeed.comm.get_rank() == 0:
+        print(*args, **kwargs)
+        
 def initialize_nccl_client(args):
     if not args.is_sft and args.teacher_client_mode:
         
@@ -117,26 +121,41 @@ def train_step(model, batch, args, teacher_engine=None, tokenizer=None):
     attention_mask = torch.ne(input_ids, tokenizer.pad_token_id).to(input_ids.device)
 
     if not args.is_sft:
-        if args.teacher_client_mode:
-            teacher_loss = None
-            teacher_logits, teacher_hidden_states = get_teacher_outputs_client_mode(model, input_ids, args)
-        else:
+        
+        if args.stage == 2:
+            # rank0_print(f'calculate loss for stage 2, input_ids shape is {input_ids.shape}')
             teacher_logits, teacher_hidden_states, teacher_loss = get_teacher_outputs(teacher_engine, input_ids, attention_mask, labels, args)
         
-        student_outputs = model(
-            input_ids=input_ids, attention_mask=attention_mask, labels=labels, use_cache=False, output_hidden_states=args.is_hidden_align)
+        student_outputs = get_student_outputs(model, args, input_ids, labels, attention_mask)
         
-        if not args.is_hidden_align:
+        if args.stage == 2:
+            # rank0_print(f'calculate loss for stage 2, input_ids shape is {input_ids.shape}')
             loss, kl_loss, student_cross_entropy_loss = compute_kl_loss(student_outputs, teacher_logits, labels, args)
         else:
-            kl_loss = None
-            student_cross_entropy_loss = None
-            loss = compute_hidden_state_loss(student_outputs, teacher_hidden_states)
-        
+            loss, kl_loss, student_cross_entropy_loss = get_attn_loss(input_ids, student_outputs)
+            # loss = compute_hidden_state_loss(student_outputs, teacher_hidden_states)
+            teacher_loss = None
         return loss, teacher_loss, kl_loss, student_cross_entropy_loss
     else:
         outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=labels, use_cache=False)
         return outputs.loss, None, None, None
+    
+@time_function
+def get_attn_loss(input_ids, student_outputs):
+    loss = torch.stack(student_outputs.attentions, dim=0).mean()
+    kl_loss = None
+    student_cross_entropy_loss = None
+    return loss,kl_loss,student_cross_entropy_loss
+
+@time_function
+def get_student_outputs(model, args, input_ids, labels, attention_mask):
+    student_outputs = model(
+            input_ids=input_ids,
+            attention_mask=attention_mask, 
+            labels=labels, use_cache=False, 
+            output_attentions=args.stage==1)
+        
+    return student_outputs
 @time_function
 def get_teacher_outputs_client_mode(model, input_ids, args):
     b, t = input_ids.shape
