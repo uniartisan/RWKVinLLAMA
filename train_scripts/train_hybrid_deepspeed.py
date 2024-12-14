@@ -287,7 +287,7 @@ class TeacherAttnManager:
                 attention_wrapper = self.model_engine.module.model.model.layers[layer_idx].self_attn
                 attention_wrapper.teacher_attn = stored_attn
                 # 重新注册为子模块
-                if hasattr(attention_wrapper, 'add_module'):
+                if hasattr(attention_wrapper, 'add_module') and not hasattr(attention_wrapper, 'teacher_attn'):
                     attention_wrapper.add_module("teacher_attn", stored_attn)
             
             # 清空存储的引用
