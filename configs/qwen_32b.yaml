@@ -8,6 +8,7 @@ is_llama_ffn: True
 kl_weight: 1
 ce_weight: 0
 model_file: QWen2.5-32B
+is_rwkv_att_only: True
 teach_mode:
   is_client: False
   groups :
