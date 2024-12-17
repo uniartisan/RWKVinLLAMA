@@ -124,9 +124,22 @@ def tokenize_dataset(dataset, tokenizer, max_seq_length):
     
     tokenized_dataset = dataset.map(tokenize_function, batched=True, num_proc=10, remove_columns=['text'])
     return tokenized_dataset
+def data_collator_with_pad(features,max_seq_length,pad_token_id):
+    input_ids = [f["input_ids"][0:max_seq_length] 
+                 if len(f['input_ids']) >= max_seq_length 
+                 else 
+                 f["input_ids"]+[pad_token_id]*(max_seq_length-len(f['input_ids']))
+                 for f in features]
+    labels = [f["labels"][0:max_seq_length] 
+              if len(f['labels']) >= max_seq_length 
+              else
+                f["labels"]+[-100]*(max_seq_length-len(f['labels']))
+              for f in features]
+    return {"input_ids": torch.tensor(input_ids,dtype=torch.long), "labels": torch.tensor(labels,dtype=torch.long)}
+
 def data_collator(features,max_seq_length):
     input_ids = [f["input_ids"][0:max_seq_length] for f in features]
-    labels = [f["input_ids"][0:max_seq_length] for f in features]
+    labels = [f["labels"][0:max_seq_length] for f in features]
     return {"input_ids": torch.tensor(input_ids,dtype=torch.long), "labels": torch.tensor(labels,dtype=torch.long)}
 if __name__ == '__main__':
     import argparse

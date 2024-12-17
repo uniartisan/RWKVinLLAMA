@@ -37,6 +37,7 @@ def parse_args():
     parser.add_argument('--tokenizer', type=str, default='/home/yueyulin/models/Qwen2.5-7B-Instruct/')
     parser.add_argument('--input_dir', type=str, default='/home/yueyulin/data/ultrachat_pseudo_labels_qwen/')
     parser.add_argument('--max_len', type=int, default=2048)
+    parser.add_argument('--is_padding_to_max',action='store_true',help='if padding to max_len')
     parser.add_argument('--output_dir', type=str, default='/home/yueyulin/data/ultrachat_hybrid_ds/')
     args = parser.parse_args()
     return args
@@ -52,7 +53,7 @@ def create_assistant_input(input_text, is_llama):
     else:
         return f"<|im_start|>assistant\n{input_text}<|im_end|>\n"
     
-def create_inputs_labels(conversations, tokenizer, is_llama, max_len):
+def create_inputs_labels(conversations, tokenizer, is_llama, max_len,is_padding_to_max):
     # converted_str = tokenizer.apply_chat_template(conversations, tokenize=False)
     # print(converted_str)
     # json_str = json.dumps({"text": converted_str})
@@ -85,15 +86,15 @@ def create_inputs_labels(conversations, tokenizer, is_llama, max_len):
     if length > max_len:
         input_ids = input_ids[:max_len]
         labels = labels[:max_len]
-    else:
+    elif is_padding_to_max:
         input_ids = input_ids + [tokenizer.pad_token_id] * (max_len - len(input_ids))
         labels = labels + [-100] * (max_len - len(labels))
     assert len(input_ids) == len(labels)
-    assert len(input_ids) == max_len
+    assert len(input_ids) <= max_len
     return input_ids, labels,length
 
 
-def process_file(jsonl_file, tokenizer_path, max_len, tmp_output_dir):
+def process_file(jsonl_file, tokenizer_path, max_len, tmp_output_dir,is_padding_to_max):
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
     is_llama = 'llama' in tokenizer_path.lower()
     
@@ -115,7 +116,7 @@ def process_file(jsonl_file, tokenizer_path, max_len, tmp_output_dir):
                 if 'data' in data or "messages" in data:
                     try:
                         conversations = data['data'] if 'data' in data else data['messages']
-                        input_ids, labels,length = create_inputs_labels(conversations, tokenizer, is_llama, max_len)
+                        input_ids, labels,length = create_inputs_labels(conversations, tokenizer, is_llama, max_len,is_padding_to_max)
                         dict_data['input_ids'].append(input_ids)
                         dict_data['labels'].append(labels)
                         dict_data['length'].append(length)
@@ -134,10 +135,10 @@ def process_file(jsonl_file, tokenizer_path, max_len, tmp_output_dir):
                         
                         for chunk in chunks:
                             input_ids = chunk
-                            labels = chunk[1:] + [-100]
+                            labels = chunk[1:] + [tokenizer.pad_token_id]
                             length = len(chunk)
                             if len(input_ids) < max_len :#discard the too short data
-                                if len(input_ids) > 128:
+                                if len(input_ids) > 128 and is_padding_to_max:
                                     input_ids += [tokenizer.pad_token_id] * (max_len - len(input_ids))
                                     labels += [-100] * (max_len - len(labels))
                                 else:
@@ -183,7 +184,7 @@ def main():
     import os
     os.makedirs(tmp_output_dir, exist_ok=True)
     # 准备部分函数
-    process_file_partial = partial(process_file, tokenizer_path=tokenizer_path, max_len=max_len, tmp_output_dir=tmp_output_dir)
+    process_file_partial = partial(process_file, tokenizer_path=tokenizer_path, max_len=max_len, tmp_output_dir=tmp_output_dir,is_padding_to_max=args.is_padding_to_max)
     
     # 使用进程池处理文件
     results = pool.map(process_file_partial, jsonl_files)

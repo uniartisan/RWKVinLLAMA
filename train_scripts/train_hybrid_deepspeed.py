@@ -64,7 +64,8 @@ def create_arg_parser():
     parser.add_argument('--max_seq_length', type=int, default=512, help='maximum sequence length to train the model')
     parser.add_argument('--num_devices', type=int, default = 1,help='number of devices to train the model')
     
-    
+    parser.add_argument('--min_len', type=int, default=0, help='minimum length of the input')
+    parser.add_argument('--max_len', type=int, default=4096, help='maximum length of the input')
     parser.add_argument('--dropout', type=float, default=0, help='dropout rate in the model')
     parser.add_argument('--grad_cp', type=int, default=0, help='gradient checkpoint in the model')
     parser.add_argument('--save_per_batches', type=int, default=10000, help='number of batches to save the model')
@@ -375,7 +376,8 @@ if __name__ == '__main__':
     # 设置模型参数的训练状态
     if args.stage == 2:
         print('all params are trainable')
-        model.model.gradient_checkpointing_enable()
+        if args.grad_cp == 1:
+            model.model.gradient_checkpointing_enable()
         for name, param in model.named_parameters():
             param.requires_grad = True
     else:
@@ -410,11 +412,11 @@ if __name__ == '__main__':
     # 准备数据加载器
     if args.preprocessed_data is not None:
         print(f'load preprocessed data from {args.preprocessed_data}')
-        from data.multi_source_datasets import data_collator
+        from data.multi_source_datasets import data_collator_with_pad 
         from functools import partial
         from torch.utils.data.distributed import DistributedSampler
-
-        data_collator = partial(data_collator, max_seq_length=args.max_seq_length)
+        pad_token_id = tokenizer.pad_token_id
+        data_collator = partial(data_collator_with_pad, max_seq_length=args.max_seq_length,pad_token_id=pad_token_id)
         train_dir = args.preprocessed_data[0]
         val_dir = args.preprocessed_data[1] if len(args.preprocessed_data) > 1 else None
         train_ds = datasets.load_from_disk(train_dir)

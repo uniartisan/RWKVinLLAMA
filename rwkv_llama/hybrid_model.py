@@ -87,9 +87,10 @@ class RWKVDecoderLayer(nn.Module):
 
 class AttentionWrapper(nn.Module):
     
-    def __init__(self,teacher_attn,student_attn,args):
+    def __init__(self,teacher_attn,student_attn,layer_idx,args):
         super(AttentionWrapper, self).__init__()
         self.args = args
+        self.layer_idx = layer_idx
         if teacher_attn is not None:
             # 创建一个新的相同类型的 attention 模块
             self.teacher_attn = type(teacher_attn)(
@@ -132,7 +133,10 @@ class AttentionWrapper(nn.Module):
             #if we don't have v_first in kwargs, we create an empty v_first tensor
             global v_first
             if v_first is None:
+                print(f'empty v_first in layer {self.layer_idx}')
                 v_first = torch.empty_like(hidden_states)
+            else:
+                print(f'reuse v_first in layer {self.layer_idx}')
         if self.args.grad_cp == 1:
             if is_rwkv_7:
                 student_hidden_states,v_first = deepspeed.checkpointing.checkpoint(self.student_attn, hidden_states, v_first)
@@ -204,7 +208,7 @@ class HybridModel(pl.LightningModule):
                     #     teacher_attn = None
                     #Remove the teacher_attn out of the model which makes
                     #deepspeed can initialize the model easily
-                    attn_wrapper = AttentionWrapper(None,student_attn,rwkv_args)
+                    attn_wrapper = AttentionWrapper(None,student_attn,layer_idx,rwkv_args)
                     llama_layer.self_attn = attn_wrapper
                     import gc
                     gc.collect()
@@ -220,14 +224,7 @@ class HybridModel(pl.LightningModule):
         torch.cuda.empty_cache()
         self.client = None
 
-    def set_teacher_model(self, teacher_model):
-        """设置teacher model的方法"""
-        self.teacher_model = teacher_model
-        self.add_module('teacher_model', self.teacher_model)
-        for param in self.teacher_model.parameters():
-            param.requires_grad = False
-        self.teacher_model.eval()
-        
+ 
     def forward(
         self,
         input_ids,

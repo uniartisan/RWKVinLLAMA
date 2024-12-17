@@ -42,9 +42,9 @@ def handle_conversations(conversations: List[str],model,eos_token,conversation_f
     for i in range(0, len(conversations), 2):
         chats.append({
             "role": "user",
-            "content": conversations[i]
+            "content": conversations[i] if isinstance(conversations[i], str) else conversations[i]['content']   
         })
-        generated_text = conversations[i+1] if i+1 < len(conversations) else ""
+        generated_text = conversations[i+1] if isinstance(conversations[i+1], str) else conversations[i+1]['content'] if i+1 < len(conversations) else ""
         chats.append({
             "role": "assistant",
             "content": generated_text
@@ -111,6 +111,18 @@ def process_line(line, model, eos_token, conversation_fn):
         if len(new_conversations[0]) == 0:
             return None
         conversations = new_conversations
+    elif 'message' in objects:
+        conversations = objects['message']
+        if len(conversations) == 0:
+            return None
+        if conversations[0]['role'] == 'system':
+            if len(conversations) < 2:
+                return None
+            if conversations[1]['role'] == 'user':
+                conversations[1]['content'] = conversations[0]['content']+'\n'+conversations[1]['content']
+                conversations = conversations[1:]
+            else:
+                return None
     else:
         return None
     new_conversations = handle_conversations(conversations, model, eos_token, conversation_fn)
