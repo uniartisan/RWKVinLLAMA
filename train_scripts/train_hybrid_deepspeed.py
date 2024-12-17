@@ -38,7 +38,7 @@ import yaml
 import torch
 import deepspeed
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from hybrid_model import HybridModel
+from hybrid_model import HybridModel,VFirstHolder
 from train_functions import initialize_nccl_client, configure_optimizer, train_step, validation_step
 from data.c4_datasets import load_and_interleave_c4, data_collator
 from data.multi_source_datasets import load_and_interleave_datasets
@@ -537,9 +537,57 @@ if __name__ == '__main__':
             optimizer=optimizer,
             config=ds_config
         )
+        #init the VFirstHolder with (B,T,C) shape
+        vfirst_holder = VFirstHolder(args.micro_bsz, args.max_seq_length, args.dim_att)
+        ds_config_state = {
+            "train_batch_size": args.train_batch_size,
+            "bf16": {"enabled": True},
+            "zero_optimization": {
+                "stage": args.deepspeed_stage,
+                # 减小缓冲区大小
+                "stage3_prefetch_bucket_size": 5e5,  # 更小的预取缓冲区
+                "stage3_param_persistence_threshold": 1e3,  # 更小的参数持久化阈值
+                "reduce_bucket_size": 5e5,  # 更小的归约缓冲区
+                
+                # 最小化内存使用
+                "memory_efficient_linear": True,
+                "contiguous_gradients": True,
+                
+                # 如果需要 CPU offload，使用最小配置
+                "offload_param": {
+                    "device": "cpu",
+                    "pin_memory": True,
+                    "buffer_count": 2,  # 减少缓冲区数量
+                    "buffer_size": 1e6,  # 更小的缓冲区大小
+                },
+                
+                # 简化通信设置
+                "allgather_partitions": True,
+                "reduce_scatter": True,
+                "overlap_comm": True,
+            },
+            # 禁用不必要的功能
+            "wall_clock_breakdown": False,
+            "dump_state": False,
+            
+            # 如果状态不需要梯度，可以禁用相关优化
+            "optimizer": None,
+            "scheduler": None,
+        }
+        state_engine, _, _, _ = deepspeed.initialize(
+            model=vfirst_holder,
+            config=ds_config
+        )
         if args.ckpt_dir is not None and args.ckpt_id is not None:
             print(f'load checkpoint from {args.ckpt_dir} with id {args.ckpt_id}')
             model_engine.load_checkpoint(args.ckpt_dir, args.ckpt_id)
+        if args.local_rank == 0:
+            print("Initializing v_first states...")
+        
+        for layer_idx in args.layers:
+            if args.is_rwkv_att_only:
+                attn_wrapper = model_engine.module.model.model.layers[layer_idx].self_attn
+                attn_wrapper.v_first_state = state_engine.module
         timer.initialize_with_engine(model_engine)
         #print current gpu memory
         if args.local_rank == 0:
@@ -691,8 +739,9 @@ if __name__ == '__main__':
         model_engine.train()
         if model_engine.global_rank == 0:
             pbar = tqdm(total=args.epoch_steps, desc=f"Epoch {epoch}")
-        
+
         for batch_idx, batch in enumerate(train_dataloader):
+            
             lr, wd_now = on_train_batch_start(args, model_engine, global_step, epoch)
 
             batch = {k: v.to(model_engine.device) for k, v in batch.items()}
@@ -700,8 +749,8 @@ if __name__ == '__main__':
             # 前向传播
             loss, teacher_loss, kl_loss, student_cross_entropy_loss = train_step(model_engine, batch, args, teacher_engine, tokenizer)
             
-            
-            # 反向传���
+            #CAUTION: The v_first will NEVER be synchronized for first batch. Just treat it as an outlier.
+
             model_engine.backward(loss)
 
             is_accumulation_step = (batch_idx + 1) % args.accumulate_grad_batches == 0

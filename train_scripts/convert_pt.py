@@ -13,6 +13,9 @@ def convert_model(model_path, output_path):
             new_state_dict[new_key] = v
         else:
             new_state_dict[k] = v
+    del state_dict
+    import gc
+    gc.collect()
     print(f'save new model to {output_path} replaced {replaced_key} keys')
     torch.save(new_state_dict, output_path)
 

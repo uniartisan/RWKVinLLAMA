@@ -32,7 +32,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S',
 )
 from train_functions import train_step,  configure_optimizer, validation_step,initialize_nccl_client
-v_first = None
+
 class RWKVDecoderLayer(nn.Module):
     def __init__(
         self,
@@ -83,6 +83,18 @@ class RWKVDecoderLayer(nn.Module):
         return (hidden_states, None, past_key_value)
     
 
+class VFirstHolder(nn.Module):
+    
+    def __init__(self, batch_size: int, seq_length: int, hidden_size: int,dtype=torch.bfloat16):
+        super().__init__()
+        self.shared_state = nn.Parameter(
+            torch.zeros(
+                (batch_size, seq_length, hidden_size),
+                dtype=dtype
+            ),
+            requires_grad=False
+        )
+    
 
 
 class AttentionWrapper(nn.Module):
@@ -110,6 +122,7 @@ class AttentionWrapper(nn.Module):
         self.student_attn = student_attn
         self.student_attn.requires_grad_(True)
         self.add_module("student_attn", self.student_attn)
+        self.v_first_state = None#v6 will benefit from v_first_state
     
     def forward(self, 
         # hidden_states: torch.Tensor,
@@ -129,14 +142,7 @@ class AttentionWrapper(nn.Module):
         hidden_states = kwargs['hidden_states']
         past_key_value = kwargs.get("past_key_value", None)
         hidden_states = hidden_states.requires_grad_(True)
-        if is_rwkv_7:
-            #if we don't have v_first in kwargs, we create an empty v_first tensor
-            global v_first
-            if v_first is None:
-                print(f'empty v_first in layer {self.layer_idx}')
-                v_first = torch.empty_like(hidden_states)
-            else:
-                print(f'reuse v_first in layer {self.layer_idx}')
+        v_first = self.v_first_state.shared_state.data.clone()
         if self.args.grad_cp == 1:
             if is_rwkv_7:
                 student_hidden_states,v_first = deepspeed.checkpointing.checkpoint(self.student_attn, hidden_states, v_first)
@@ -147,6 +153,7 @@ class AttentionWrapper(nn.Module):
                 student_hidden_states,v_first = self.student_attn(hidden_states, v_first)
             else:
                 student_hidden_states = self.student_attn(hidden_states)
+        self.v_first_state.shared_state.data.copy_(v_first)
         if self.args.stage == 2:
             return (student_hidden_states, None, past_key_value)
         # student_outputs = self.student_attn(hidden_states)
@@ -230,10 +237,7 @@ class HybridModel(pl.LightningModule):
         input_ids,
         **kwargs,
     ):
-        global v_first
-        v_first = None
         ret = self.model(input_ids, **kwargs)
-        v_first = None
         return ret
     
     def configure_optimizers(self):
