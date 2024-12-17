@@ -40,6 +40,7 @@ def load_model(config_file, ckpt_file,num_gpus):
     if is_hybrid:
         transformer_model = AutoModelForCausalLM.from_pretrained(model_id,device_map="cpu", low_cpu_mem_usage=True,torch_dtype=dtype)
         args = create_rwkv_args(transformer_model.config, config)
+        print(f'args is {args}')
         model = HybridModel(transformer_model, args)
         model.load_ckpt(ckpt_file)
         from accelerate import dispatch_model,infer_auto_device_map
@@ -80,10 +81,10 @@ def chat(message, history, session):
     print(session["conversation"])
     current_input_text = tokenizer.apply_chat_template(session["conversation"], tokenize=False, add_generation_prompt=True)
     print(current_input_text)
-    # index_of_im_start = current_input_text.find("<|im_start|>user")
-    # if index_of_im_start != -1:
-    #     current_input_text = current_input_text[index_of_im_start:]
-    # print(current_input_text)
+    index_of_im_start = current_input_text.find("<|im_start|>user")
+    if index_of_im_start != -1:
+        current_input_text = current_input_text[index_of_im_start:]
+    print(current_input_text)
     input_ids = tokenizer(current_input_text, return_tensors="pt").to("cuda:0")
     input_length = input_ids.input_ids.shape[1]
     with torch.no_grad():
@@ -96,7 +97,7 @@ def chat(message, history, session):
         output = model_to_use.generate(
             input_ids=input_ids['input_ids'],
             attention_mask=input_ids['attention_mask'],
-            max_new_tokens=128,
+            max_new_tokens=512,
             num_return_sequences=1,
             past_key_values=session["cache"],
             use_cache=True,

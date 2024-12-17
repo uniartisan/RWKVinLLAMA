@@ -20,7 +20,9 @@ export WKV=""
 DEEPSTATE_STAGE=3
 MAX_TRAINED_TOKENS=100_000_000
 TERMINATE_LOSS=0.01
-while getopts "c:o:p:n:m:b:a:l:f:w:k:g:d:F:s:R:W:S:t:T:" opt; do
+WANDB=hybrid_trainer_toys
+WANDB_PROJECT=hybrid_trainer_toys
+while getopts "c:o:p:n:m:b:a:l:f:w:k:g:d:F:s:R:W:S:t:T:W:P:" opt; do
     case $opt in
         c) CONFIG_FILE="$OPTARG";;
         o) OUTPUT_DIR="$OPTARG";;
@@ -42,6 +44,8 @@ while getopts "c:o:p:n:m:b:a:l:f:w:k:g:d:F:s:R:W:S:t:T:" opt; do
         S) DEEPSTATE_STAGE="$OPTARG";;
         t) MAX_TRAINED_TOKENS="$OPTARG";;
         T) TERMINATE_LOSS="$OPTARG";;
+        P) WANDB_PROJECT="$OPTARG";;
+        W) WANDB="$OPTARG";;
         \?) echo "无效的选项 -$OPTARG" >&2; exit 1;;
     esac
 done
@@ -66,8 +70,8 @@ deepspeed \
     --micro_bsz $MICRO_BSZ \
     --accumulate_grad_batches $ACCUMULATE_GRAD_BATCHES \
     --max_epochs 2 \
-    --wandb hybrid_trainer_toys \
-    --run_name hybrid_trainer_toys \
+    --wandb $WANDB \
+    --run_name $WANDB_PROJECT \
     --grad_cp $GRAD_CP \
     --max_seq_length $MAX_LENGTH \
     --dropout 0.05 \

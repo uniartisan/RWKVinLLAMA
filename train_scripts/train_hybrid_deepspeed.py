@@ -263,11 +263,12 @@ class TeacherAttnManager:
         self.model_engine = model_engine
         self.layers = layers
         self.stored_teacher_attns = {}
+        self.stored_vfirst_state = {}
         
     @contextlib.contextmanager
     def temporarily_remove_teacher_attn(self):
         """
-        上下文管理器，临时移除所有层的teacher_attn并在退出时恢复
+        上下文管理器，临时移除所有层的teacher_attn,v_first_state并在退出时恢复
         """
         try:
             # 保存并移除所有teacher_attn
@@ -279,6 +280,9 @@ class TeacherAttnManager:
                     if hasattr(attention_wrapper, '_modules') and 'teacher_attn' in attention_wrapper._modules:
                         del attention_wrapper._modules['teacher_attn']
                     attention_wrapper.teacher_attn = None
+                if hasattr(attention_wrapper, 'v_first_state'):
+                    self.stored_vfirst_state[layer_idx] = attention_wrapper.v_first_state
+                    attention_wrapper.v_first_state = None
             
             yield  # 允许在此上下文中执行代码
             
@@ -290,7 +294,9 @@ class TeacherAttnManager:
                 # 重新注册为子模块
                 if hasattr(attention_wrapper, 'add_module') and not hasattr(attention_wrapper, 'teacher_attn'):
                     attention_wrapper.add_module("teacher_attn", stored_attn)
-            
+                v_first_state = self.stored_vfirst_state.get(layer_idx, None)
+                if v_first_state is not None:
+                    attention_wrapper.v_first_state = v_first_state
             # 清空存储的引用
             self.stored_teacher_attns.clear()
 if __name__ == '__main__':
