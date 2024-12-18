@@ -10,7 +10,7 @@ print(f'add {project_root} to sys.path')
 import gradio as gr
 import torch
 import yaml
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM,AutoConfig
 from rwkv_llama.utilities import HybridCache
 from rwkv_llama.hybrid_model_run import create_rwkv_args, HybridModel
 
@@ -38,17 +38,18 @@ def load_model(config_file, ckpt_file,num_gpus,off_load_emb_head):
     
     
     if is_hybrid:
-        transformer_model = AutoModelForCausalLM.from_pretrained(model_id,device_map="cpu", low_cpu_mem_usage=True,torch_dtype=dtype)
-        args = create_rwkv_args(transformer_model.config, config)
+        transformer_config = AutoConfig.from_pretrained(model_id)
+        # transformer_model = AutoModelForCausalLM.from_pretrained(model_id,device_map="cpu", low_cpu_mem_usage=True,torch_dtype=dtype)
+        args = create_rwkv_args(transformer_config,config)
         print(f'args is {args}')
-        model = HybridModel(transformer_model, args)
-        model.load_ckpt(ckpt_file)
+        model = HybridModel(args,transformer_config)
+        model.load_checkpoint(ckpt_file)
         from accelerate import dispatch_model,infer_auto_device_map
         model = model.to(dtype=dtype)
         num_layers = model.model.config.num_hidden_layers
         device_map = {}
         for i in range(num_layers):
-            device_map[f'model.layers.{i}'] = i % num_gpus
+            device_map[f'model.layers.{i}'] = num_gpus -1 - i % num_gpus
         if off_load_emb_head:
             device_map['model.embed_tokens'] = 'cpu'
             device_map['model.norm'] = 'cpu'
