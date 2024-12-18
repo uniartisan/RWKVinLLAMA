@@ -49,7 +49,7 @@ def load_model(config_file, ckpt_file,num_gpus,off_load_emb_head):
         num_layers = model.model.config.num_hidden_layers
         device_map = {}
         for i in range(num_layers):
-            device_map[f'model.layers.{i}'] = num_gpus -1 - i % num_gpus
+            device_map[f'model.layers.{i}'] = i % num_gpus
         if off_load_emb_head:
             device_map['model.embed_tokens'] = 'cpu'
             device_map['model.norm'] = 'cpu'
@@ -94,6 +94,20 @@ def chat(message, history, session):
     print(current_input_text)
     input_ids = tokenizer(current_input_text, return_tensors="pt").to("cuda:0")
     input_length = input_ids.input_ids.shape[1]
+    
+    from transformers import GenerationConfig
+    gen_config = GenerationConfig(
+        max_new_tokens=256,
+        stop_strings = ["<|im_end|>"],
+        do_sample = True,
+        use_cache = True,
+        temperature = 0.7,
+        top_k = 40,
+        top_p = 0.9,
+        min_p = 0.05,
+        repetition_penalty = 1.1,
+        no_repeat_ngram_size = 3,
+    )
     with torch.no_grad():
         if is_hybrid:
             print('use hybrid model to generate')
@@ -104,14 +118,9 @@ def chat(message, history, session):
         output = model_to_use.generate(
             input_ids=input_ids['input_ids'],
             attention_mask=input_ids['attention_mask'],
-            max_new_tokens=512,
-            num_return_sequences=1,
             past_key_values=session["cache"],
-            use_cache=True,
-            early_stopping=True,
-            do_sample=True,
-            top_p=0.7,
-            temperature=0.3,
+            generation_config=gen_config,
+            tokenizer = tokenizer
         )
     
     generated_text = tokenizer.decode(output[0,input_length:], skip_special_tokens=True)            
