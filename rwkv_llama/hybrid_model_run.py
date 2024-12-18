@@ -43,6 +43,7 @@ import torch.nn as nn
 from torch.nn import functional as F
 from typing import Optional, Tuple
 import logging
+from transformers import AutoConfig,AutoModelForCausalLM
 from transformers.cache_utils import Cache,DynamicCache
 # from liger_kernel.transformers import LigerFusedLinearCrossEntropyLoss
 import os
@@ -335,54 +336,83 @@ class RWKVDecoderLayer(nn.Module):
 
 class HybridModel(nn.Module):
     
-    def __init__(self,transformer_model,rwkv_args):
+    def __init__(self,rwkv_args,transformer_config):
         super(HybridModel, self).__init__()
-        if transformer_model.config.tie_word_embeddings:
-            # copy untied embeddings
-            transformer_model.get_output_embeddings().weight = nn.Parameter(transformer_model.get_input_embeddings().weight.clone())
-            # untie the embeddings in the config, too
-            transformer_model.tie_word_embeddings = False
-        def init_block_params(rwkv_args,layer_idx,llama_layer):
-            if rwkv_args.is_rwkv_att_only:
-                print(f'init RWKV att only in layer {layer_idx}')
-                decoder = llama_layer
-                att = RWKV_Tmix_x060_infctx_Wrapper(rwkv_args,layer_idx)
-                # att.time_mixer.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
-                # att.time_mixer.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
-                # att.time_mixer.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
-                # att.time_mixer.output.weight.data = llama_layer.self_attn.o_proj.weight.data
-                llama_layer.self_attn = att
-                return decoder
-            else:
-                print(f'init RWKVDecoder in layer {layer_idx}')
-                decoder = RWKVDecoderLayer(rwkv_args,layer_idx)
-                # decoder.block.att.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
-                # decoder.block.att.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
-                # decoder.block.att.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
-                # decoder.block.att.output.weight.data = llama_layer.self_attn.o_proj.weight.data
-                if rwkv_args.is_llama_ffn:
-                    decoder.block.ffn = llama_layer.mlp
-                return decoder
-            # decoder = RWKVDecoderLayer(rwkv_args,layer_idx)
-            # if rwkv_args.is_llama_ffn:
-            #     decoder.block.ffn = llama_layer.mlp
-            # decoder.block.att.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
-            # decoder.block.att.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
-            # decoder.block.att.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
-            # decoder.block.att.output.weight.data = llama_layer.self_attn.o_proj.weight.data
-            # decoder.block.ffn.key.weight.data = llama_layer.mlp.up_proj.weight.data
-            # decoder.block.ffn.value.weight.data = llama_layer.mlp.down_proj.weight.data
-            return decoder
-        for layer_idx in range(transformer_model.config.num_hidden_layers):
-            if layer_idx in rwkv_args.layers:
-                rwkv_encoder = init_block_params(rwkv_args,layer_idx,transformer_model.model.layers[layer_idx])
-                old_layer = transformer_model.model.layers[layer_idx]
-                del old_layer
-                torch.cuda.empty_cache()
-                transformer_model.model.layers[layer_idx] = rwkv_encoder
-                print(f'layer {layer_idx} is replaced by RWKV')
-        self.model = transformer_model
         self.args = rwkv_args
+        self.model = AutoModelForCausalLM.from_config(transformer_config)
+        #Replace the self attention to TimeMixer
+        for layer_idx in range(transformer_config.num_hidden_layers):
+            llama_layer = self.model.model.layers[layer_idx]
+            if layer_idx in rwkv_args.layers:
+                att = RWKV_Tmix_x060_infctx_Wrapper(rwkv_args,layer_idx)
+                old_attn = llama_layer.self_attn
+                llama_layer.self_attn = att
+                del old_attn
+                print(f'layer {layer_idx} is replaced by RWKV TimeMixer_x060')
+        import gc
+        gc.collect()
+    def load_checkpoint(self,ckpt_file):
+        if ckpt_file is not None:
+            print(f'loading ckpt from {ckpt_file}')
+            if os.path.isfile(ckpt_file):
+                info = self.load_state_dict(torch.load(ckpt_file,weights_only=True),strict=False)
+                print(f'loaded ckpt info: {info}')
+            elif os.path.isdir(ckpt_file):
+                print(f'loading ckpt from directory {ckpt_file}')
+                ckpt_files = os.listdir(ckpt_file)
+                for ckpt in ckpt_files:
+                    ckpt = os.path.join(ckpt_file,ckpt)
+                    if ckpt.endswith('.pt') or ckpt.endswith('.bin') or ckpt.endswith('.pth'):
+                        print(f'loading ckpt from {ckpt}')
+                        info = self.load_state_dict(torch.load(ckpt,weights_only=True),strict=False)
+    # def __init__(self,transformer_model,rwkv_args):
+    #     super(HybridModel, self).__init__()
+    #     if transformer_model.config.tie_word_embeddings:
+    #         # copy untied embeddings
+    #         transformer_model.get_output_embeddings().weight = nn.Parameter(transformer_model.get_input_embeddings().weight.clone())
+    #         # untie the embeddings in the config, too
+    #         transformer_model.tie_word_embeddings = False
+    #     def init_block_params(rwkv_args,layer_idx,llama_layer):
+    #         if rwkv_args.is_rwkv_att_only:
+    #             print(f'init RWKV att only in layer {layer_idx}')
+    #             decoder = llama_layer
+    #             att = RWKV_Tmix_x060_infctx_Wrapper(rwkv_args,layer_idx)
+    #             # att.time_mixer.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
+    #             # att.time_mixer.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
+    #             # att.time_mixer.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
+    #             # att.time_mixer.output.weight.data = llama_layer.self_attn.o_proj.weight.data
+    #             llama_layer.self_attn = att
+    #             return decoder
+    #         else:
+    #             print(f'init RWKVDecoder in layer {layer_idx}')
+    #             decoder = RWKVDecoderLayer(rwkv_args,layer_idx)
+    #             # decoder.block.att.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
+    #             # decoder.block.att.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
+    #             # decoder.block.att.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
+    #             # decoder.block.att.output.weight.data = llama_layer.self_attn.o_proj.weight.data
+    #             if rwkv_args.is_llama_ffn:
+    #                 decoder.block.ffn = llama_layer.mlp
+    #             return decoder
+    #         # decoder = RWKVDecoderLayer(rwkv_args,layer_idx)
+    #         # if rwkv_args.is_llama_ffn:
+    #         #     decoder.block.ffn = llama_layer.mlp
+    #         # decoder.block.att.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
+    #         # decoder.block.att.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
+    #         # decoder.block.att.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
+    #         # decoder.block.att.output.weight.data = llama_layer.self_attn.o_proj.weight.data
+    #         # decoder.block.ffn.key.weight.data = llama_layer.mlp.up_proj.weight.data
+    #         # decoder.block.ffn.value.weight.data = llama_layer.mlp.down_proj.weight.data
+    #         return decoder
+    #     for layer_idx in range(transformer_model.config.num_hidden_layers):
+    #         if layer_idx in rwkv_args.layers:
+    #             rwkv_encoder = init_block_params(rwkv_args,layer_idx,transformer_model.model.layers[layer_idx])
+    #             old_layer = transformer_model.model.layers[layer_idx]
+    #             del old_layer
+    #             torch.cuda.empty_cache()
+    #             transformer_model.model.layers[layer_idx] = rwkv_encoder
+    #             print(f'layer {layer_idx} is replaced by RWKV')
+    #     self.model = transformer_model
+    #     self.args = rwkv_args
     def forward(
         self,
         input_ids,
@@ -390,10 +420,6 @@ class HybridModel(nn.Module):
         **kwargs,
     ):
         return self.model(input_ids, **kwargs)
-    def load_ckpt(self, ckpt_file):
-        print(f'loading ckpt from {ckpt_file}')
-        info = self.load_state_dict(torch.load(ckpt_file,weights_only=True),strict=False)
-        print(f'loaded ckpt info: {info}')
 def create_rwkv_args(transformer_config, config):
     from argparse import Namespace
     args = Namespace()
