@@ -7,6 +7,7 @@ def parse_args():
     parser.add_argument('--data_dir', type=str, default='/data/rwkv/data/ultrachat')
     parser.add_argument('--min_len', type=int, default=0)
     parser.add_argument('--max_len', type=int, default=1000)
+    parser.add_argument('--output_dir', type=str, default='/data/rwkv/data/ultrachat_filtered')
     args = parser.parse_args()
     return args
 
@@ -19,5 +20,6 @@ def main():
     filterd_ds = datasets.filter(lambda x: args.min_len <= x['length'] <= args.max_len,
                                  num_proc=16)
     print(filterd_ds)
+    filterd_ds.save_to_disk(args.output_dir)
 if __name__ == '__main__':
     main()
