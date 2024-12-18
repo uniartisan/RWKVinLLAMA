@@ -1,10 +1,11 @@
 import sys
 import os
+import types
 def setup_env():
     parent_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     sys.path.append(parent_dir)
-    rwkv_path = os.path.join(parent_dir, 'rwkv')
-    sys.path.append(rwkv_path)
+    # rwkv_path = os.path.join(parent_dir, 'rwkv7')
+    # sys.path.append(rwkv_path)
     rwkv_llama_path = os.path.join(parent_dir, 'rwkv_llama')
     sys.path.append(rwkv_llama_path)
     # print(f'add path: {rwkv_path} to sys.path')
@@ -58,29 +59,22 @@ class RWKV_Tmix_x070(nn.Module):
         self.head_size = args.head_size_a        
         self.n_head = args.dim_att // self.head_size
         assert args.dim_att % self.n_head == 0
-
+        H = self.n_head
+        N = self.head_size
+        C = args.n_embd
         with torch.no_grad():
             ratio_0_to_1 = layer_id / (args.n_layer - 1)  # 0 to 1
             ratio_1_to_almost0 = 1.0 - (layer_id / args.n_layer)  # 1 to ~0
-            ddd = torch.ones(1, 1, args.n_embd)
-            for i in range(args.n_embd):
-                ddd[0, 0, i] = i / args.n_embd
+            ddd = torch.ones(1, 1, C)
+            for i in range(C):
+                ddd[0, 0, i] = i / C
 
-            # initialization comes from fitting my RWKV-6 7B runs
-            # merging r&g w&a to save params
-            self.time_maa_x = nn.Parameter(1.0 - torch.pow(ddd, 0.6 * ratio_1_to_almost0 ** 0.9))
-            self.time_maa_rg = nn.Parameter(1.0 - torch.pow(ddd, 0.2 * ratio_1_to_almost0))
-            self.time_maa_wa = nn.Parameter(1.0 - torch.pow(ddd, 0.9 * ratio_1_to_almost0))
-            self.time_maa_k = nn.Parameter(1.0 - (torch.pow(ddd, 0.9 * ratio_1_to_almost0) + 0.4 * ratio_0_to_1))
-            self.time_maa_v = nn.Parameter(1.0 - (torch.pow(ddd, 0.4 * ratio_1_to_almost0) + 0.6 * ratio_0_to_1))
-
-            decay_speed = torch.ones(args.dim_att)
-            for n in range(args.dim_att):
-                decay_speed[n] = -7 + 5 * (n / (args.dim_att - 1)) ** (0.85 + 1.0 * ratio_0_to_1 ** 0.5)
-            self.time_decay = nn.Parameter(decay_speed.reshape(1,1,args.dim_att) + 0.5) # !!! 0.5 comes from F.softplus !!!
-
-            self.time_faaaa = nn.Parameter(torch.zeros(1,1,self.n_head,self.head_size))
-            self.time_aaaaa = nn.Parameter(torch.zeros(1,1,args.dim_att))
+            self.x_r = nn.Parameter(1.0 - torch.pow(ddd, 0.2 * ratio_1_to_almost0))
+            self.x_w = nn.Parameter(1.0 - torch.pow(ddd, 0.9 * ratio_1_to_almost0))
+            self.x_k = nn.Parameter(1.0 - (torch.pow(ddd, 0.9 * ratio_1_to_almost0) + 0.4 * ratio_0_to_1))
+            self.x_v = nn.Parameter(1.0 - (torch.pow(ddd, 0.4 * ratio_1_to_almost0) + 0.6 * ratio_0_to_1))
+            self.x_a = nn.Parameter(1.0 - torch.pow(ddd, 0.9 * ratio_1_to_almost0))
+            self.x_g = nn.Parameter(1.0 - torch.pow(ddd, 0.2 * ratio_1_to_almost0))
 
             def ortho_init(x, scale):
                 with torch.no_grad():
@@ -96,48 +90,51 @@ class RWKV_Tmix_x070(nn.Module):
                         assert False
                     return x
 
-            D_MIX_LORA = 32
-            self.time_maa_w1 = nn.Parameter(torch.zeros(args.n_embd, D_MIX_LORA*4))
-            self.time_maa_w2 = nn.Parameter(ortho_init(torch.zeros(4, D_MIX_LORA, args.n_embd), 0.1))
-
             D_DECAY_LORA = 64
-            self.time_decay_w1 = nn.Parameter(torch.zeros(args.n_embd, D_DECAY_LORA))
-            self.time_decay_w2 = nn.Parameter(ortho_init(torch.zeros(D_DECAY_LORA, args.dim_att), 0.1))
+            # D_DECAY_LORA = max(32, int(round(  (1.8*(C**0.5))  /32)*32)) # suggestion
+            self.w1 = nn.Parameter(torch.zeros(C, D_DECAY_LORA))
+            self.w2 = nn.Parameter(ortho_init(torch.zeros(D_DECAY_LORA, C), 0.1))
+            decay_speed = torch.ones(C)
+            for n in range(C):
+                decay_speed[n] = -7 + 5 * (n / (C - 1)) ** (0.85 + 1.0 * ratio_0_to_1 ** 0.5)
+            self.w0 = nn.Parameter(decay_speed.reshape(1,1,C) + 0.5) # !!! 0.5 comes from F.softplus !!!
 
-            D_AAA_LORA = 16
-            self.time_aaa_w1 = nn.Parameter(torch.zeros(args.n_embd, D_AAA_LORA))
-            self.time_aaa_w2 = nn.Parameter(ortho_init(torch.zeros(D_AAA_LORA, args.dim_att), 0.1))
+            D_AAA_LORA = 64
+            # D_AAA_LORA = max(32, int(round(  (1.8*(C**0.5))  /32)*32)) # suggestion
+            self.a1 = nn.Parameter(torch.zeros(C, D_AAA_LORA))
+            self.a2 = nn.Parameter(ortho_init(torch.zeros(D_AAA_LORA, C), 0.1))
+            self.a0 = nn.Parameter(torch.zeros(1,1,C))
 
-            D_KKK_LORA = 16
-            self.time_kkk_w1 = nn.Parameter(torch.zeros(args.n_embd, D_KKK_LORA))
-            self.time_kkk_w2 = nn.Parameter(ortho_init(torch.zeros(D_KKK_LORA, args.dim_att), 0.1))
+            D_MV_LORA = 32
+            # D_MV_LORA = max(32, int(round(  (1.3*(C**0.5))  /32)*32)) # suggestion
+            self.v1 = nn.Parameter(torch.zeros(C, D_MV_LORA))
+            self.v2 = nn.Parameter(ortho_init(torch.zeros(D_MV_LORA, C), 0.1))
+            self.v0 = nn.Parameter(torch.zeros(1,1,C)+1.0)
 
             D_GATE_LORA = 128
-            self.gate_w1 = nn.Parameter(ortho_init(torch.zeros(args.n_embd, D_GATE_LORA), 0.1))
-            self.gate_w2 = nn.Parameter(ortho_init(torch.zeros(D_GATE_LORA, args.dim_att), 0.1))
+            # D_GATE_LORA = max(32, int(round(  (0.6*(C**0.8))  /32)*32)) # suggestion
+            # Note: for some data, you can reduce D_GATE_LORA or even remove this gate
+            self.g1 = nn.Parameter(torch.zeros(C, D_GATE_LORA))
+            self.g2 = nn.Parameter(ortho_init(torch.zeros(D_GATE_LORA, C), 0.1))
 
-            D_MA_LORA = 16
-            self.ma_w1 = nn.Parameter(torch.zeros(args.n_embd, D_MA_LORA))
-            self.ma_w2 = nn.Parameter(ortho_init(torch.zeros(D_MA_LORA, args.dim_att), 0.1))
-            self.time_misc_a = nn.Parameter(torch.zeros(1,1,args.n_embd))
-            D_MK_LORA = 16
-            self.mk_w1 = nn.Parameter(torch.zeros(args.n_embd, D_MK_LORA))
-            self.mk_w2 = nn.Parameter(ortho_init(torch.zeros(D_MK_LORA, args.dim_att), 0.1))
-            self.time_misc_k = nn.Parameter(torch.zeros(1,1,args.n_embd))
+            self.k_k = nn.Parameter(torch.ones(1,1,C)*0.85)
+            self.k_a = nn.Parameter(torch.ones(1,1,C))
+            self.r_k = nn.Parameter(torch.zeros(H,N))
 
             self.time_shift = nn.ZeroPad2d((0, 0, 1, -1))
-            self.receptance = nn.Linear(args.n_embd, args.dim_att, bias=False)
-            self.key = nn.Linear(args.n_embd, args.dim_att, bias=False)
-            self.value = nn.Linear(args.n_embd, args.dim_att, bias=False)
-            self.output = nn.Linear(args.dim_att, args.n_embd, bias=False)
-            self.ln_x = nn.GroupNorm(self.n_head, args.dim_att, eps=64e-5)
+            self.receptance = nn.Linear(C, C, bias=False)
+            self.key = nn.Linear(C, C, bias=False)
+            self.value = nn.Linear(C, C, bias=False)
+            self.output = nn.Linear(C, C, bias=False)
+            self.ln_x = nn.GroupNorm(H, C, eps=(1e-5)*(args.head_size_divisor**2)) # !!! notice eps value !!!
 
-            self.receptance.weight.data.uniform_(-0.5/(self.n_embd**0.5), 0.5/(self.n_embd**0.5))
-            self.key.weight.data.uniform_(-0.05/(self.n_embd**0.5), 0.05/(self.n_embd**0.5))
-            self.value.weight.data.uniform_(-0.5/(self.n_embd**0.5), 0.5/(self.n_embd**0.5))
-            self.output.weight.data.zero_()
+            # !!! initialize if you are using RWKV_Tmix_x070 in your code !!!
+            # self.receptance.weight.data.uniform_(-0.5/(C**0.5), 0.5/(C**0.5))
+            # self.key.weight.data.uniform_(-0.05/(C**0.5), 0.05/(C**0.5))
+            # self.value.weight.data.uniform_(-0.5/(C**0.5), 0.5/(C**0.5))
+            # self.output.weight.data.zero_()
 
-    def forward(self, x, last_state: TimeMixState):
+    def forward(self, x,v_first, last_state: TimeMixState):
         shift_state = last_state.shift_state
         B, T, C = x.size()
         H = self.n_head
@@ -146,30 +143,30 @@ class RWKV_Tmix_x070(nn.Module):
         else:
             xx = self.time_shift(x) - x
         lx = x[:, -1]
-        xxx = x + xx * self.time_maa_x
-        xxx = torch.tanh(xxx @ self.time_maa_w1).view(B*T, 4, -1).transpose(0, 1)
-        xxx = torch.bmm(xxx, self.time_maa_w2).view(4, B, T, -1)
-        mrg, mwa, mk, mv = xxx.unbind(dim=0)
+        
+        xr = x + xx * self.x_r
+        xw = x + xx * self.x_w
+        xk = x + xx * self.x_k
+        xv = x + xx * self.x_v
+        xa = x + xx * self.x_a
+        xg = x + xx * self.x_g
 
-        xrg = x + xx * (self.time_maa_rg + mrg)
-        xwa = x + xx * (self.time_maa_wa + mwa)
-        xk = x + xx * (self.time_maa_k + mk)
-        xv = x + xx * (self.time_maa_v + mv)
-
-        r = self.receptance(xrg)
-        w = -F.softplus(-(self.time_decay + torch.tanh(xwa @ self.time_decay_w1) @ self.time_decay_w2)) - 0.5
+        r = self.receptance(xr)
+        w = -F.softplus(-(self.w0 + torch.tanh(xw @ self.w1) @ self.w2)) - 0.5 # soft-clamp to (-inf, -0.5)
         k = self.key(xk)
         v = self.value(xv)
-        g = torch.tanh(xrg @ self.gate_w1) @ self.gate_w2
+        if self.layer_id == 0:
+            v_first = v # store the v of the first layer
+        else:
+            ###Original implementation
+            v = v + (v_first - v) * torch.sigmoid(self.v0 + (xv @ self.v1) @ self.v2) # add value residual
 
-        kk = k + torch.tanh(xk @ self.time_kkk_w1) @ self.time_kkk_w2
+        a = torch.sigmoid(self.a0 + (xa @ self.a1) @ self.a2) # a is "in-context learning rate"
+        g = torch.sigmoid(xg @ self.g1) @ self.g2
+        kk = k * self.k_k
         kk = F.normalize(kk.view(B,T,H,-1), dim=-1, p=2.0).view(B,T,C)
-        a = torch.sigmoid( self.time_aaaaa + (xwa @ self.time_aaa_w1) @ self.time_aaa_w2 )
-
-        ma = torch.sigmoid(self.time_misc_a + (xwa @ self.ma_w1) @ self.ma_w2)
-        k = k * ma + k*a * (1 - ma)
-        mk = torch.sigmoid(self.time_misc_k + (xk @ self.mk_w1) @ self.mk_w2)
-        k = k * torch.clamp(w*mk, max=0).exp()
+        k = k * (1 + (a-1) * self.k_a)
+        
         wkv_state = last_state.wkv_state
         x , wkv_state= RUN_CUDA_RWKV7_STATE(B, T, C, H,r.bfloat16(), k.bfloat16(), v.bfloat16(), w.bfloat16(), -kk.bfloat16(), (kk*a).bfloat16(),s=wkv_state)
         
@@ -177,7 +174,7 @@ class RWKV_Tmix_x070(nn.Module):
 
         x = x + ((r.view(B,T,H,-1)*k.view(B,T,H,-1)*self.time_faaaa).sum(dim=-1, keepdim=True) * v.view(B,T,H,-1)).view(B,T,C)
         x = self.output(x * g)
-        return x,TimeMixState(lx,wkv_state)
+        return x,v_first,TimeMixState(lx,wkv_state)
 
 
 class RWKV_Tmix_x070_Wrapper(nn.Module):
@@ -198,6 +195,7 @@ class RWKV_Tmix_x070_Wrapper(nn.Module):
             position_embeddings,
             **kwargs):
         x = hidden_states
+        v_first = kwargs.get('v_first',None)
         args = self.args
         B, T, C = x.size()
         if past_key_value is not None:
@@ -221,7 +219,7 @@ class RWKV_Tmix_x070_Wrapper(nn.Module):
             # print(wkv_states)
             channel_state = None
             last_state = BlockState(time_state,channel_state)
-        x,states= self.time_mixer(x,last_state.time_mix_state)
+        x,states= self.time_mixer(x,v_first,last_state.time_mix_state)
         last_state.time_mix_state = states
         if past_key_value is not None:
             keys = T
@@ -229,183 +227,84 @@ class RWKV_Tmix_x070_Wrapper(nn.Module):
             past_key_value.update(keys, values, self.layer_idx)
         return x,None,past_key_value    
 
-class RWKV_CMix_x060_infctx(nn.Module):
-    def __init__(self, args, layer_id):
-        super().__init__()
-        self.args = args
-        self.layer_id = layer_id
-        self.time_shift = nn.ZeroPad2d((0, 0, 1, -1))
-
-        with torch.no_grad():  # fancy init of time_mix
-            ratio_1_to_almost0 = 1.0 - (layer_id / args.n_layer)  # 1 to ~0
-            ddd = torch.ones(1, 1, args.n_embd)
-            for i in range(args.n_embd):
-                ddd[0, 0, i] = i / args.n_embd
-            self.time_maa_k = nn.Parameter(1.0 - torch.pow(ddd, ratio_1_to_almost0))
-            self.time_maa_r = nn.Parameter(1.0 - torch.pow(ddd, ratio_1_to_almost0))
-
-        self.key = nn.Linear(args.n_embd, args.dim_ffn, bias=False)
-        self.receptance = nn.Linear(args.n_embd, args.n_embd, bias=False)
-        self.value = nn.Linear(args.dim_ffn, args.n_embd, bias=False)
-
-    def forward(self, x, last_state: ChannelMixState):
-        if last_state.shift_state is not None:
-            xx = torch.concat((last_state.shift_state.unsqueeze(1), x[:, :-1]), dim=1) - x
-        else:
-            xx = self.time_shift(x) - x
-        xk = x + xx * self.time_maa_k
-        xr = x + xx * self.time_maa_r
-
-        k = self.key(xk)
-        k = torch.relu(k) ** 2
-        kv = self.value(k)
-        return torch.sigmoid(self.receptance(xr)) * kv, ChannelMixState(x[:, -1])
-    
-    
-class Block(nn.Module):
-    def __init__(self, args, layer_id):
-        super().__init__()
-        self.args = args
-        self.layer_id = layer_id
-
-        self.ln1 = nn.LayerNorm(args.n_embd)
-        self.ln2 = nn.LayerNorm(args.n_embd)
-
-        if self.layer_id == 0:
-            self.ln0 = nn.LayerNorm(args.n_embd)
-
-        self.att = RWKV_Tmix_x070(args, layer_id)
-
-        self.ffn = RWKV_CMix_x060_infctx(args, layer_id)
-        
-    def forward(self, x, last_state: BlockState = None, x_emb=None):
-        args = self.args
-        B, T, C = x.size()
-        if self.layer_id == 0:
-            x = self.ln0(x)
-        if last_state is None:
-            H =  args.dim_att // args.head_size_a
-            device = x.device
-            dtype = x.dtype
-            wkv_states = torch.empty((B, H, C//H, C//H),
-                                 device=device,
-                                 dtype=dtype)
-            shift_states = torch.empty((2,B,C),
-                                 device=device,
-                                 dtype=dtype)
-            wkv_states[:] = 0
-            shift_states[:] = 0
-            time_state = TimeMixState(shift_states[0], wkv_states)
-            # print(wkv_states)
-            channel_state = ChannelMixState(shift_states[1])
-            last_state = BlockState(time_state,channel_state)
-        if self.layer_id == 0 and args.pre_ffn > 0:
-            x = x + self.ffnPre(self.ln1(x))
-        else:
-            att_out, att_state = self.att(self.ln1(x), last_state.time_mix_state)
-            x = x + att_out
-        if args.is_llama_ffn:
-            ffn_out = self.ffn(self.ln2(x))
-            fnn_state = None
-        else:
-            ffn_out, fnn_state = self.ffn(self.ln2(x), last_state.channel_mix_state)
-        x = x + ffn_out
-        last_state.time_mix_state = att_state
-        last_state.channel_mix_state = fnn_state
-        return x, last_state
-class RWKVDecoderLayer(nn.Module):
-    def __init__(
-        self,
-        args,
-        layer_idx: int
-    ):
-        super(RWKVDecoderLayer, self).__init__()
-        self.block = Block(args,layer_idx)
-        self.layer_idx = layer_idx
-        self.args = args
-
-    def forward(self, 
-                hidden_states: torch.Tensor, 
-                past_key_value: Optional[Cache] = None,
-        use_cache: Optional[bool] = False, 
-        output_attentions: Optional[bool] = False, 
-        *args, 
-        **kwargs):
-        # Ensure hidden_states requires gradient
-        _,T,_ = hidden_states.shape
-        if past_key_value is not None:
-            if len(past_key_value) <= self.layer_idx:
-                last_state = None
-            else:
-                last_state = past_key_value[self.layer_idx][0]
-        hidden_states,states= self.block(hidden_states,last_state)
-        # hidden_states = self.block(hidden_states)
-        # logging.info(f'forward in {self.layer_idx}')
-        # so here is just to be compatible with Transformer
-
-        # past_key_value = kwargs.get("past_key_value", None)
-
-        if past_key_value is not None:
-            keys = T
-            values = states
-            past_key_value.update(keys, values, self.layer_idx)
-        outputs = (hidden_states,)
-        if output_attentions :
-            outputs += (None,)
-        if use_cache:
-            outputs += (past_key_value,)
-        return outputs
 
 class HybridModel(nn.Module):
-    def __init__(self,transformer_model,rwkv_args):
+    def __init__(self,rwkv_args,transformer_config):
         super(HybridModel, self).__init__()
-        attn_num_heads = transformer_model.config.num_attention_heads
-        attn_num_key_value_heads = transformer_model.config.num_key_value_heads
-        assert attn_num_heads % attn_num_key_value_heads == 0
-        n_share = attn_num_heads // attn_num_key_value_heads
-        def init_block_params(rwkv_args,layer_idx,llama_layer):
-            if rwkv_args.is_rwkv_att_only:
-                decoder = llama_layer
-                att = RWKV_Tmix_x070_Wrapper(rwkv_args,layer_idx)
-                # att.time_mixer.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
-                # att.time_mixer.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
-                # att.time_mixer.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
-                # att.time_mixer.output.weight.data = llama_layer.self_attn.o_proj.weight.data
-                llama_layer.self_attn = att
-                return decoder
-            else:
-                decoder = RWKVDecoderLayer(rwkv_args,layer_idx)
-                # decoder.block.att.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
-                # decoder.block.att.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
-                # decoder.block.att.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
-                # decoder.block.att.output.weight.data = llama_layer.self_attn.o_proj.weight.data
-                if rwkv_args.is_llama_ffn:
-                    decoder.block.ffn = llama_layer.mlp
-                return decoder
-            # decoder = RWKVDecoderLayer(rwkv_args,layer_idx)
-            # if rwkv_args.is_llama_ffn:
-            #     decoder.block.ffn = llama_layer.mlp
-            # decoder.block.att.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
-            # decoder.block.att.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
-            # decoder.block.att.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
-            # decoder.block.att.output.weight.data = llama_layer.self_attn.o_proj.weight.data
-            # decoder.block.ffn.key.weight.data = llama_layer.mlp.up_proj.weight.data
-            # decoder.block.ffn.value.weight.data = llama_layer.mlp.down_proj.weight.data
-            return decoder
-        for layer_idx in range(transformer_model.config.num_hidden_layers):
-            if layer_idx in rwkv_args.layers:
-                rwkv_encoder = init_block_params(rwkv_args,layer_idx,transformer_model.model.layers[layer_idx])
-                old_layer = transformer_model.model.layers[layer_idx]
-                transformer_model.model.layers[layer_idx] = rwkv_encoder
-                del old_layer
-        self.model = transformer_model
         self.args = rwkv_args
+        print(f'rwkv_args: {rwkv_args}')
+        print(f'transformer_config: {transformer_config}')
+
+        self.model = AutoModelForCausalLM.from_config(transformer_config)
+        print(f'init transformer model: {self.model}')
+        # Create a method wrapper for the forward pass
+        def wrapped_decoder_forward(original_forward, layer_idx):
+            def new_forward(self, hidden_states, **kwargs):
+                v_first = kwargs.pop('v_first', None)
+                
+                # Get the residual and normalized hidden states as in original implementation
+                residual = hidden_states
+                hidden_states = self.input_layernorm(hidden_states)
+                
+                # Call the attention layer with v_first if it's a RWKV layer
+                if isinstance(self.self_attn, RWKV_Tmix_x070_Wrapper):
+                    hidden_states, self_attn_weights, present_key_value, new_v_first = self.self_attn(
+                        hidden_states=hidden_states,
+                        v_first=v_first,
+                        **kwargs
+                    )
+                    # Store v_first for the next layer
+                    kwargs['v_first'] = new_v_first
+                else:
+                    hidden_states, self_attn_weights, present_key_value = self.self_attn(
+                        hidden_states=hidden_states,
+                        **kwargs
+                    )
+                
+                hidden_states = residual + hidden_states
+                
+                # Fully Connected part remains the same
+                residual = hidden_states
+                hidden_states = self.post_attention_layernorm(hidden_states)
+                hidden_states = self.mlp(hidden_states)
+                hidden_states = residual + hidden_states
+                
+                outputs = (hidden_states,)
+                
+                if kwargs.get('output_attentions', False):
+                    outputs += (self_attn_weights,)
+                if kwargs.get('use_cache', False):
+                    outputs += (present_key_value,)
+                    
+                # Add v_first to the outputs if we're using RWKV
+                if isinstance(self.self_attn, RWKV_Tmix_x070_Wrapper):
+                    kwargs['v_first'] = new_v_first
+                
+                return outputs
+            
+            return types.MethodType(new_forward, self)
+        #Replace the self attention to TimeMixer
+        for layer_idx in range(transformer_config.num_hidden_layers):
+            llama_layer = self.model.model.layers[layer_idx]
+            if layer_idx in rwkv_args.layers:
+                att = RWKV_Tmix_x070_Wrapper(rwkv_args,layer_idx)
+                old_attn = llama_layer.self_attn
+                llama_layer.self_attn = att
+                del old_attn
+                # Wrap the forward method
+                llama_layer.forward = wrapped_decoder_forward(llama_layer.forward, layer_idx)
+                print(f'layer {layer_idx} is replaced by RWKV TimeMixer_x070')
+        import gc
+        gc.collect()
+    
     def forward(
         self,
         input_ids,
         inference_params=None,
         **kwargs,
     ):
+        # Initialize v_first as None for the first layer
+        kwargs['v_first'] = None
         return self.model(input_ids, **kwargs)
     def load_ckpt(self, ckpt_file):
         print(f'loading ckpt from {ckpt_file}')
@@ -434,18 +333,19 @@ def create_rwkv_args(transformer_config, config):
     return args
          
 if __name__ == '__main__':
-    from transformers import AutoModelForCausalLM, AutoTokenizer
-    config_file = "configs/test_hybrid_full_logits_qwenmlp_local.yaml"
+    from transformers import AutoModelForCausalLM, AutoTokenizer,AutoConfig
+    config_file = "configs/qwen_7b.yaml"
     import yaml
     with open(config_file) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
     print(config)
+    from transformers import AutoConfig
     model_id = config['Llama']['model_id']
     tokenizer = AutoTokenizer.from_pretrained(model_id)
-    transformer_model = AutoModelForCausalLM.from_pretrained(model_id)
-    print(transformer_model)
-    args = create_rwkv_args(transformer_model.config, config)
-    model = HybridModel(transformer_model,args)
+    transformer_config = AutoConfig.from_pretrained(model_id)
+    print(transformer_config)
+    args = create_rwkv_args(transformer_config, config)
+    model = HybridModel(args,transformer_config)
     print(model)
-    ckpt_file = '/home/yueyulin/model/qwen/qwen0.5Bepoch0/pytorch_model.bin'
+    ckpt_file = '/home/yueyulin/model/qwen_7b_distill/7b_stage2_model_converted.bin'
     model.load_ckpt(ckpt_file)
