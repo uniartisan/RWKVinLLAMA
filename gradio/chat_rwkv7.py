@@ -84,10 +84,10 @@ def chat(message, history, session):
     })
     print(session["conversation"])
     current_input_text = tokenizer.apply_chat_template(session["conversation"], tokenize=False, add_generation_prompt=True)
-    print(current_input_text)
-    # index_of_im_start = current_input_text.find("<|im_start|>user")
-    # if index_of_im_start != -1:
-    #     current_input_text = current_input_text[index_of_im_start:]
+    # print(current_input_text)
+    index_of_im_start = current_input_text.find("<|im_start|>user")
+    if index_of_im_start != -1:
+        current_input_text = current_input_text[index_of_im_start:]
     print(current_input_text)
     input_ids = tokenizer(current_input_text, return_tensors="pt").to("cuda:0")
     input_length = input_ids.input_ids.shape[1]
@@ -98,11 +98,11 @@ def chat(message, history, session):
         do_sample = True,
         use_cache = True,
         temperature = 0.7,
-        top_k = 40,
-        top_p = 0.9,
+        top_k = 30,
+        top_p = 0.7,
         min_p = 0.05,
         repetition_penalty = 1.1,
-        no_repeat_ngram_size = 3,
+        no_repeat_ngram_size = 4,
     )
     with torch.no_grad():
         if is_hybrid:
