@@ -1,6 +1,7 @@
 import sys
 import os
 import types
+import threading
 
 
 def setup_env():
@@ -298,7 +299,9 @@ class HybridModel(nn.Module):
         print(f"init transformer model: {self.model}")
 
         # Register v_first as a buffer
-        self.register_buffer("v_first", None)
+        self.thread_local = threading.local()
+        self.thread_local.v_first = None
+
         # Replace the self attention to TimeMixer
         for layer_idx in range(transformer_config.num_hidden_layers):
             llama_layer = self.model.model.layers[layer_idx]
@@ -330,10 +333,10 @@ class HybridModel(nn.Module):
 
     def update_v_first(self, new_v_first):
         """Callback function to update v_first in HybridModel."""
-        self.v_first = new_v_first
+        self.thread_local.v_first = new_v_first
 
     def get_v_first(self):
-        return self.v_first
+        return self.thread_local.v_first
 
     def load_ckpt(self, ckpt_file):
         print(f"loading ckpt from {ckpt_file}")
