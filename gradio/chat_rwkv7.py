@@ -116,7 +116,8 @@ def chat(message, history, session):
             past_key_values=session["cache"],
             generation_config=gen_config,
             tokenizer = tokenizer,
-            output_attentions=False
+            output_attentions=False,
+            use_cache=True,
         )
     
     generated_text = tokenizer.decode(output[0,input_length:], skip_special_tokens=True)            

@@ -26,14 +26,20 @@ from einops import rearrange
 import math
 from fla.ops.rwkv7.fused_recurrent import fused_recurrent_rwkv7
 def RUN_CUDA_RWKV7_STATE(B, T, C, H, r, k, v, w, a, b,s):
+    original_device = r.device
     dtype = r.dtype
-    r = rearrange(r, 'b l (h d) -> b h l d', h = H)
-    k = rearrange(k, 'b l (h d) -> b h l d', h = H)
-    v = rearrange(v, 'b l (h d) -> b h l d', h = H)
-    w = rearrange(w, 'b l (h d) -> b h l d', h = H)
+    r = rearrange(r, 'b l (h d) -> b h l d', h = H).to('cuda:0')
+    k = rearrange(k, 'b l (h d) -> b h l d', h = H).to('cuda:0')
+    v = rearrange(v, 'b l (h d) -> b h l d', h = H).to('cuda:0')
+    w = rearrange(w, 'b l (h d) -> b h l d', h = H).to('cuda:0')
+    a = a.to('cuda:0')
+    b = b.to('cuda:0')
+    s = s.to('cuda:0')
     o, state = fused_recurrent_rwkv7(r, k, v, w, a,b, scale=1., initial_state=s, output_final_state=True,training=False)
     x = rearrange(o, 'b h l d -> b l (h d)')
-    return x.to(dtype), state.to(dtype)
+    x = x.to(original_device, dtype)
+    state = state.to(original_device, dtype)
+    return x,state
 import torch
 from utilities import TimeMixState, ChannelMixState, BlockState
 import torch.nn as nn
@@ -176,7 +182,9 @@ class RWKV_Tmix_x070(nn.Module):
         x = x + ((r.view(B,T,H,-1)*k.view(B,T,H,-1)*self.r_k).sum(dim=-1, keepdim=True) * v.view(B,T,H,-1)).view(B,T,C)
         x = self.output(x * g)
         return x,v_first,TimeMixState(lx,wkv_state)
+from contextvars import ContextVar
 
+v_first_var = ContextVar('v_first', default=None)
 
 class RWKV_Tmix_x070_Wrapper(nn.Module):
     def __init__(self, args, layer_id):
@@ -190,7 +198,8 @@ class RWKV_Tmix_x070_Wrapper(nn.Module):
             past_key_value,
             **kwargs):
         x = hidden_states
-        v_first = kwargs.get('v_first',None)
+        # 获取当前 v_first
+        v_first = v_first_var.get()
         args = self.args
         B, T, C = x.size()
         if past_key_value is not None:
@@ -214,13 +223,14 @@ class RWKV_Tmix_x070_Wrapper(nn.Module):
             # print(wkv_states)
             channel_state = None
             last_state = BlockState(time_state,channel_state)
-        x,v_first,states= self.time_mixer(x,v_first,last_state.time_mix_state)
+        x,new_v_first,states= self.time_mixer(x,v_first,last_state.time_mix_state)
+        v_first_var.set(new_v_first)
         last_state.time_mix_state = states
         if past_key_value is not None:
             keys = T
             values = last_state
             past_key_value.update(keys, values, self.layer_idx)
-        return x,None,past_key_value,v_first    
+        return x,None,past_key_value    
 
 
 class HybridModel(nn.Module):
@@ -232,63 +242,7 @@ class HybridModel(nn.Module):
         with no_init_weights():
             self.model = AutoModelForCausalLM.from_config(transformer_config)
         print(f'init transformer model: {self.model}')
-        # Create a method wrapper for the forward pass
-        def wrap_decoder_forward(layer):
-            original_forward = layer.forward
-            
-            def new_forward(hidden_states, **kwargs):
-                attention_mask = kwargs.pop('attention_mask', None)
-                position_ids = kwargs.pop('position_ids', None)
-                past_key_value = kwargs.pop('past_key_value', None)
-                output_attentions = kwargs.pop('output_attentions', False)
-                use_cache = kwargs.pop('use_cache', False)
-                cache_position = kwargs.pop('cache_position', None)
-                # Get the residual and normalized hidden states as in original implementation
-                residual = hidden_states
-                hidden_states = layer.input_layernorm(hidden_states)
-                
-                # Call the attention layer with v_first if it's a RWKV layer
-                if isinstance(layer.self_attn, RWKV_Tmix_x070_Wrapper):
-                    hidden_states, self_attn_weights, present_key_value, new_v_first = layer.self_attn(
-                        hidden_states,
-                        past_key_value,
-                        **kwargs
-                    )
-                    # Store v_first for the next layer
-                    kwargs['v_first'] = new_v_first
-                else:
-                    hidden_states, self_attn_weights, present_key_value = layer.self_attn(
-                        hidden_states=hidden_states,
-                        attention_mask=attention_mask,
-                        position_ids=position_ids,
-                        past_key_value=past_key_value,
-                        output_attentions=output_attentions,
-                        use_cache=use_cache,
-                        cache_position=cache_position,
-                    )
-                
-                hidden_states = residual + hidden_states
-                
-                # Fully Connected part remains the same
-                residual = hidden_states
-                hidden_states = layer.post_attention_layernorm(hidden_states)
-                hidden_states = layer.mlp(hidden_states)
-                hidden_states = residual + hidden_states
-                
-                outputs = (hidden_states,)
-                
-                if output_attentions:
-                    outputs += (self_attn_weights,)
-                if use_cache:
-                    outputs += (present_key_value,)
-                    
-                # Add v_first to the outputs if we're using RWKV
-                if isinstance(layer.self_attn, RWKV_Tmix_x070_Wrapper):
-                    kwargs['v_first'] = new_v_first
-                
-                return outputs
-            
-            return new_forward
+        
         #Replace the self attention to TimeMixer
         for layer_idx in range(transformer_config.num_hidden_layers):
             llama_layer = self.model.model.layers[layer_idx]
@@ -297,8 +251,6 @@ class HybridModel(nn.Module):
                 old_attn = llama_layer.self_attn
                 llama_layer.self_attn = att
                 del old_attn
-                # Wrap the forward method
-                llama_layer.forward = wrap_decoder_forward(llama_layer)
                 print(f'layer {layer_idx} is replaced by RWKV TimeMixer_x070')
         import gc
         gc.collect()
