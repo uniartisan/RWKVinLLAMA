@@ -47,8 +47,9 @@ def load_model(config_file, ckpt_file, num_gpus, off_load_emb_head):
         model = model.to(dtype=dtype)
         num_layers = model.model.config.num_hidden_layers
         device_map = {}
+        average_layers = num_layers // num_gpus
         for i in range(num_layers):
-            device_map[f"model.layers.{i}"] = i % num_gpus
+            device_map[f"model.layers.{i}"] = i // average_layers
         if off_load_emb_head:
             device_map["model.embed_tokens"] = "cpu"
             device_map["model.norm"] = "cpu"
