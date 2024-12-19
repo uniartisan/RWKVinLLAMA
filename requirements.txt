@@ -1,0 +1,11 @@
+deepspeed
+transformers
+gradio
+datasets
+rwkv-fla
+einops
+accelerate
+--extra-index-url https://download.pytorch.org/whl/cu118
+torch
+torchvision
+torchaudio
