@@ -239,6 +239,8 @@ class HybridModel(nn.Module):
         self.args = rwkv_args
         print(f'rwkv_args: {rwkv_args}')
         print(f'transformer_config: {transformer_config}')
+        if transformer_config.tie_word_embeddings :
+            transformer_config.tie_word_embeddings = False
         with no_init_weights():
             self.model = AutoModelForCausalLM.from_config(transformer_config)
         print(f'init transformer model: {self.model}')
