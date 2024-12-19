@@ -34,15 +34,13 @@ from rwkvfla.ops.rwkv7 import fused_recurrent_rwkv7
 
 
 def RUN_CUDA_RWKV7_STATE(B, T, C, H, r, k, v, w, a, b, s):
-    original_device = r.device
-    dtype = r.dtype
-    r = rearrange(r, "b l (h d) -> b h l d", h=H).to("cuda:0")
-    k = rearrange(k, "b l (h d) -> b h l d", h=H).to("cuda:0")
-    v = rearrange(v, "b l (h d) -> b h l d", h=H).to("cuda:0")
-    w = rearrange(w, "b l (h d) -> b h l d", h=H).to("cuda:0")
-    a = rearrange(a, "b l (h d) -> b h l d", h=H).to("cuda:0")
-    b = rearrange(b, "b l (h d) -> b h l d", h=H).to("cuda:0")
-    s = s.to("cuda:0")
+    getattr(torch, r.device.type).set_device(r.device.index)
+    r = rearrange(r, "b l (h d) -> b h l d", h=H)
+    k = rearrange(k, "b l (h d) -> b h l d", h=H)
+    v = rearrange(v, "b l (h d) -> b h l d", h=H)
+    w = rearrange(w, "b l (h d) -> b h l d", h=H)
+    a = rearrange(a, "b l (h d) -> b h l d", h=H)
+    b = rearrange(b, "b l (h d) -> b h l d", h=H)
 
     o, state = fused_recurrent_rwkv7(
         r,
@@ -57,8 +55,6 @@ def RUN_CUDA_RWKV7_STATE(B, T, C, H, r, k, v, w, a, b, s):
         training=False,
     )
     x = rearrange(o, "b h l d -> b l (h d)")
-    x = x.to(original_device, dtype)
-    state = state.to(original_device, dtype)
     return x, state
 
 
