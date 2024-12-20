@@ -117,7 +117,7 @@ def create_arg_parser():
     parser.add_argument('--train_batch_size', type=int, default=None, help='train batch size')
     parser.add_argument('--world_size', type=int, help='world size')
     parser.add_argument('--local_rank', type=int, help='local rank')
-    parser.add_argument('--stage', type=int, default=1,choices=[1,2], help='stage 1 only align attn output and stage 2 do kl-divergence')
+    parser.add_argument('--stage', type=int, default=1,choices=[1,2,3], help='stage 1 only align attn output and stage 2 do kl-divergence,and stage 3 do SFT')
     parser.add_argument('--max_trained_tokens', type=int, default=100_000_000, help='max trained tokens')
     parser.add_argument('--terminate_at_loss', type=float, default=0, help='terminate the training at loss')
     return parser
@@ -380,7 +380,7 @@ if __name__ == '__main__':
             print(model)
         del dict_set
     # 设置模型参数的训练状态
-    if args.stage == 2:
+    if args.stage == 2 or args.stage == 3:#3 means sft
         print('all params are trainable')
         if args.grad_cp == 1:
             model.model.gradient_checkpointing_enable()
@@ -543,6 +543,7 @@ if __name__ == '__main__':
             optimizer=optimizer,
             config=ds_config
         )
+        #we only init  teacher related stuff when is_sft is False
         #init the VFirstHolder with (B,T,C) shape
         vfirst_holder = VFirstHolder(args.micro_bsz, args.max_seq_length, args.dim_att)
         ds_config_state = {
@@ -658,7 +659,7 @@ if __name__ == '__main__':
             # 清理不需要的引用
             del teacher_model
             torch.cuda.empty_cache()
-        else:
+        elif args.stage == 1:
             #in stage 1, we don't need teacher model and 
             #we only align the original self attn output with TimeMixer output
             #Init the teacher module list engine with deepspeed
@@ -719,6 +720,10 @@ if __name__ == '__main__':
             torch.cuda.empty_cache()
             if args.local_rank == 0:
                 print(f'current gpu memory AFTER initializing teacher attn list: {torch.cuda.memory_summary(device=None, abbreviated=False)}')
+        else:
+            #Other stage we don't need teacher model
+            #SFT or DPO
+            teacher_engine = None
     else:
         # 如果不使用 DeepSpeed，使用普通的优化器
         print('not using deepspeed, EXIT')

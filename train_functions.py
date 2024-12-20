@@ -184,26 +184,53 @@ def get_teacher_outputs(teacher_model, input_ids, attention_mask, labels, args):
     # 将teacher模型移回CPU
     # teacher_model.to('cpu')
     return teacher_logits, teacher_hidden_states, teacher_loss
+
 @time_function
-def compute_kl_loss(student_outputs, teacher_logits, labels, args):
-    student_logits = student_outputs.logits
+def compute_kl_loss(student_outputs, teacher_logits, labels, args, chunk_size=4096):
+    student_logits = student_outputs.logits  # shape: [batch_size, seq_len, vocab_size]
     student_cross_entropy_loss = student_outputs.loss
+    total_length = student_logits.size(1)
+    
+    # 先对整个序列计算 softmax，保证归一化范围一致
+    log_probs_student = F.log_softmax(student_logits, dim=-1)  # 在词表维度上做 softmax
     targets = F.softmax(teacher_logits, dim=-1)
     
-    if args.is_all_labels_kl:
-        kl_loss = F.kl_div(F.log_softmax(student_logits, dim=-1), targets, reduction='batchmean')
+    if total_length <= chunk_size:
+        kl_loss = F.kl_div(
+            log_probs_student,
+            targets,
+            reduction='batchmean'
+        )
     else:
-        mask = (labels != -100).float()
-        log_probs_student = F.log_softmax(student_logits, dim=-1) * mask.unsqueeze(-1)
-        probs_teacher = targets * mask.unsqueeze(-1)
-        kl_div = F.kl_div(log_probs_student, probs_teacher, reduction='none')
-        kl_div = kl_div.sum(dim=-1)
-        num_valid_elements = mask.sum()
-        kl_loss = kl_div.sum() / num_valid_elements
+        # 分段计算总的 KL divergence
+        total_kl_div = 0
+        chunk_size = 256
+        num_chunks = (total_length + chunk_size - 1) // chunk_size
+        
+        for chunk_start in range(0, total_length, chunk_size):
+            chunk_end = min(chunk_start + chunk_size, total_length)
+            # 取出已经计算好的 log_probs 和 targets
+            chunk_log_probs = log_probs_student[:, chunk_start:chunk_end, :]
+            chunk_targets = targets[:, chunk_start:chunk_end, :]
+            
+            # 计算当前段的 KL div 并累加
+            chunk_kl_div = F.kl_div(
+                chunk_log_probs,
+                chunk_targets,
+                reduction='none'  # 先不做 reduction
+            )
+            total_kl_div += chunk_kl_div.sum()  # 累加所有元素
+            
+            # 释放临时变量
+            del chunk_log_probs, chunk_targets
+        
+        # 最后统一做归一化，保证和整体计算结果一致
+        kl_loss = total_kl_div / (student_logits.size(0) * total_length * student_logits.size(2))
     
     loss = args.kl_weight * kl_loss + args.ce_weight * student_cross_entropy_loss
-    del student_logits, teacher_logits,labels
-    return loss, kl_loss,student_cross_entropy_loss
+    del student_logits, teacher_logits, labels, log_probs_student, targets
+    return loss, kl_loss, student_cross_entropy_loss
+
 @time_function
 def compute_hidden_state_loss(student_outputs, teacher_hidden_states):
     # mask = torch.ne(labels, -100).to(labels.device)
