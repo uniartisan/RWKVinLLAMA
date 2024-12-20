@@ -1,6 +1,7 @@
 import sys
 import os
 import types
+import threading
 
 
 def setup_env():
@@ -33,15 +34,13 @@ from rwkvfla.ops.rwkv7 import fused_recurrent_rwkv7
 
 
 def RUN_CUDA_RWKV7_STATE(B, T, C, H, r, k, v, w, a, b, s):
-    original_device = r.device
-    dtype = r.dtype
-    r = rearrange(r, "b l (h d) -> b h l d", h=H).to("cuda:0")
-    k = rearrange(k, "b l (h d) -> b h l d", h=H).to("cuda:0")
-    v = rearrange(v, "b l (h d) -> b h l d", h=H).to("cuda:0")
-    w = rearrange(w, "b l (h d) -> b h l d", h=H).to("cuda:0")
-    a = rearrange(a, "b l (h d) -> b h l d", h=H).to("cuda:0")
-    b = rearrange(b, "b l (h d) -> b h l d", h=H).to("cuda:0")
-    s = s.to("cuda:0")
+    getattr(torch, r.device.type).set_device(r.device.index)
+    r = rearrange(r, "b l (h d) -> b h l d", h=H)
+    k = rearrange(k, "b l (h d) -> b h l d", h=H)
+    v = rearrange(v, "b l (h d) -> b h l d", h=H)
+    w = rearrange(w, "b l (h d) -> b h l d", h=H)
+    a = rearrange(a, "b l (h d) -> b h l d", h=H)
+    b = rearrange(b, "b l (h d) -> b h l d", h=H)
 
     o, state = fused_recurrent_rwkv7(
         r,
@@ -56,8 +55,6 @@ def RUN_CUDA_RWKV7_STATE(B, T, C, H, r, k, v, w, a, b, s):
         training=False,
     )
     x = rearrange(o, "b h l d -> b l (h d)")
-    x = x.to(original_device, dtype)
-    state = state.to(original_device, dtype)
     return x, state
 
 
@@ -298,7 +295,9 @@ class HybridModel(nn.Module):
         print(f"init transformer model: {self.model}")
 
         # Register v_first as a buffer
-        self.register_buffer("v_first", None)
+        self.thread_local = threading.local()
+        self.thread_local.v_first = None
+
         # Replace the self attention to TimeMixer
         for layer_idx in range(transformer_config.num_hidden_layers):
             llama_layer = self.model.model.layers[layer_idx]
@@ -330,10 +329,10 @@ class HybridModel(nn.Module):
 
     def update_v_first(self, new_v_first):
         """Callback function to update v_first in HybridModel."""
-        self.v_first = new_v_first
+        self.thread_local.v_first = new_v_first
 
     def get_v_first(self):
-        return self.v_first
+        return self.thread_local.v_first
 
     def load_ckpt(self, ckpt_file):
         print(f"loading ckpt from {ckpt_file}")
