@@ -1,3 +1,42 @@
+import sys
+import os
+'''
+For test purpose only , we need to comment it  out
+'''
+
+def setup_env():
+    parent_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    sys.path.append(parent_dir)
+    # rwkv_path = os.path.join(parent_dir, 'rwkv7')
+    # sys.path.append(rwkv_path)
+    rwkv6_path = os.path.join(parent_dir, 'rwkv')
+    sys.path.append(rwkv6_path)
+    rwkv_llama_path = os.path.join(parent_dir, 'rwkv_llama')
+    sys.path.append(rwkv_llama_path)
+    # print(f'add path: {rwkv_path} to sys.path')
+    print(f'add path: {parent_dir} to sys.path')
+    print(f'add path: {rwkv_llama_path} to sys.path')
+    os.environ['CUDA_HOME'] = '/usr/local/cuda-12.1'
+    os.environ['RWKV_JIT_ON'] = '0'
+    os.environ['RWKV_T_MAX'] = '4096'
+    os.environ['RWKV_FLOAT_MODE'] = 'bf16'
+    os.environ['RWKV_HEAD_SIZE_A'] = '64'
+    os.environ['RWKV_T_MAX'] = '4096'
+    
+    os.environ['RWKV_CTXLEN'] = '4096'
+    if 'WKV' not in os.environ:
+        os.environ['WKV'] = ''
+    if "RWKV_TRAIN_TYPE" not in os.environ:
+        os.environ["RWKV_TRAIN_TYPE"] = ''
+    RWKV_VERSION = os.environ.get('RWKV_VERSION', 'v7')
+    if RWKV_VERSION == 'v7':
+        os.environ["RWKV_MY_TESTING"]='x070'
+    else:
+        os.environ["RWKV_MY_TESTING"]='x060'
+    print(f'RWKV_VERSION is {RWKV_VERSION}')
+    
+setup_env()
+
 from functools import partial
 import os
 from typing import Optional, Tuple
@@ -21,8 +60,7 @@ from deepspeed.accelerator import get_accelerator
 from pytorch_lightning.strategies import DeepSpeedStrategy
 # from adam_mini import Adam_mini
 from transformers import AutoModelForCausalLM
-import cupy as cp
-from cupy.cuda import nccl
+import gc
 import logging
 # from liger_kernel.transformers import LigerFusedLinearCrossEntropyLoss
 import os
@@ -154,7 +192,7 @@ class AttentionWrapper(nn.Module):
             else:
                 student_hidden_states = self.student_attn(hidden_states)
         self.v_first_state.shared_state.data.copy_(v_first)
-        if self.args.stage == 2:
+        if self.args.stage != 1:
             return (student_hidden_states, None, past_key_value)
         # student_outputs = self.student_attn(hidden_states)
         with torch.no_grad():
@@ -165,7 +203,33 @@ class AttentionWrapper(nn.Module):
         special_attn_loss = torch.linalg.vector_norm(teacher_hidden_states - student_hidden_states, dim=-1).mean() * (teacher_hidden_states[0].size(-1) ** -0.5)
         return (teacher_outputs[0], special_attn_loss, ) + teacher_outputs[2:]
 
-class HybridModel(pl.LightningModule):
+class HybridModel(nn.Module):
+    
+    @staticmethod
+    def get_rwkv_args(transformer_config):
+        from argparse import Namespace
+        args = Namespace()
+        args.my_pos_emb = 0
+        args.head_size_a = 64
+        args.head_size_divisor = 8
+        args.ctx_len = 4096
+        args.n_layer = transformer_config.num_hidden_layers
+        args.n_embd = transformer_config.hidden_size
+        args.dim_att = transformer_config.hidden_size
+        args.dim_ffn = transformer_config.intermediate_size
+        args.pre_ffn = 0
+        args.head_qk = 0
+        args.tiny_att_dim = 0
+        args.tiny_att_layer = -999
+        args.vocab_size = transformer_config.vocab_size
+        args.layers = [i for i in range(transformer_config.num_hidden_layers)]
+        args.pad_id = transformer_config.eos_token_id
+        args.stage = 4
+        args.is_rwkv_att_only = True
+        args.is_all_labels_kl = True
+        args.init_with_llama = False
+        return args
+    
     def __init__(self, transformer_model, rwkv_args, tokenizer=None):
         super(HybridModel, self).__init__()
         attn_num_heads = transformer_model.config.num_attention_heads
@@ -240,36 +304,46 @@ class HybridModel(pl.LightningModule):
         ret = self.model(input_ids, **kwargs)
         return ret
     
-    def configure_optimizers(self):
-        return configure_optimizer(self, self.args)
-    
-    @property
-    def deepspeed_offload(self) -> bool:
-        strategy = self.trainer.strategy
-        if isinstance(strategy, DeepSpeedStrategy):
-            cfg = strategy.config["zero_optimization"]
-            return cfg.get("offload_optimizer") or cfg.get("offload_param")
-        return False
-    def on_fit_start(self):
-        self.client = initialize_nccl_client(self.args)
-    def validation_step(self, batch, batch_idx):
-        result = validation_step(self, batch, self.args, self.teacher_model, self.tokenizer)
-        self.log_dict(result, prog_bar=True)
-        return result
-    def on_train_batch_end(self, outputs, batch, batch_idx):
-        # 在每个训练批次结束时清空缓存
-        try:
-            get_accelerator().empty_cache()
-        except AttributeError:
-            # 如果get_accelerator()不可用,尝试使用torch.cuda
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-        except Exception as e:
-            print(f"无法清空缓存: {e}")
-    def training_step(self, batch, batch_idx):
-        loss, teacher_loss, kl_loss, student_cross_entropy_loss = train_step(self, batch, self.args, self.teacher_model, self.tokenizer)
-        return {"loss": loss, "teacher_loss": teacher_loss, "kl_loss": kl_loss, "student_cross_entropy_loss": student_cross_entropy_loss}
-            
+    def load_check_point(self, path):
+        all_keys = set(self.state_dict().keys())
+        incompatible_keys = set()
+        #if the path is the file, load it directly
+        #if the path is the directory, load the sharded files in the directory with suffix .pt
+        if os.path.isdir(path):
+            files = os.listdir(path)
+            files = [os.path.join(path, f) for f in files if f.endswith('.pt')]
+        else:
+            files = [path]
+        for file in files:
+            checkpoint = torch.load(file, map_location='cpu')
+            self.load_state_dict(checkpoint, strict=False)
+            print(f'load model from {file}')
+            ckpt_keys = checkpoint.keys()
+            #subtract the keys in the checkpoint from the all_keys
+            #if the ckpt_key exists in the all_keys, remove it
+            for ckpt_key in ckpt_keys:
+                if ckpt_key in all_keys:
+                    all_keys.remove(ckpt_key)
+                else:
+                    incompatible_keys.add(ckpt_key)
+            del checkpoint
+            gc.collect()
+        print(f'Finish loading model from {path}')
+        print(f'Incompatible keys: {incompatible_keys} missing keys: {all_keys}')
+        
+        
+        return
 
 
+if __name__ == '__main__':
+    model_id = '/home/yueyulin/models/Qwen2.5-0.5B-Instruct/'
+    from transformers import AutoConfig,AutoModelForCausalLM
+    from transformers.modeling_utils import no_init_weights
+    config = AutoConfig.from_pretrained(model_id)
+    rwkv_args = HybridModel.get_rwkv_args(config)
+    with no_init_weights():
+        transformer_model = AutoModelForCausalLM.from_config(config)
+    hybrid_model = HybridModel(transformer_model, rwkv_args)    
+    ckpt_path = '/home/yueyulin/model/qwen_0.5b_full_layers_stage2_v7/pytorch_model.bin'
+    hybrid_model.load_check_point(ckpt_path)
 

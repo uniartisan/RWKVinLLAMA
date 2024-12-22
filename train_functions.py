@@ -115,6 +115,205 @@ def get_teacher_outputs_vl(teacher_model,
     return teacher_logits, teacher_hidden_states, teacher_loss
 
 @time_function
+def dpo_train_step(model, ref_model, batch, args):
+    """
+    Implements DPO training step following TRL's implementation
+    """
+    # Helper for concatenating tensors
+    @time_function
+    def concatenate_inputs(batch, pad_token_id):
+        """
+        Concatenate inputs handling variable lengths, ensuring each prompt+completion pair
+        is concatenated before padding
+        """
+        batch_size = batch["prompt_input_ids"].shape[0]
+        
+        # Initialize lists for chosen and rejected sequences separately
+        chosen_sequences = []
+        chosen_masks = []
+        rejected_sequences = []
+        rejected_masks = []
+        prompt_lens = []  # Store prompt lengths for later use
+        
+        # Process each sample in the batch
+        for i in range(batch_size):
+            # Get prompt length for this sample (excluding padding)
+            prompt_len = int(torch.sum(batch["prompt_attention_mask"][i]).item())  # Ensure integer
+            prompt_lens.append(prompt_len)
+            prompt_ids = batch["prompt_input_ids"][i, :prompt_len]
+            
+            # Process chosen completion
+            chosen_len = int(torch.sum(batch["chosen_attention_mask"][i]).item())  # Ensure integer
+            chosen_ids = batch["chosen_input_ids"][i, :chosen_len]
+            
+            # Process rejected completion
+            rejected_len = int(torch.sum(batch["rejected_attention_mask"][i]).item())  # Ensure integer
+            rejected_ids = batch["rejected_input_ids"][i, :rejected_len]
+            
+            # Concatenate prompt with chosen and rejected
+            chosen_seq = torch.cat([prompt_ids, chosen_ids])
+            rejected_seq = torch.cat([prompt_ids, rejected_ids])
+            
+            # Create attention masks
+            chosen_mask = torch.ones(len(chosen_seq), device=chosen_seq.device)
+            rejected_mask = torch.ones(len(rejected_seq), device=rejected_seq.device)
+            
+            # Store sequences in separate lists
+            chosen_sequences.append(chosen_seq)
+            chosen_masks.append(chosen_mask)
+            rejected_sequences.append(rejected_seq)
+            rejected_masks.append(rejected_mask)
+        
+        # Combine in correct order: all chosen, then all rejected
+        sequences = chosen_sequences + rejected_sequences
+        attention_masks = chosen_masks + rejected_masks
+        
+        # Find max length across all sequences
+        max_len = max(len(seq) for seq in sequences)
+        
+        # Create padded tensors
+        padded_input_ids = torch.full(
+            (batch_size * 2, max_len),
+            pad_token_id,
+            dtype=sequences[0].dtype,
+            device=sequences[0].device
+        )
+        attention_mask = torch.zeros(
+            (batch_size * 2, max_len),
+            dtype=attention_masks[0].dtype,
+            device=attention_masks[0].device
+        )
+        
+        # Fill in sequences and masks
+        sequence_lens = []  # Store sequence lengths for later use
+        for i, (seq, mask) in enumerate(zip(sequences, attention_masks)):
+            seq_len = len(seq)
+            sequence_lens.append(seq_len)
+            padded_input_ids[i, :seq_len] = seq
+            attention_mask[i, :seq_len] = mask
+        
+        # Create loss mask (0 for prompt, 1 for completion)
+        loss_mask = torch.zeros_like(attention_mask)
+        for i in range(batch_size * 2):
+            # For chosen sequences (0 to batch_size-1)
+            # For rejected sequences (batch_size to 2*batch_size-1)
+            base_idx = i if i < batch_size else i - batch_size
+            prompt_len = prompt_lens[base_idx]  # Use stored integer
+            seq_len = sequence_lens[i]  # Use stored integer
+            loss_mask[i, prompt_len:seq_len] = 1
+        
+        # Shift loss mask for next-token prediction
+        loss_mask = loss_mask[:, 1:].bool()
+        
+        # Truncate if needed
+        if args.max_seq_length > 0:
+            padded_input_ids = padded_input_ids[:, :args.max_seq_length]
+            attention_mask = attention_mask[:, :args.max_seq_length]
+            loss_mask = loss_mask[:, :args.max_seq_length-1]
+        #For RWKV-7 Chunk, len of input_ids must be 16x, so we need to pad the input_ids to 16x
+        length = padded_input_ids.shape[1]
+        #we pad the input_ids to args.max_seq_length 
+        #if args.max_seq_length % 16 == 0, it will satisfy RWKV-7 chunk requirement
+        if length < args.max_seq_length:
+            padded_input_ids = F.pad(padded_input_ids, (0, args.max_seq_length-length), value=pad_token_id)
+            attention_mask = F.pad(attention_mask, (0, args.max_seq_length-length), value=0)
+            loss_mask = F.pad(loss_mask, (0, args.max_seq_length-length), value=0)
+        
+        '''
+        if args.local_rank == 0:
+            print("\nSequence order verification:")
+            print(f"Total sequences: {len(sequences)}")
+            print(f"Prompt lengths: {prompt_lens}")
+            print(f"Sequence lengths: {sequence_lens}")
+            print(f"Final padded length: {max_len}")
+            
+            # Print actual sequences for verification
+            print("\nFirst chosen and rejected for first sample:")
+            print(f"Chosen (sample 1): {padded_input_ids[0, :sequence_lens[0]].tolist()}")
+            print(f"Rejected (sample 1): {padded_input_ids[batch_size, :sequence_lens[batch_size]].tolist()}")
+            print(f"Whole input_ids (sample 1) Chosen: {padded_input_ids[0].tolist()}")
+            print(f"Whole attention_mask (sample 1) Chosen: {attention_mask[0].tolist()}")
+            print(f"Whole loss_mask (sample 1) Chosen: {loss_mask[0].tolist()}")
+            print(f"Whole input_ids (sample 1) Rejected: {padded_input_ids[batch_size].tolist()}")
+            print(f"Whole attention_mask (sample 1) Rejected: {attention_mask[batch_size].tolist()}")
+            print(f"Whole loss_mask (sample 1) Rejected: {loss_mask[batch_size].tolist()}")
+        '''
+        return padded_input_ids, attention_mask, loss_mask
+
+    # Get model outputs for concatenated sequences
+    @time_function
+    def get_model_outputs(model, input_ids, attention_mask, loss_mask):
+        outputs = model(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            return_dict=True
+        )
+        
+        # Get logits and prepare labels
+        logits = outputs.logits[:, :-1]  # Remove last logit
+        labels = input_ids[:, 1:].clone()  # Shift right for next-token prediction
+        
+        # Calculate per-token log probabilities
+        per_token_logps = torch.gather(
+            logits.log_softmax(-1),
+            dim=2,
+            index=labels.unsqueeze(2)
+        ).squeeze(2)
+        
+        # Apply loss mask and sum
+        per_token_logps = per_token_logps * loss_mask
+        return per_token_logps.sum(dim=-1), logits
+
+    # Concatenate inputs
+    input_ids, attention_mask, loss_mask = concatenate_inputs(batch,args.pad_id)
+    batch_size = batch["prompt_input_ids"].shape[0]
+
+    # Get policy model outputs
+    policy_logps, policy_logits = get_model_outputs(model, input_ids, attention_mask, loss_mask)
+    chosen_policy_logps = policy_logps[:batch_size]
+    rejected_policy_logps = policy_logps[batch_size:]
+
+    # Get reference model outputs
+    with torch.no_grad():
+        ref_logps, ref_logits = get_model_outputs(ref_model, input_ids, attention_mask, loss_mask)
+        chosen_ref_logps = ref_logps[:batch_size]
+        rejected_ref_logps = ref_logps[batch_size:]
+
+    # Calculate logits/rewards
+    chosen_logratios = chosen_policy_logps - chosen_ref_logps
+    rejected_logratios = rejected_policy_logps - rejected_ref_logps
+    logits = chosen_logratios - rejected_logratios
+    
+    # Calculate loss based on type
+    if args.loss_type == "sigmoid":
+        losses = (
+            -F.logsigmoid(args.dpo_beta * logits) * (1 - args.label_smoothing)
+            - F.logsigmoid(-args.dpo_beta * logits) * args.label_smoothing
+        )
+    elif args.loss_type == "hinge":
+        losses = torch.relu(1 - args.dpo_beta * logits)
+    else:
+        raise ValueError(f"Unknown loss type: {args.loss_type}")
+
+    # Calculate metrics
+    chosen_rewards = (chosen_policy_logps - chosen_ref_logps).detach()
+    rejected_rewards = (rejected_policy_logps - rejected_ref_logps).detach()
+    reward_accuracies = (chosen_rewards > rejected_rewards).float()
+
+    metrics = {
+        "rewards/chosen": chosen_rewards.mean(),
+        "rewards/rejected": rejected_rewards.mean(),
+        "rewards/accuracies": reward_accuracies.mean(),
+        "rewards/margins": (chosen_rewards - rejected_rewards).mean(),
+        "logits/chosen": policy_logits[:batch_size][loss_mask[:batch_size]].mean(),
+        "logits/rejected": policy_logits[batch_size:][loss_mask[batch_size:]].mean(),
+        "logps/chosen": chosen_policy_logps.mean(),
+        "logps/rejected": rejected_policy_logps.mean()
+    }
+
+    return losses.mean(), metrics
+
+@time_function
 def train_step(model, batch, args, teacher_engine=None, tokenizer=None):
     input_ids = batch['input_ids']
     labels = batch['labels']

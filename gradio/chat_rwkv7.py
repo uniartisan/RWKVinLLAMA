@@ -116,6 +116,7 @@ def chat(message, history, session):
             model_to_use = model.model
         else:
             model_to_use = model
+        print(f'{input_ids}')
         output = model_to_use.generate(
             input_ids=input_ids["input_ids"],
             attention_mask=input_ids["attention_mask"],
