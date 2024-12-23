@@ -95,6 +95,7 @@ def process_jsonl(input_file, output_file,model_path, ckpt_file,config_file,num_
                 preference_data["prompt"].append(prompt)
                 preference_data["chosen"].append(chosen)
                 preference_data["rejected"].append(rejected)
+                num_processed += 1
                 print(f'processed {num_processed} examples')
     #save preference data with parquet format
     print(f'save preference data to {output_file}')

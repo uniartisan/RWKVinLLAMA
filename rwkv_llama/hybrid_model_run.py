@@ -324,21 +324,34 @@ class HybridModel(nn.Module):
                 print(f'layer {layer_idx} is replaced by RWKV TimeMixer_x060')
         import gc
         gc.collect()
-    def load_checkpoint(self,ckpt_file):
-        if ckpt_file is not None:
-            print(f'loading ckpt from {ckpt_file}')
-            if os.path.isfile(ckpt_file):
-                info = self.load_state_dict(torch.load(ckpt_file,weights_only=True),strict=False)
-                print(f'loaded ckpt info: {info}')
-            elif os.path.isdir(ckpt_file):
-                print(f'loading ckpt from directory {ckpt_file}')
-                ckpt_files = os.listdir(ckpt_file)
-                for ckpt in ckpt_files:
-                    ckpt = os.path.join(ckpt_file,ckpt)
-                    if ckpt.endswith('.pt') or ckpt.endswith('.bin') or ckpt.endswith('.pth'):
-                        print(f'loading ckpt from {ckpt}')
-                        info = self.load_state_dict(torch.load(ckpt,weights_only=True),strict=False)
-
+    def load_checkpoint(self, path):
+        all_keys = set(self.state_dict().keys())
+        incompatible_keys = set()
+        #if the path is the file, load it directly
+        #if the path is the directory, load the sharded files in the directory with suffix .pt
+        if os.path.isdir(path):
+            files = os.listdir(path)
+            files = [os.path.join(path, f) for f in files if f.endswith('.pt')]
+        else:
+            files = [path]
+        for file in files:
+            checkpoint = torch.load(file, map_location='cpu')
+            self.load_state_dict(checkpoint, strict=False)
+            print(f'load model from {file}')
+            ckpt_keys = checkpoint.keys()
+            #subtract the keys in the checkpoint from the all_keys
+            #if the ckpt_key exists in the all_keys, remove it
+            for ckpt_key in ckpt_keys:
+                if ckpt_key in all_keys:
+                    all_keys.remove(ckpt_key)
+                else:
+                    incompatible_keys.add(ckpt_key)
+            del checkpoint
+            import gc
+            gc.collect()
+        print(f'Finish loading model from {path}')
+        print(f'Incompatible keys: {incompatible_keys} missing keys: {all_keys}')
+        
     def warmup_all_group_norms(self):
         """预热所有 RWKV 层中的 GroupNorm"""
         print("Starting GroupNorm warmup for all layers")
