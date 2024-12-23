@@ -20,23 +20,84 @@ def setup_env():
     os.environ['WKV'] = 'fla'
     os.environ["RWKV_TRAIN_TYPE"] = ''
 setup_env()
-from einops import rearrange
-from rwkvfla.ops.rwkv6 import chunk_rwkv6,fused_recurrent_rwkv6
-def RUN_CUDA_RWKV6_STATE(B, T, C, H, r, k, v, w, u, s):
-    getattr(torch, r.device.type).set_device(r.device.index)
-    r = rearrange(r, 'b l (h d) -> b h l d', h = H)
-    k = rearrange(k, 'b l (h d) -> b h l d', h = H)
-    v = rearrange(v, 'b l (h d) -> b h l d', h = H)
-    w = rearrange(-torch.exp(w), 'b l (h d) -> b h l d', h = H)
+import torch
+if os.environ.get('WKV') == 'fla':
+    from einops import rearrange
+    from rwkvfla.ops.rwkv6 import chunk_rwkv6,fused_recurrent_rwkv6
 
-    if r.size(2) == 1:
-        wkv6_func = fused_recurrent_rwkv6
-    else:
-        wkv6_func = chunk_rwkv6
+    def RUN_CUDA_RWKV6_STATE(B, T, C, H, r, k, v, w, u, s):
+        device = r.device
+        dtype = r.dtype
+        r = rearrange(r, 'b l (h d) -> b h l d', h = H)
+        k = rearrange(k, 'b l (h d) -> b h l d', h = H)
+        v = rearrange(v, 'b l (h d) -> b h l d', h = H)
+        w = rearrange(-torch.exp(w), 'b l (h d) -> b h l d', h = H)
+        if device != 'cuda:0':
+            o, state = chunk_rwkv6(r.to('cuda:0'), k.to('cuda:0'), v.to('cuda:0'), w.to('cuda:0'), u=u.to('cuda:0'), scale=1., initial_state=s.to('cuda:0'), output_final_state=True,training=False)
+            o = o.to(device)
+            state = state.to(device)
+        else:
+            o, state = chunk_rwkv6(r, k, v, w, u=u, scale=1., initial_state=s, output_final_state=True,training=False)
+        x = rearrange(o, 'b h l d -> b l (h d)')
+        return x.to(dtype), state.to(dtype)
+else:
+    from torch.utils.cpp_extension import load
+    HEAD_SIZE = int(os.environ["RWKV_HEAD_SIZE_A"])
+    parent_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    src_path = os.path.join(parent_dir,'rwkv')
+    wkv6state_cuda = load(name="wkv6infctx", sources=[f"{src_path}/cuda/wkv6infctx_op.cpp", f"{src_path}/cuda/wkv6infctx_cuda.cu"],
+                            verbose=True, extra_cuda_cflags=["-res-usage", "--use_fast_math", "-O3", "-Xptxas -O3", "--extra-device-vectorization", f"-D_N_={HEAD_SIZE}", f"-D_T_={int(os.environ['RWKV_CTXLEN'])}"])
+                
+    class WKV_6STATE(torch.autograd.Function):
+        @staticmethod
+        def forward(ctx, B, T, C, H, r, k, v, w, u, s):
+            with torch.no_grad():
+                assert r.dtype == torch.bfloat16
+                assert k.dtype == torch.bfloat16
+                assert v.dtype == torch.bfloat16
+                assert w.dtype == torch.bfloat16
+                assert u.dtype == torch.bfloat16
+                assert s.dtype == torch.bfloat16
+                assert HEAD_SIZE == C // H
+                ctx.B = B
+                ctx.T = T
+                ctx.C = C
+                ctx.H = H
+                assert r.is_contiguous()
+                assert k.is_contiguous()
+                assert v.is_contiguous()
+                assert w.is_contiguous()
+                assert u.is_contiguous()
+                assert s.is_contiguous()
+                ctx.save_for_backward(r, k, v, w, u, s)
+                y = torch.empty((B, T, C), device=r.device, dtype=torch.bfloat16, memory_format=torch.contiguous_format)#.uniform_(-100, 100)
+                wkv6state_cuda.forward(B, T, C, H, r, k, v, w, u, s, y)
+                return y
 
-    o, state = wkv6_func(r, k, v, w, u=u, scale=1., initial_state=s, output_final_state=True, training=False)
-    x = rearrange(o, 'b h l d -> b l (h d)')
-    return x, state
+        @staticmethod
+        def backward(ctx, gy):
+            with torch.no_grad():
+                assert gy.dtype == torch.bfloat16
+                B = ctx.B
+                T = ctx.T
+                C = ctx.C
+                H = ctx.H
+                assert gy.is_contiguous()
+                r, k, v, w, u, s = ctx.saved_tensors
+                gr = torch.empty((B, T, C), device=gy.device, requires_grad=False, dtype=torch.bfloat16, memory_format=torch.contiguous_format)#.uniform_(-100, 100)
+                gk = torch.empty((B, T, C), device=gy.device, requires_grad=False, dtype=torch.bfloat16, memory_format=torch.contiguous_format)#.uniform_(-100, 100)
+                gv = torch.empty((B, T, C), device=gy.device, requires_grad=False, dtype=torch.bfloat16, memory_format=torch.contiguous_format)#.uniform_(-100, 100)
+                gw = torch.empty((B, T, C), device=gy.device, requires_grad=False, dtype=torch.bfloat16, memory_format=torch.contiguous_format)#.uniform_(-100, 100)
+                gu = torch.empty((B, C), device=gy.device, requires_grad=False, dtype=torch.bfloat16, memory_format=torch.contiguous_format)#.uniform_(-100, 100)
+                gs = torch.empty((B, H, C//H, C//H), device=gy.device, requires_grad=False, dtype=torch.bfloat16, memory_format=torch.contiguous_format)#.uniform_(-100, 100)
+                wkv6state_cuda.backward(B, T, C, H, r, k, v, w, u, s, gy, gr, gk, gv, gw, gu, gs)
+                gu = torch.sum(gu, 0).view(H, C//H)
+                gs = torch.sum(gs, 0).view(H, C//H, C//H)
+                return (None, None, None, None, gr, gk, gv, gw, gu, gs)
+
+    def RUN_CUDA_RWKV6_STATE(B, T, C, H, r, k, v, w, u, s):
+        x = WKV_6STATE.apply(B, T, C, H, r, k, v, w, u, s)
+        return x, s
 import torch
 from utilities import TimeMixState, ChannelMixState, BlockState
 import torch.nn as nn
@@ -44,6 +105,7 @@ from torch.nn import functional as F
 from typing import Optional, Tuple
 import logging
 from transformers import AutoConfig,AutoModelForCausalLM
+from transformers.modeling_utils import no_init_weights
 from transformers.cache_utils import Cache,DynamicCache
 # from liger_kernel.transformers import LigerFusedLinearCrossEntropyLoss
 import os
@@ -143,7 +205,6 @@ class RWKV_Tmix_x060_infctx(nn.Module):
     def jit_func_2(self, x, g, timemixstate:TimeMixState):
         B, T, C = x.size()
         x = x.view(B * T, C)
-        
         x = self.ln_x(x).view(B, T, C)
         x = self.output(x * g)
         return x, timemixstate
@@ -239,107 +300,19 @@ class RWKV_CMix_x060_infctx(nn.Module):
         kv = self.value(k)
         return torch.sigmoid(self.receptance(xr)) * kv, ChannelMixState(x[:, -1])
     
-    
-class Block(nn.Module):
-    def __init__(self, args, layer_id):
-        super().__init__()
-        self.args = args
-        self.layer_id = layer_id
 
-        self.ln1 = nn.LayerNorm(args.n_embd)
-        self.ln2 = nn.LayerNorm(args.n_embd)
-
-        if self.layer_id == 0:
-            self.ln0 = nn.LayerNorm(args.n_embd)
-
-        self.att = RWKV_Tmix_x060_infctx(args, layer_id)
-
-        self.ffn = RWKV_CMix_x060_infctx(args, layer_id)
-        
-    def forward(self, x, last_state: BlockState = None, x_emb=None):
-        args = self.args
-        B, T, C = x.size()
-        if self.layer_id == 0:
-            x = self.ln0(x)
-        if last_state is None:
-            H =  args.dim_att // args.head_size_a
-            device = x.device
-            dtype = x.dtype
-            wkv_states = torch.empty((B, H, C//H, C//H),
-                                 device=device,
-                                 dtype=dtype)
-            shift_states = torch.empty((2,B,C),
-                                 device=device,
-                                 dtype=dtype)
-            wkv_states[:] = 0
-            shift_states[:] = 0
-            time_state = TimeMixState(shift_states[0], wkv_states)
-            # print(wkv_states)
-            channel_state = ChannelMixState(shift_states[1])
-            last_state = BlockState(time_state,channel_state)
-        if self.layer_id == 0 and args.pre_ffn > 0:
-            x = x + self.ffnPre(self.ln1(x))
-        else:
-            att_out, att_state = self.att(self.ln1(x), last_state.time_mix_state)
-            x = x + att_out
-        if args.is_llama_ffn:
-            ffn_out = self.ffn(self.ln2(x))
-            fnn_state = None
-        else:
-            ffn_out, fnn_state = self.ffn(self.ln2(x), last_state.channel_mix_state)
-        x = x + ffn_out
-        last_state.time_mix_state = att_state
-        last_state.channel_mix_state = fnn_state
-        return x, last_state
-class RWKVDecoderLayer(nn.Module):
-    def __init__(
-        self,
-        args,
-        layer_idx: int
-    ):
-        super(RWKVDecoderLayer, self).__init__()
-        self.block = Block(args,layer_idx)
-        self.layer_idx = layer_idx
-        self.args = args
-
-    def forward(self, 
-                hidden_states: torch.Tensor, 
-                past_key_value: Optional[Cache] = None,
-        use_cache: Optional[bool] = False, 
-        output_attentions: Optional[bool] = False, 
-        *args, 
-        **kwargs):
-        # Ensure hidden_states requires gradient
-        _,T,_ = hidden_states.shape
-        if past_key_value is not None:
-            if len(past_key_value) <= self.layer_idx:
-                last_state = None
-            else:
-                last_state = past_key_value[self.layer_idx][0]
-        hidden_states,states= self.block(hidden_states,last_state)
-        # hidden_states = self.block(hidden_states)
-        # logging.info(f'forward in {self.layer_idx}')
-        # so here is just to be compatible with Transformer
-
-        # past_key_value = kwargs.get("past_key_value", None)
-
-        if past_key_value is not None:
-            keys = T
-            values = states
-            past_key_value.update(keys, values, self.layer_idx)
-        outputs = (hidden_states,)
-        if output_attentions :
-            outputs += (None,)
-        if use_cache:
-            outputs += (past_key_value,)
-        return outputs
 
 class HybridModel(nn.Module):
     
     def __init__(self,rwkv_args,transformer_config):
         super(HybridModel, self).__init__()
         self.args = rwkv_args
-        self.model = AutoModelForCausalLM.from_config(transformer_config)
+        print(f'rwkv_args: {rwkv_args}')
+        print(f'transformer_config: {transformer_config}')
+        if transformer_config.tie_word_embeddings :
+            transformer_config.tie_word_embeddings = False
+        with no_init_weights():
+            self.model = AutoModelForCausalLM.from_config(transformer_config)
         #Replace the self attention to TimeMixer
         for layer_idx in range(transformer_config.num_hidden_layers):
             llama_layer = self.model.model.layers[layer_idx]
@@ -365,54 +338,50 @@ class HybridModel(nn.Module):
                     if ckpt.endswith('.pt') or ckpt.endswith('.bin') or ckpt.endswith('.pth'):
                         print(f'loading ckpt from {ckpt}')
                         info = self.load_state_dict(torch.load(ckpt,weights_only=True),strict=False)
-    # def __init__(self,transformer_model,rwkv_args):
-    #     super(HybridModel, self).__init__()
-    #     if transformer_model.config.tie_word_embeddings:
-    #         # copy untied embeddings
-    #         transformer_model.get_output_embeddings().weight = nn.Parameter(transformer_model.get_input_embeddings().weight.clone())
-    #         # untie the embeddings in the config, too
-    #         transformer_model.tie_word_embeddings = False
-    #     def init_block_params(rwkv_args,layer_idx,llama_layer):
-    #         if rwkv_args.is_rwkv_att_only:
-    #             print(f'init RWKV att only in layer {layer_idx}')
-    #             decoder = llama_layer
-    #             att = RWKV_Tmix_x060_infctx_Wrapper(rwkv_args,layer_idx)
-    #             # att.time_mixer.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
-    #             # att.time_mixer.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
-    #             # att.time_mixer.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
-    #             # att.time_mixer.output.weight.data = llama_layer.self_attn.o_proj.weight.data
-    #             llama_layer.self_attn = att
-    #             return decoder
-    #         else:
-    #             print(f'init RWKVDecoder in layer {layer_idx}')
-    #             decoder = RWKVDecoderLayer(rwkv_args,layer_idx)
-    #             # decoder.block.att.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
-    #             # decoder.block.att.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
-    #             # decoder.block.att.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
-    #             # decoder.block.att.output.weight.data = llama_layer.self_attn.o_proj.weight.data
-    #             if rwkv_args.is_llama_ffn:
-    #                 decoder.block.ffn = llama_layer.mlp
-    #             return decoder
-    #         # decoder = RWKVDecoderLayer(rwkv_args,layer_idx)
-    #         # if rwkv_args.is_llama_ffn:
-    #         #     decoder.block.ffn = llama_layer.mlp
-    #         # decoder.block.att.receptance.weight.data = llama_layer.self_attn.q_proj.weight.data
-    #         # decoder.block.att.key.weight.data = llama_layer.self_attn.k_proj.weight.data.repeat(n_share, 1)
-    #         # decoder.block.att.value.weight.data = llama_layer.self_attn.v_proj.weight.data.repeat(n_share, 1)
-    #         # decoder.block.att.output.weight.data = llama_layer.self_attn.o_proj.weight.data
-    #         # decoder.block.ffn.key.weight.data = llama_layer.mlp.up_proj.weight.data
-    #         # decoder.block.ffn.value.weight.data = llama_layer.mlp.down_proj.weight.data
-    #         return decoder
-    #     for layer_idx in range(transformer_model.config.num_hidden_layers):
-    #         if layer_idx in rwkv_args.layers:
-    #             rwkv_encoder = init_block_params(rwkv_args,layer_idx,transformer_model.model.layers[layer_idx])
-    #             old_layer = transformer_model.model.layers[layer_idx]
-    #             del old_layer
-    #             torch.cuda.empty_cache()
-    #             transformer_model.model.layers[layer_idx] = rwkv_encoder
-    #             print(f'layer {layer_idx} is replaced by RWKV')
-    #     self.model = transformer_model
-    #     self.args = rwkv_args
+
+    def warmup_all_group_norms(self):
+        """预热所有 RWKV 层中的 GroupNorm"""
+        print("Starting GroupNorm warmup for all layers")
+        
+        with torch.no_grad():
+            num_gpus = torch.cuda.device_count()
+            
+            for layer_idx in self.args.layers:
+                print(f"Warming up layer {layer_idx}")
+                layer = self.model.model.layers[layer_idx].self_attn.time_mixer
+                
+                device = layer.time_maa_x.device
+                print(f"Warming up on {device}")
+                
+                torch.cuda.synchronize(device)
+                # 创建测试输入
+                dummy_batch = torch.ones(2, 1, self.args.dim_att,
+                                      dtype=torch.bfloat16,
+                                      device=device)
+                dummy_state = TimeMixState(
+                    shift_state=torch.zeros(2, self.args.dim_att,
+                                          dtype=torch.bfloat16,
+                                          device=device),
+                    wkv_state=torch.zeros(2, layer.n_head,
+                                        self.args.dim_att//layer.n_head,
+                                        self.args.dim_att//layer.n_head,
+                                        dtype=torch.bfloat16,
+                                        device=device)
+                )
+                
+                try:
+                    # 运行一次完整的前向传播
+                    _, _ = layer(dummy_batch, dummy_state)
+                    print(f"Successfully warmed up layer {layer_idx} on {device}")
+                except Exception as e:
+                    print(f"Warning: Failed to warm up layer {layer_idx} on {device}: {e}")
+                
+                # 清理内存
+                torch.cuda.empty_cache()
+                torch.cuda.synchronize(device)
+        
+        print("Finished warming up all layers")
+    
     def forward(
         self,
         input_ids,
@@ -443,18 +412,89 @@ def create_rwkv_args(transformer_config, config):
     return args
          
 if __name__ == '__main__':
-    from transformers import AutoModelForCausalLM, AutoTokenizer
-    config_file = "configs/test_hybrid_full_logits_stage_2.yaml"
+    from transformers import AutoModelForCausalLM, AutoTokenizer,AutoConfig
+    config_file = "configs/qwen_32b.yaml"
     import yaml
     with open(config_file) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
     print(config)
     model_id = config['Llama']['model_id']
     tokenizer = AutoTokenizer.from_pretrained(model_id)
-    transformer_model = AutoModelForCausalLM.from_pretrained(model_id)
-    print(transformer_model)
-    args = create_rwkv_args(transformer_model.config, config)
-    model = HybridModel(transformer_model,args)
+    transformer_config = AutoConfig.from_pretrained(model_id)
+    args = create_rwkv_args(transformer_config, config)
+    model = HybridModel(args,transformer_config)
     print(model)
-    ckpt_file = '/data/rwkv/tmp/distill-c4-en-zh/pytorch_model.1400m.bin'
-    model.load_ckpt(ckpt_file)
+    ckpt_file = '/home/yueyulin/model/qwen_32b_distill_4k'
+    model.load_checkpoint(ckpt_file)
+    dtype = torch.bfloat16
+    model = model.to(dtype=dtype)
+    num_layers = model.model.config.num_hidden_layers
+    num_gpus = 4
+    device_map = {}
+    average_layers = num_layers // num_gpus
+    for i in range(num_layers):
+        device_map[f'model.layers.{i}'] = i // average_layers
+    device_map['model.embed_tokens'] = 'cpu'
+    device_map['model.norm'] = 'cpu'
+    device_map['model.rotary_emb'] = 'cpu'
+    device_map['lm_head'] = 'cpu'
+    from accelerate import dispatch_model
+    model.model = dispatch_model(model.model, device_map=device_map,offload_buffers=True)
+    print(model)
+    input('press any key to continue')
+    print('Model warmup start')
+    model.warmup_all_group_norms()
+    print('Model warmup end')
+    from transformers import GenerationConfig
+    gen_config = GenerationConfig(
+        max_new_tokens=256,
+        stop_strings = ["<|im_end|>"],
+        do_sample = True,
+        use_cache = True,
+        temperature = 0.3,
+        top_k = 20,
+        top_p = 0.5,
+        min_p = 0.05,
+        repetition_penalty = 1.1,
+        no_repeat_ngram_size = 3,
+    )
+    message = input('please input message:')
+    conversation = [{
+        'role': 'user',
+        'content': message
+    }]
+    while True:
+        current_input_text = tokenizer.apply_chat_template(conversation, tokenize=False, add_generation_prompt=True)
+        index_of_start = current_input_text.find("<|im_start|>user")
+        if index_of_start != -1:
+            current_input_text = current_input_text[index_of_start:]
+        print(current_input_text)
+        input_ids = tokenizer(current_input_text, return_tensors="pt").to("cuda:0")
+        input_length = input_ids.input_ids.shape[1]
+        from rwkv_llama.utilities import HybridCache
+        cache = HybridCache()
+        with torch.no_grad():
+            model_to_use = model.model
+            print(model_to_use)
+            output = model_to_use.generate(
+                    input_ids=input_ids['input_ids'],
+                    attention_mask=input_ids['attention_mask'],
+                    past_key_values=cache,
+                    generation_config=gen_config,
+                    tokenizer = tokenizer,
+                    use_cache = True
+                )
+        
+        generated_text = tokenizer.decode(output[0,input_length:], skip_special_tokens=True)            
+        print(generated_text)
+        conversation.append({
+            'role': 'assistant',
+            'content': generated_text
+        })
+        message = input(':')
+        conversation.append({
+            'role': 'user',
+            'content': message
+        })
+        if message == 'exit':
+            break
