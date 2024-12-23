@@ -63,6 +63,7 @@ def process_jsonl(input_file, output_file,model_path, ckpt_file,config_file,num_
         no_repeat_ngram_size=4,
     )
     with open(input_file, 'r') as f:
+        num_processed = 0
         for line in f:
             conversation = json.loads(line)
             if 'text' in conversation:
@@ -94,6 +95,7 @@ def process_jsonl(input_file, output_file,model_path, ckpt_file,config_file,num_
                 preference_data["prompt"].append(prompt)
                 preference_data["chosen"].append(chosen)
                 preference_data["rejected"].append(rejected)
+                print(f'processed {num_processed} examples')
     #save preference data with parquet format
     print(f'save preference data to {output_file}')
     from datasets import Dataset
