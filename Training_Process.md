@@ -118,3 +118,21 @@ sh 2_train_kl.sh \
 -S 3 \
 -k /home/yueyulin/model/qwen_0.5b_full_layers/pytorch_model.bin
 ```
+
+## Stage 3
+Stage 3 is almost identical to Stage 2. The only difference is that the maximum sequence length is set to the length you want to train. The example command is:
+```bash
+sh 2_train_kl.sh \
+-c configs/qwen_0.5b.yaml \
+-l 0.0001 \
+-f 0.00001 \
+-b 4 \
+-p /home/yueyulin/data/all_train_ds_v1+magpie/ \
+-o /home/yueyulin/model/qwen_0.5b_full_layers_stage_3 \
+-g 1  \
+-s 2 \
+-R v6 \
+-S 3 \
+-m 4096 \
+-k /home/yueyulin/model/qwen_0.5b_full_layers_stage_2/qwen_0.5b_full_layers/pytorch_model.bin
+```

@@ -334,7 +334,7 @@ class HybridModel(nn.Module):
     def get_v_first(self):
         return self.thread_local.v_first
 
-    def load_ckpt(self, path):
+    def load_checkpoint(self, path):
         all_keys = set(self.state_dict().keys())
         incompatible_keys = set()
         #if the path is the file, load it directly
@@ -406,4 +406,4 @@ if __name__ == "__main__":
     model = HybridModel(args, transformer_config)
     print(model)
     ckpt_file = "/home/yueyulin/model/qwen_7b_distill/7b_stage2_model_converted.bin"
-    model.load_ckpt(ckpt_file)
+    model.load_checkpoint(ckpt_file)
