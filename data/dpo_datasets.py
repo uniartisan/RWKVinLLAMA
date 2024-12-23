@@ -9,7 +9,7 @@ class DPODataCollator:
         """Format a single message into ChatML format string."""
         role = message["role"]
         content = message["content"]
-        return f"<|im_start|>{role}\n{content}<|im_end|>\n"
+        return f"<|im_start|>{role}\n{content}<|im_end|>"
 
     def format_conversation(self, messages):
         """Format a list of messages into a complete conversation string."""
@@ -45,7 +45,7 @@ class DPODataCollator:
         # full_rejected_text = f"{prompt_text}\n{rejected_text}"
 
         return {
-            "prompt": prompt_text,
+            "prompt": prompt_text+"<|im_start|>assistant\n",
             "chosen": chosen_text,
             "rejected": rejected_text
         }

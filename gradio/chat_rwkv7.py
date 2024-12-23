@@ -41,7 +41,7 @@ def load_model(config_file, ckpt_file, num_gpus, off_load_emb_head):
         print(f"args is {args}")
         with no_init_weights():
             model = HybridModel(args, transformer_config)
-        model.load_ckpt(ckpt_file)
+        model.load_checkpoint(ckpt_file)
         from accelerate import dispatch_model, infer_auto_device_map
 
         model = model.to(dtype=dtype)
