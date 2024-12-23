@@ -2,7 +2,7 @@ import sys
 import os
 import types
 import threading
-
+import gc
 
 def setup_env():
     parent_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -334,12 +334,33 @@ class HybridModel(nn.Module):
     def get_v_first(self):
         return self.thread_local.v_first
 
-    def load_ckpt(self, ckpt_file):
-        print(f"loading ckpt from {ckpt_file}")
-        info = self.load_state_dict(
-            torch.load(ckpt_file, weights_only=True), strict=False
-        )
-        print(f"loaded ckpt info: {info}")
+    def load_ckpt(self, path):
+        all_keys = set(self.state_dict().keys())
+        incompatible_keys = set()
+        #if the path is the file, load it directly
+        #if the path is the directory, load the sharded files in the directory with suffix .pt
+        if os.path.isdir(path):
+            files = os.listdir(path)
+            files = [os.path.join(path, f) for f in files if f.endswith('.pt')]
+        else:
+            files = [path]
+        for file in files:
+            checkpoint = torch.load(file, map_location='cpu')
+            self.load_state_dict(checkpoint, strict=False)
+            print(f'load model from {file}')
+            ckpt_keys = checkpoint.keys()
+            #subtract the keys in the checkpoint from the all_keys
+            #if the ckpt_key exists in the all_keys, remove it
+            for ckpt_key in ckpt_keys:
+                if ckpt_key in all_keys:
+                    all_keys.remove(ckpt_key)
+                else:
+                    incompatible_keys.add(ckpt_key)
+            del checkpoint
+            gc.collect()
+        print(f'Finish loading model from {path}')
+        print(f'Incompatible keys: {incompatible_keys} missing keys: {all_keys}')
+        
 
 
 def create_rwkv_args(transformer_config, config):

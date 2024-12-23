@@ -99,13 +99,13 @@ def chat(message, history, session):
     from transformers import GenerationConfig
 
     gen_config = GenerationConfig(
-        max_new_tokens=256,
+        max_new_tokens=1024,
         stop_strings=["<|im_end|>"],
         do_sample=True,
         use_cache=True,
-        temperature=1,
-        top_k=3,
-        top_p=1,
+        temperature=0.7,
+        top_k=40,
+        top_p=0.9,
         min_p=0.05,
         repetition_penalty=1.1,
         no_repeat_ngram_size=4,
@@ -116,7 +116,7 @@ def chat(message, history, session):
             model_to_use = model.model
         else:
             model_to_use = model
-        print(f'{input_ids}')
+        print(f'{input_ids['input_ids'].shape}')
         output = model_to_use.generate(
             input_ids=input_ids["input_ids"],
             attention_mask=input_ids["attention_mask"],

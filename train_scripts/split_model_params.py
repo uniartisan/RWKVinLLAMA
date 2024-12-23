@@ -1,11 +1,11 @@
+'''
 import torch
 import json
 import os
 import sys
 import argparse
-
 if __name__ == '__main__':
-    '''
+
     This utility will take a model paramters file and split it into multiple files
     Args:
     --input_model_file: The model parameters file
@@ -15,12 +15,14 @@ if __name__ == '__main__':
     A file named "model_params.json" will be saved in output_dir containing the information about the split files
     The splitted pattern is as follows:
     MODEL_BASE_NAME_import torch
+'''
 import json
 import os
 import sys
 import argparse
 from typing import Dict, List, Tuple
 import numpy as np
+import torch
 
 def calculate_tensor_size(tensor: torch.Tensor) -> int:
     """Calculate the memory size of a tensor in bytes."""
@@ -103,7 +105,7 @@ def main():
     print("Done!")
 
 if __name__ == '__main__':
-    main()0000_Of_NUM_SPLITS.pt
+    main()
     '''
     parser = argparse.ArgumentParser()
     parser.add_argument('--input_model_file', type=str, required=True)
@@ -138,4 +140,4 @@ if __name__ == '__main__':
         json.dump(model_params, f, indent=4,ensure_ascii=False)
         
         
-    
+'''
