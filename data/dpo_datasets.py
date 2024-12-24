@@ -43,7 +43,10 @@ class DPODataCollator:
         # Build complete conversations by combining prompt with responses
         # full_chosen_text = f"{prompt_text}\n{chosen_text}"
         # full_rejected_text = f"{prompt_text}\n{rejected_text}"
-
+        #remove "<|im_start|>assistant\n" from chosen_text and rejected_text
+        length = len("<|im_start|>assistant\n")
+        chosen_text = chosen_text[length:]
+        rejected_text = rejected_text[length:]
         return {
             "prompt": prompt_text+"<|im_start|>assistant\n",
             "chosen": chosen_text,
@@ -95,12 +98,15 @@ class DPODataCollator:
         }
 
 if __name__ == '__main__':
-    dataset_path = '/home/yueyulin/data/Infinity-Preference/'
+    dataset_path = '/home/yueyulin/data/xiaoke_pref'
     import glob
     #Train files starts with train ends with parquet
-    train_files = glob.glob(dataset_path + 'train*.parquet')
-    print(train_files)
-    train_ds = datasets.load_dataset('parquet', data_files=train_files)['train']
+    try:
+        train_ds = datasets.load_from_disk(dataset_path)
+    except Exception as e:
+        train_files = glob.glob(dataset_path + 'train*.parquet')
+        print(train_files)
+        train_ds = datasets.load_dataset('parquet', data_files=train_files)['train']
     print(train_ds)
     print(train_ds[0])
     model_path = "/home/yueyulin/models/Qwen2.5-7B-Instruct/"
@@ -111,9 +117,12 @@ if __name__ == '__main__':
     from torch.utils.data import DataLoader
     loader = DataLoader(train_ds, batch_size=2, collate_fn=collator)
     for batch in loader:
-        print(batch['prompt_input_ids'].tolist())
-        print(batch['chosen_input_ids'].tolist())
-        print(batch['rejected_input_ids'].tolist())
+        print('prompt')
+        print(tokenizer.decode(batch['prompt_input_ids'][0]))
+        print('chosen')
+        print(tokenizer.decode(batch['chosen_input_ids'][0]))
+        print('rejected')
+        print(tokenizer.decode(batch['rejected_input_ids'][0]))
         print(batch['prompt_attention_mask'].tolist())
         print(batch['chosen_attention_mask'].tolist())
         print(batch['rejected_attention_mask'].tolist())

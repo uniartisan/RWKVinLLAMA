@@ -423,9 +423,16 @@ if __name__ == '__main__':
         from torch.utils.data.distributed import DistributedSampler
         pad_token_id = tokenizer.pad_token_id
         data_collator = partial(data_collator_with_pad, max_seq_length=args.max_seq_length,pad_token_id=pad_token_id)
-        train_dir = args.preprocessed_data[0]
-        val_dir = args.preprocessed_data[1] if len(args.preprocessed_data) > 1 else None
-        train_ds = datasets.load_from_disk(train_dir)
+        
+        # 加载所有训练集数据
+        train_datasets = []
+        for data_path in args.preprocessed_data:  # 最后一个路径作为验证集
+            ds = datasets.load_from_disk(data_path)
+            train_datasets.append(ds)
+        
+        # 合并所有训练集
+        train_ds = datasets.concatenate_datasets(train_datasets)
+        
         train_sampler = DistributedSampler(
             train_ds,
             num_replicas=args.world_size,
@@ -441,27 +448,7 @@ if __name__ == '__main__':
             drop_last=True, 
             collate_fn=data_collator
         )
-        if val_dir is not None:
-            val_ds = datasets.load_from_disk(val_dir)
-            # 验证集也需要 DistributedSampler
-            val_sampler = DistributedSampler(
-                val_ds,
-                num_replicas=args.world_size,
-                rank=args.local_rank,
-                shuffle=False  # 验证集通常不需要打乱
-            )
-            
-            val_dataloader = torch.utils.data.DataLoader(
-                val_ds, 
-                batch_size=args.micro_bsz, 
-                sampler=val_sampler,  # 使用分布式 sampler
-                num_workers=4, 
-                pin_memory=True, 
-                drop_last=True, 
-                collate_fn=data_collator
-            )    
-        else:
-            val_dataloader = None
+        val_dataloader = None
         if args.local_rank == 0:
             print(f'load preprocessed data from {args.preprocessed_data} done')
     else:
@@ -744,7 +731,7 @@ if __name__ == '__main__':
 
     # 训练循环
     # 创建管理器实例
-    terminate = True
+    terminate = False
     teacher_attn_manager = TeacherAttnManager(model_engine, args.layers)
     for epoch in range(args.max_epochs):
         model_engine.train()

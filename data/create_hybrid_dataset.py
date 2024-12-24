@@ -1,4 +1,6 @@
 import argparse
+import argcomplete
+from typing import List
 from transformers import AutoTokenizer
 import glob
 import json
@@ -39,7 +41,9 @@ def parse_args():
     parser.add_argument('--max_len', type=int, default=2048)
     parser.add_argument('--is_padding_to_max',action='store_true',help='if padding to max_len')
     parser.add_argument('--output_dir', type=str, default='/home/yueyulin/data/ultrachat_hybrid_ds/')
+    argcomplete.autocomplete(parser)
     args = parser.parse_args()
+    
     return args
 
 def create_user_input(input_text, is_llama):
@@ -113,9 +117,16 @@ def process_file(jsonl_file, tokenizer_path, max_len, tmp_output_dir,is_padding_
                 except Exception as e:
                     print(f"处理文件 {jsonl_file} 时出错: {e}, 跳过{line}")
                     continue
-                if 'data' in data or "messages" in data:
+                if 'data' in data or "messages" in data \
+                or ("text" in data and isinstance(data['text'],List)):
                     try:
-                        conversations = data['data'] if 'data' in data else data['messages']
+                        if 'data' in data:
+                            conversations = data['data']
+                        elif "messages" in data:
+                            conversations = data['messages']
+                        else:
+                            conversations = data['text']
+                        # conversations = data['data'] if 'data' in data else data['messages']
                         input_ids, labels,length = create_inputs_labels(conversations, tokenizer, is_llama, max_len,is_padding_to_max)
                         dict_data['input_ids'].append(input_ids)
                         dict_data['labels'].append(labels)

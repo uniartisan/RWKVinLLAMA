@@ -386,9 +386,18 @@ if __name__ == '__main__':
         collator = DPODataCollator(tokenizer,max_length=args.max_seq_length)
         train_ds = []
         for data_dir in args.preprocessed_data:
+            
+            #Train files starts with train ends with parquet
+            try:
+                train_ds.append(datasets.load_from_disk(data_dir))
+            except Exception as e:
+                train_files = glob.glob(data_dir + 'train*.parquet')
+                print(train_files)
+                train_ds.append(datasets.load_dataset('parquet', data_files=train_files)['train'])
+                    
             #load parquet files dataset starts with train
-            train_files = glob.glob(data_dir + 'train*.parquet')
-            train_ds.append(datasets.load_dataset('parquet', data_files=train_files)['train'])
+            # train_files = glob.glob(data_dir + 'train*.parquet')
+            # train_ds.append(datasets.load_dataset('parquet', data_files=train_files)['train'])
         train_ds = datasets.concatenate_datasets(train_ds)
         print(f'train_ds length is {len(train_ds)}')
         train_sampler = DistributedSampler(

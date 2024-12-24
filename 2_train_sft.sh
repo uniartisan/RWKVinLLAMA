@@ -7,7 +7,7 @@ export RWKV_VERSION=v6
 MAX_LENGTH=512
 CONFIG_FILE=toys_playground/configs/qwen7B_KL_Local.yaml
 OUTPUT_DIR=toys_playground/output
-PREPROCESSED_DATA=toys_playground/dataset
+PREPROCESSED_DATA="toys_playground/dataset"
 LR_INIT=6e-4
 LR_FINAL=1e-5
 WARMUP_STEPS=50
@@ -15,14 +15,15 @@ CKPT_FILE=""
 GRAD_CP=1
 DEEPSPEED_OFFLOAD=""
 FULL_PARAMS=""
-STAGE=4
+STAGE=3
 export WKV=""
 DEEPSTATE_STAGE=3
-MAX_TRAINED_TOKENS=1000_100_000_000
+MAX_TRAINED_TOKENS=100_100_000_000
 TERMINATE_LOSS=0.01
 WANDB=hybrid_trainer_toys
 WANDB_PROJECT=hybrid_trainer_toys
-while getopts "c:o:p:n:m:b:a:l:f:w:k:g:d:F:s:R:W:S:t:T:W:P:G:" opt; do
+EPOCH=1
+while getopts "c:o:p:n:m:b:a:l:f:w:k:g:d:F:s:R:W:S:t:T:W:P:G:e:" opt; do
     case $opt in
         c) CONFIG_FILE="$OPTARG";;
         o) OUTPUT_DIR="$OPTARG";;
@@ -38,7 +39,6 @@ while getopts "c:o:p:n:m:b:a:l:f:w:k:g:d:F:s:R:W:S:t:T:W:P:G:" opt; do
         g) GRAD_CP="$OPTARG";;
         d) DEEPSPEED_OFFLOAD="--deepspeed_offload";;
         F) FULL_PARAMS="--full_params";;
-        s) STAGE="4";;
         R) export RWKV_VERSION="$OPTARG";;
         W) export WKV="$OPTARG";;
         S) DEEPSTATE_STAGE="$OPTARG";;
@@ -47,6 +47,7 @@ while getopts "c:o:p:n:m:b:a:l:f:w:k:g:d:F:s:R:W:S:t:T:W:P:G:" opt; do
         P) WANDB_PROJECT="$OPTARG";;
         W) WANDB="$OPTARG";;
         G) GPUS_PER_NODE="$OPTARG";;
+        e) EPOCH="$OPTARG";;
         \?) echo "无效的选项 -$OPTARG" >&2; exit 1;;
     esac
 done
@@ -54,11 +55,10 @@ done
 TRAIN_BATCH_SIZE=$((NNODES * GPUS_PER_NODE * MICRO_BSZ * ACCUMULATE_GRAD_BATCHES))
 WORLD_SIZE=$((NNODES * GPUS_PER_NODE))
 # --deepspeed_offload \
-
 deepspeed \
     --num_nodes $NNODES \
     --num_gpus $GPUS_PER_NODE \
-    train_scripts/train_hybrid_deepspeed_dpo.py \
+    train_scripts/train_hybrid_deepspeed.py \
     --deepspeed \
     $DEEPSPEED_OFFLOAD \
     $FULL_PARAMS \
@@ -70,7 +70,7 @@ deepspeed \
     --num_nodes $NNODES \
     --micro_bsz $MICRO_BSZ \
     --accumulate_grad_batches $ACCUMULATE_GRAD_BATCHES \
-    --max_epochs 5 \
+    --max_epochs $EPOCH \
     --wandb $WANDB \
     --run_name $WANDB_PROJECT \
     --grad_cp $GRAD_CP \
